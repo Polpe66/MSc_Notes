@@ -578,31 +578,70 @@ Infine, l'uso sempre più pervasivo e costante dei dispositivi mobili genera sce
 
 Tutti i trend emergenti finora illustrati richiedono imperativamente l'adozione di un sistema di gestione flessibile delle risorse fisiche di rete. Purtroppo, le reti tradizionali palesano pesanti limitazioni raggruppabili in tre diverse categorie critiche.
 
-In primo luogo, si affronta il problema dell'**Architettura Statica e Complessa**. Le reti tradizionali sono state fisicamente concepite come mere collezioni di protocolli che, per loro natura, vengono definiti in maniera del tutto indipendente l'uno dall'altro. Ciascun protocollo entra in gioco solo per risolvere una funzione estremamente ristretta e delineata, come avviene per il routing, lo spanning tree o le liste di controllo degli accessi (ACL). Questo approccio frammentato disintegra l'unità organica del piano di controllo, causando un accrescimento drastico e insostenibile della complessità a livello operativo.
+- In primo luogo, si affronta il problema dell'**Architettura Statica e Complessa**. Le reti tradizionali sono state fisicamente concepite come mere collezioni di protocolli che, per loro natura, vengono definiti in maniera del tutto indipendente l'uno dall'altro. Ciascun protocollo entra in gioco solo per risolvere una funzione estremamente ristretta e delineata, come avviene per il routing, lo spanning tree o le liste di controllo degli accessi (ACL). Questo approccio frammentato disintegra l'unità organica del piano di controllo, causando un accrescimento drastico e insostenibile della complessità a livello operativo.
 
-In secondo luogo, persiste una cronica **Inconsistenza delle Policy e Rigidità Operativa**. Le modifiche necessarie alle configurazioni devono per forza di cose essere applicate manualmente agendo individualmente su molteplici dispositivi hardware. Poiché queste policy vengono obbligatoriamente fatte rispettare a livello puramente locale su ogni singola macchina e non sono coordinate a livello globale, il rischio intrinseco di introdurre una misconfigurazione umana aumenta drasticamente.
+- In secondo luogo, persiste una cronica **Inconsistenza delle Policy e Rigidità Operativa**. Le modifiche necessarie alle configurazioni devono per forza di cose essere applicate manualmente agendo individualmente su molteplici dispositivi hardware. Poiché queste policy vengono obbligatoriamente fatte rispettare a livello puramente locale su ogni singola macchina e non sono coordinate a livello globale, il rischio intrinseco di introdurre una misconfigurazione umana aumenta drasticamente.
 
-Infine, l'ultimo enorme ostacolo all'innovazione è rappresentato dalla forte **Dipendenza dai Vendor e dall'Innovazione Limitata**. Negli apparati preesistenti, l'intera logica necessaria al controllo della rete risulta saldamente incastonata (embedded) all'interno di specifici chip o circuiti hardware proprietari. La completa assenza di interfacce aperte, che possano permettere una programmazione esterna agnostica, relega di fatto questi strumenti a meri dispositivi chiusi. Di conseguenza, l'implementazione pratica e l'effettivo rilascio nel mercato di nuovi servizi e capacità subiscono ritardi sistematici e si rivelano processi estenuanti e molto lenti.
+- Infine, l'ultimo enorme ostacolo all'innovazione è rappresentato dalla forte **Dipendenza dai Vendor e dall'Innovazione Limitata**. Negli apparati preesistenti, l'intera logica necessaria al controllo della rete risulta saldamente incastonata (embedded) all'interno di specifici chip o circuiti hardware proprietari. La completa assenza di interfacce aperte, che possano permettere una programmazione esterna agnostica, relega di fatto questi strumenti a meri dispositivi chiusi. Di conseguenza, l'implementazione pratica e l'effettivo rilascio nel mercato di nuovi servizi e capacità subiscono ritardi sistematici e si rivelano processi estenuanti e molto lenti.
 
 <img src="assets/2026-03-28-13-06-25-image.png" title="" alt="" data-align="center">
 
-Per comprendere come evolvere la rete moderna, è fondamentale rivolgere lo sguardo al passato per chiedersi: "Perché l'architettura di Internet ha potuto scalare in modo così trionfale?". Il vero segreto risiede nella brillante concezione della sua architettura strettamente stratificata a livelli. Procedendo dall'alto verso il basso della cosiddetta pila protocollare, si susseguono il livello Application, seguito dal livello Transport (che si occupa di gestire comunicazioni affidabili o inaffidabili), fino ad arrivare all'imprescindibile livello Network (focalizzato sull'operazione di best-effort, gestendo la consegna globale dei pacchetti). Il transito locale fisico avviene poi grazie al livello Link, per concludersi con le operazioni elettroniche sul livello di Physical transmission. In questo schema magistrale, ciascun livello garantisce la disponibilità di una astrazione di servizio chiara e incontrovertibile, nascondendo gelosamente la sua complessa implementazione interna agli strati operativi circostanti. È proprio questa compartimentazione che ha permesso alle varie tecnologie di abilitare un'innovazione totalmente indipendente su ciascun layer. Approfondendo, la stratificazione (o layering) riveste una rilevanza assoluta perché consente la scomposizione logica di sistemi immensamente complessi in blocchi gestibili, istituendo interfacce di servizio trasparenti che si pongono in mezzo ai vari componenti elaborativi. Tutto ciò promuove un'innovazione indipendente, pur mantenendosi perfettamente compatibile con ciascun livello superiore o inferiore. Senza tema di smentita, questo elegantissimo principio di astrazione è stata la chiave tecnica decisiva per determinare il successo planetario e inarrestabile di Internet.
+Per comprendere come evolvere la rete moderna, è fondamentale rivolgere lo sguardo al passato per chiedersi: "Perché l'architettura di Internet ha potuto scalare in modo così trionfale?". Il vero segreto risiede nella brillante concezione della sua architettura strettamente stratificata a livelli. Procedendo dall'alto verso il basso della cosiddetta pila protocollare, si susseguono il livello Application, seguito dal livello Transport (che si occupa di gestire comunicazioni affidabili o inaffidabili), fino ad arrivare all'imprescindibile livello Network (focalizzato sull'operazione di best-effort, gestendo la consegna globale dei pacchetti). Il transito avviene poi grazie al livello Link, per concludersi con le operazioni elettroniche sul livello di Physical transmission. In questo schema, ciascun livello garantisce la disponibilità di una astrazione di servizio chiara , nascondendo la sua complessa implementazione interna agli strati operativi circostanti. È proprio questo che ha permesso alle varie tecnologie di abilitare un'innovazione totalmente indipendente su ciascun layer. Approfondendo, la stratificazione (o layering) riveste una rilevanza assoluta perché consente la scomposizione logica di sistemi complessi in blocchi gestibili, istituendo interfacce di servizio trasparenti che si pongono in mezzo ai vari componenti elaborativi. Tutto ciò promuove un'innovazione indipendente, pur mantenendosi perfettamente compatibile con ciascun livello superiore o inferiore.
 
-Sfortunatamente, questo virtuoso principio fondativo non ha trovato un'applicazione coerente ovunque. A totale differenza del livello deputato al transito del dato, il piano per il controllo e la gestione della rete (Network Control/Management Plane) non poggia la propria fondazione architettonica attorno a una singola e pulita astrazione concettuale. Per decenni, esso si è voluto evolvere solamente a compartimenti stagni, aggiungendo funzioni caso per caso e in modo del tutto frammentario. Per ogni nuovo requisito espresso dagli operatori, l'unica risposta dell'industria è stata l'introduzione di un ennesimo e distinto protocollo indipendente. Gli hardware di rete sono stati commercializzati unicamente come apparati chiusi ("closed equipment"), equipaggiati con pacchetti software prettamente proprietari inclusi forzatamente assieme alla parte hardware, tutti provvisti rigorosamente di interfacce molto specifiche legate in modo esclusivo ai voleri del singolo vendor. Manca del tutto un set integrato di principi generali o astrazioni solide in grado di guidare il progettista verso una stesura pulita e logicamente corretta del piano di controllo o gestione, creando un netto divario tecnologico se paragoniamo questo settore all'eleganza teorica posta oggi alla base dei grandi sistemi distribuiti o dei database relazionali. Il risultato visibile oggi sul campo è l'operatività tramite un "grande calderone di protocolli" ("Big bag of protocols"), universalmente noto nell'ambiente tecnico per essere estremamente arduo e spigoloso da dover amministrare. Questo ingarbugliamento produce cicli di standardizzazione lentissimi e frena quasi irrimediabilmente l'effettiva evoluzione del settore.
+A differenza di altri settori tecnologici, la gestione delle reti non segue un modello unico e ordinato. Per decenni si è proceduto in modo frammentario: ogni volta che nasceva un nuovo bisogno, veniva creato un nuovo protocollo isolato.
 
-### Software Defined Networking: Concetti Principali e Definizioni
+### I punti critici:
 
-È in reazione a questo immobilismo che entra in scena il Software Defined Networking. Iniziamo definendo i concetti principali e sviscerando nel dettaglio le diverse funzioni che competono rigorosamente ai diversi strati del livello rete. La funzione di inoltro, nota come **forwarding**, è prerogativa assoluta del *data plane* (il piano dati). Essa consiste semplicemente nello spostare fisicamente i pacchetti dati dall'interfaccia di ingresso di un router fino all'appropriata e determinata interfaccia in uscita. Essendo un processo meccanico e ripetitivo, opera rigorosamente su scale temporali estramamente veloci ("fast timescales"), venendo elaborata individualmente per ogni singolo pacchetto in transito. 
+- **Sistemi Chiusi:** I produttori vendono hardware e software insieme come pacchetti "blindati". Questo costringe gli utenti a usare interfacce proprietarie diverse per ogni marca.
 
-La funzione di instradamento, meglio conosciuta come **routing**, afferisce invece al *control plane* (il piano di controllo). Il suo scopo preciso consiste nel calcolare e determinare formalmente l'intero percorso logico o topologico che ogni flusso di pacchetti dovrà seguire partendo dalla fonte per potersi adagiare a destinazione. 
+- **Mancanza di Standard:** Non esistono principi generali che guidino la progettazione, rendendo tutto molto più complicato rispetto ai moderni database o sistemi distribuiti.
 
-A differenza del forwarding, l'algoritmo di routing si attua in maniera computazionalmente più laboriosa e, di conseguenza, prende vita su scale temporali dilatate o lente ("slow time-scales"), la cui interazione è dettata non per ciascun bit, ma al presentarsi di un perimetro per singolo "evento di controllo".
+- **Il "Calderone di Protocolli":** Il risultato è un sistema ingarbugliato e difficilissimo da amministrare, che rallenta l'innovazione e rende i tempi di aggiornamento biblici.
 
-Per strutturare tecnicamente e fisicamente questo control plane esistono fondamentalmente due approcci antitetici. L'approccio convenzionale storico prevede un controllo definito *per-router*, in cui ogni apparato possiede una sua specifica individualità, mentre l'approccio propugnato e promosso dal Software Defined Networking si concretizza invece in un livello di controllo logicamente unificato e centralizzato.
+## La distinzione fondamentale: Piano Dati vs Piano di Controllo
+
+Per capire l'SDN, bisogna distinguere le due funzioni vitali di un router:
+
+- **Forwarding (Data Plane):** È l'azione fisica di spostare un pacchetto dall'entrata all'uscita del router.
+  
+  - *Caratteristiche:* Meccanico, ripetitivo e **velocissimo** (opera sul singolo pacchetto).
+
+- **Routing (Control Plane):** È il processo decisionale che calcola il percorso ideale che i dati devono seguire dalla sorgente alla destinazione.
+  
+  - *Caratteristiche:* Complesso, riflessivo e **più lento** (opera su eventi di rete, non sul singolo bit).
+
+| **Caratteristica** | **Approccio Tradizionale (Per-Router)**  | **Approccio SDN (Centralizzato)**                              |
+| ------------------ | ---------------------------------------- | -------------------------------------------------------------- |
+| **Intelligenza**   | Distribuita: ogni router decide per sé.  | **Centralizzata:** un unico "cervello" logico controlla tutto. |
+| **Configurazione** | Manuale e individuale per ogni apparato. | **Unificata:** si programma l'intera rete in una volta sola.   |
+| **Flessibilità**   | Bassa (sistema chiuso e rigido).         | **Alta** (grazie al software programmabile).                   |
+
+
+
+L'SDN toglie l'intelligenza dai singoli router (spesso chiusi e proprietari) e la sposta in un **controllore software centrale**. I router diventano così semplici esecutori di ordini, rendendo la rete molto più agile, economica e facile da gestire.
+
+> **Curiosità:** È un po' come passare da una città dove ogni semaforo decide da solo quando diventare verde, a una città con un computer centrale che coordina tutto il traffico in tempo reale per evitare ingorghi.
 
 <img src="assets/2026-03-28-13-06-39-image.png" title="" alt="" data-align="center">
 
-Nel modello a controllo distribuito *per-router*, singole componenti frazionate dell'algoritmo globale di instradamento operano disgiuntamente all'interno di ciascuno e in ogni singolo router distribuito sul territorio. Tali frammenti algoritmici interagiscono caoticamente scambiandosi comunicazioni sul control plane limitrofo per calcolare individualmente e localmente le proprie specifiche tabelle di inoltro o *forwarding tables*. Per comprendere la concretezza di questa procedura locale, le tabelle di forwarding implementate dai router convenzionali contengono un'associazione rigida e diretta tra gli specifici valori letti all'interno dell'intestazione di un pacchetto appena arrivato (ad esempio, rilevando il valore binario di un header corrispondente a 0111) e la corrispondente interfaccia fisica di output verso cui questo dato dovrà venire incanalato e smistato (indirizzandolo per l'appunto sulla porta 1, escludendo a priori le eventuali opzioni dirottate sulle porte fisiche numero 3 o numero 2, che verrebbero impiegate per associazioni binarie differenti come ad esempio header 0100 o 0110). Nelle reti tradizionali IP basate su tali presupposti, il piano del controllo assieme a quello del recapito dati risultano essere forzatamente e strettamente correlati ("tightly coupled"), incastrati materialmente e irrevocabilmente nei medesimi e soliti dispositivi proprietari incaricati alla commutazione. Questa struttura è caratterizzata da un profilo nel complesso altamente frammentato e totalmente decentralizzato. Questa non è una svista di design, ma una precisa ed esplicita direttiva implementativa voluta sin dagli albori progettuali del primordiale protocollo Internet, creata appositamente attorno all'indiscutibile obiettivo di dover conferire a tale rete la massima resilienza operativa nell'eventualità malaugurata di distruzioni settoriali delle tratte connesse.
+Nelle reti classiche, ogni router è un'entità autonoma. Non c'è un "capo" che decide la strada per tutti; ogni macchina deve capire da sola cosa fare.
+
+Immagina il router come un impiegato postale che guarda solo il codice postale (l'**header**) sul pacchetto:
+
+- Se legge `0111`, lo manda sulla **Porta 1**.
+
+- Se legge `0110`, lo manda sulla **Porta 2**.
+  Questa scelta è rigida e avviene in frazioni di secondo per ogni singolo pacchetto.
+
+Per sapere quale porta corrisponde a quale indirizzo, i router parlano tra loro continuamente. Si scambiano frammenti di informazioni ("Io sono qui", "La strada per Roma è da questa parte") per costruire le proprie tabelle interne. È un processo **frammentato** e **decentralizzato**.
+
+Non è un errore di progettazione, ma una scelta precisa nata agli albori di Internet:
+
+- **Obiettivo:** Massima resistenza ai guasti.
+
+- **Vantaggio:** Se un pezzo di rete viene distrutto (o un router si rompe), gli altri router se ne accorgono e ricalcolano i percorsi autonomamente. Non essendoci un computer centrale, non c'è un unico punto debole che, se colpito, fa cadere l'intera rete.
+
+In questo modello, il "cervello" (controllo) e le "braccia" (invio dati) sono **saldamente uniti** nello stesso apparato fisico. Questo rende la rete quasi indistruttibile, ma estremamente difficile da programmare o modificare rapidamente.
 
 ### Le Sfide dell'Ingegneria del Traffico nel Routing Tradizionale
 
@@ -614,7 +653,7 @@ I pesi sono manopole, ma non abbiamo molto controllo.
 
 ![](assets/2026-03-28-13-06-54-image.png)
 
-Risulta impossibile splittare il traffico u-z attraverso due percorsi differenti,  risulta necessario un nuovo algoritmo.
+Risulta impossibile splittare il traffico u-z attraverso due percorsi differenti, risulta necessario un nuovo algoritmo.
 
 ![](assets/2026-03-28-13-07-04-image.png)
 
@@ -736,8 +775,6 @@ In sintesi: con l'SDN, un unico cervello guarda l'intero traffico dall'alto e di
 
 # Capitolo 5: Il Data Plane nelle Architetture SDN e il Protocollo OpenFlow
 
-Questo capitolo analizza l'architettura di base del livello dati (Data Plane) all'interno del paradigma Software-Defined Networking (SDN). Verranno approfonditi i concetti fondamentali dell'inoltro generalizzato e del protocollo OpenFlow, esplorando come l'astrazione delle regole di instradamento consenta di programmare il comportamento dell'intera rete.
-
 ### L'Architettura SDN e il Ruolo del Data Plane
 
 Nelle architetture di rete tradizionali, l'hardware è strettamente accoppiato al software che ne decide il comportamento. Nel paradigma SDN, l'architettura è invece strutturata su livelli distinti: l'Application Plane (che ospita applicazioni di sicurezza, di rete e di business), il Control Plane (dove risiedono i controller SDN) e il Data Plane. Questi livelli comunicano tramite interfacce standardizzate; in particolare, le applicazioni comunicano con il controller tramite le Northbound API (ad esempio, le REST API), mentre il controller gestisce l'infrastruttura sottostante tramite le Southbound API, di cui OpenFlow è l'esempio più noto.
@@ -823,6 +860,8 @@ Per assimilare pienamente i concetti trattati in questa sezione, si invitano gli
 
 3. Relativamente al forwarding generalizzato nell'SDN, fornire tre esempi di campi di intestazione che possono essere verificati e tre tipologie di azioni intraprendibili dal dispositivo.
 
+---
+
 ### Glossario / Concetti Chiave
 
 - **Forwarding Abstraction:** Il disaccoppiamento concettuale tra il piano direzionale e la componente fisica di trasporto, che rende i dispositivi di rete semplici meri esecutori di regole imposte.
@@ -837,102 +876,91 @@ Per assimilare pienamente i concetti trattati in questa sezione, si invitano gli
 
 ----
 
-### L'Architettura SDN e il Ruolo del Data Plane
+### Esercitazione Pratica: Configurazione di una Flow Table
 
-Nelle architetture di rete tradizionali, l'hardware è strettamente accoppiato al software che ne decide il comportamento. Nel paradigma SDN, l'architettura è invece strutturata su livelli distinti: l'Application Plane (che ospita applicazioni di sicurezza, di rete e di business), il Control Plane (dove risiedono i controller SDN) e il Data Plane. Questi livelli comunicano tramite interfacce standardizzate; in particolare, le applicazioni comunicano con il controller tramite le Northbound API (ad esempio, le REST API), mentre il controller gestisce l'infrastruttura sottostante tramite le Southbound API, di cui OpenFlow è l'esempio più noto.
+Per comprendere a fondo il meccanismo di inoltro, è utile analizzare un problema pratico di configurazione di una rete SDN basata su OpenFlow. Immaginiamo una topologia in cui è necessario definire il comportamento di inoltro per i datagrammi in arrivo a uno specifico switch, denominato "s2".
 
-Il Data Plane rappresenta il livello delle risorse infrastrutturali ed è costituito dai dispositivi di inoltro, come switch virtuali, switch fisici e hypervisor hardware. La peculiarità di questi apparati in ambito SDN è che essi sono privi di software integrato per prendere decisioni autonome. Il loro unico scopo è eseguire il trasporto e l'elaborazione dei dati attenendosi scrupolosamente alle decisioni centralizzate calcolate dal Control Plane. Questo disaccoppiamento prende il nome di "Forwarding Abstraction", che consiste in un metodo universale (general-purpose) per permettere al piano di controllo di istruire il piano dati su come instradare i singoli pacchetti.
+<img src="assets/2026-03-28-14-14-28-image.png" title="" alt="" data-align="center">
 
-### L'Inoltro Generalizzato (Generalized Forwarding)
+Le specifiche di inoltro richieste per lo switch s2 sono le seguenti: in primo luogo, i datagrammi in arrivo alla porta 1 provenienti dagli host h5 o h6 e diretti agli host h1 o h2 devono essere inoltrati alla porta di uscita 2. Viceversa, i datagrammi che giungono alla porta 2 provenienti da h1 o h2 e destinati a h5 o h6 devono essere reinstradati verso la porta di uscita 1. Inoltre, i pacchetti in arrivo indifferentemente dalla porta 1 o 2 e destinati agli host locali h3 o h4 devono essere consegnati direttamente all'host specificato. Infine, gli host h3 e h4 devono poter scambiare liberamente datagrammi tra loro.
 
-Nei router tradizionali, le regole di inoltro si basano sulla destinazione: il dispositivo si limita a instradare il pacchetto verso una porta in base all'indirizzo IP di destinazione. Nelle architetture SDN, si passa all'inoltro generalizzato (generalized forwarding), un paradigma in cui l'operatività si fonda sull'astrazione definita "match plus action".
+Sulla base di queste direttive, il controller popolerà la Flow Table dello switch s2 con regole di match specifiche (basate su porte di ingresso e indirizzi IP sorgente/destinazione) e le corrispondenti azioni di inoltro. La corretta orchestrazione di queste tabelle, come documentato dalla vasta letteratura accademica di settore (tra cui i testi fondamentali di William Stallings , gli studi di Scott Shenker sul futuro del networking e l'esperienza diretta di implementazioni su larga scala come la rete B4 di Google descritta da Sushant Jain et al. ), è il cuore pulsante del paradigma SDN.
 
-All'interno di ogni router o switch SDN è presente una tabella di inoltro, comunemente nota come "flow table". Al momento della ricezione di un pacchetto, il dispositivo confronta (match) i valori dei bit contenuti in molteplici campi dell'intestazione (header). A seconda dell'esito della corrispondenza, il dispositivo può intraprendere diverse azioni, quali scartare (drop), copiare (copy), modificare (modify) o semplicemente registrare (log) il pacchetto.
+### Architettura e Componenti del Controller SDN
 
-[INSERIRE IMMAGINE: Schematizzazione di un router contenente una Flow table che illustra il processo di confronto dei valori dell'intestazione in ingresso con le regole di match e la relativa azione]
+Il Control Plane è dominato dalla figura del controller SDN, che agisce come il "cervello" dell'infrastruttura di rete. L'architettura interna di un controller si divide tipicamente in tre strati funzionali principali. Il primo è il livello di interfaccia verso le applicazioni di controllo di rete, che espone le API di astrazione ; attraverso interfacce come le API RESTful o i framework basati sugli "intenti" (intent), il controller comunica con i moduli superiori che si occupano di routing, controllo degli accessi e bilanciamento del carico.
 
-Un "flusso" (flow) è definito dai valori dei campi presenti nelle intestazioni a livello di collegamento (link layer), rete (network layer) e trasporto (transport layer). Le regole alla base della gestione dei pacchetti prevedono pattern precisi di valori (match) e le relative azioni da compiere sul pacchetto qualora i criteri vengano soddisfatti; tra le azioni più comuni troviamo l'inoltro, la modifica, lo scarto, o l'invio del pacchetto stesso al controller. Poiché potrebbero esserci pattern di match sovrapposti, i dispositivi fanno ricorso a un sistema di priorità (priority) per risolvere le ambiguità. Ogni regola è dotata inoltre di contatori (counters) che tengono traccia sia dei byte che del numero di pacchetti transitati per fini statistici.
+Scendendo di un livello, troviamo il sistema di gestione dello stato distribuito e robusto dell'intera rete. Questo strato funge da database centrale e mantiene una visione globale contenente le informazioni sullo stato dei collegamenti (link-state), sui dispositivi host, sugli switch, sulle statistiche di traffico, sulle tabelle di flusso attive e sul grafo generale della rete. Infine, il livello inferiore gestisce la comunicazione diretta da e verso i dispositivi controllati (gli switch fisici o virtuali del Data Plane) sfruttando protocolli standardizzati come OpenFlow o SNMP.
 
-Per fare un esempio pratico, se un pacchetto arriva con un indirizzo sorgente e destinazione che rientrano in una regola che prevede l'uso di caratteri jolly (wildcard, indicati con l'asterisco *), lo switch potrebbe inoltrarlo alla porta 2 o decidere di inviarlo al controller SDN, a seconda di ciò che recita la regola di azione.
+### Il Protocollo OpenFlow e la Classificazione dei Messaggi
 
-### Il Protocollo OpenFlow e la Struttura delle Flow Table
+OpenFlow opera direttamente tra il controller e lo switch, utilizzando nativamente il protocollo di trasporto TCP per lo scambio dei messaggi, con la possibilità di implementare una crittografia opzionale per garantire la sicurezza del canale. I messaggi scambiati si dividono in tre classi principali: i messaggi dal controller allo switch, i messaggi asincroni dallo switch al controller e i messaggi simmetrici.
 
-OpenFlow è un protocollo di comunicazione vitale per le architetture SDN, in quanto costituisce un'implementazione pratica delle Southbound API. Rilasciato originariamente nell'aprile del 2008 da Nick McKeown et al., all'interno della rivista ACM SIGCOMM Computer Communication Review, le sue versioni successive sono oggi amministrate dalla Open Networking Foundation (ONF). Sebbene il suo impiego negli ambienti di produzione reali sia rimasto limitato, il protocollo conserva un immenso valore accademico e didattico.
+<img src="assets/2026-03-28-14-15-18-image.png" title="" alt="" data-align="center">
 
-Le voci all'interno di una tabella OpenFlow si compongono principalmente dei blocchi "Match", "Action" e "Stats" (contatori di pacchetti e byte). Le istruzioni del blocco azione permettono allo switch di inoltrare i dati su specifiche porte, farli cadere (drop), modificarne i campi dell'header oppure incapsularli e spedirli al controller.
+Tra i messaggi chiave inviati dal controller allo switch, denominati "controller-to-switch", figurano il messaggio "features", con cui il controller interroga le capacità dello switch ottenendone una risposta dettagliata, e il messaggio "configure", utilizzato per impostare o leggere i parametri di configurazione del dispositivo. Di fondamentale importanza è il comando "modify-state", noto comunemente come FlowMod, che conferisce al controller il potere di aggiungere, eliminare o modificare le singole voci all'interno delle tabelle di flusso dello switch. Infine, il messaggio "packet-out" permette al controller di inviare un pacchetto incapsulato direttamente fuori da una specifica porta dello switch target.
 
-I campi di intestazione che lo switch può valutare nella fase di match attraversano i principali livelli della pila ISO/OSI. A livello Link (livello 2), OpenFlow controlla la porta di ingresso (Ingress Port), i MAC Address sorgente e destinazione, l'Ethernet Type e i tag VLAN (VLAN ID e VLAN Pri). A livello Network (livello 3), le verifiche ricadono su IP sorgente e destinazione, IP Protocol e IP ToS. A livello Trasporto, infine, è possibile verificare le porte TCP o UDP di sorgente e destinazione.
+Per quanto riguarda invece la comunicazione inversa, i messaggi "switch-to-controller" vengono inviati in modo asincrono. Il più noto è il "packet-in", utilizzato dallo switch per trasferire un pacchetto dati (e il relativo controllo gestionale) al controller, tipicamente quando non vi è alcuna regola di match valida nella flow table locale. Lo switch utilizza inoltre il messaggio "flow-removed" per notificare l'avvenuta eliminazione di una voce dalla propria tabella e il messaggio "port status" per informare tempestivamente il sistema centrale di qualsiasi cambiamento occorso allo stato di una porta fisica o logica. Nella pratica operativa odierna, gli amministratori di rete non programmano manualmente questi messaggi OpenFlow, ma si affidano ad astrazioni di livello superiore fornite direttamente dall'interfaccia utente o dalle API del controller.
 
-L'efficacia dell'astrazione "match+action" risiede nella sua capacità di unificare comportamenti originariamente prerogativa di dispositivi hardware differenti.
+### Dinamiche di Interazione: Gestione di un Guasto di Rete
 
-- Un **Router** si ottiene effettuando il match sul prefisso IP di destinazione più lungo, associato a un'azione di inoltro su uno specifico collegamento.
+Per illustrare chiaramente l'interazione tra i piani di controllo e dei dati, analizziamo la sequenza di eventi che segue la rottura di un collegamento fisico in una rete governata dal protocollo OpenFlow. Quando uno switch (ad esempio, s1) rileva un guasto su un proprio collegamento, utilizza immediatamente un messaggio OpenFlow di "port status" per notificare l'evento al controller. Il controller SDN riceve questa segnalazione e provvede ad aggiornare le informazioni sullo stato dei collegamenti (link-state info) all'interno del proprio database distribuito.
 
-- Uno **Switch** si modella facendo match sul MAC Address di destinazione e impostando azioni di inoltro o flooding.
+Questo aggiornamento di stato funge da trigger. L'applicazione di routing, basata ad esempio sull'algoritmo link-state di Dijkstra e precedentemente registrata per essere invocata al variare dello stato della rete, viene immediatamente attivata. L'algoritmo accede alle informazioni aggiornate sul grafo di rete e ricalcola tempestivamente i nuovi percorsi ottimali per aggirare il guasto. A questo punto, l'applicazione di routing interagisce con il componente del controller dedicato alla computazione delle tabelle di flusso, il quale traduce i nuovi percorsi in regole specifiche. Come ultimo passo, il controller sfrutta i messaggi FlowMod di OpenFlow per installare proattivamente le nuove tabelle aggiornate in tutti gli switch coinvolti nel ricalcolo della rotta.
 
-- Un **Firewall** analizza gli indirizzi IP e le porte TCP/UDP per poi applicare azioni di permesso o di negazione del traffico.
-  
-  - Un esempio pratico di firewall in OpenFlow consiste nel bloccare, tramite l'azione "drop", tutti i datagrammi diretti alla porta TCP 22 (la porta di default per le connessioni SSH) o, in alternativa, bloccare l'intero traffico originato da uno specifico host come l'IP 128.119.1.1.
+![](assets/2026-03-28-14-16-18-image.png)![](assets/2026-03-28-14-16-48-image.png)
 
-- Un **NAT (Network Address Translation)** si sviluppa facendo match su indirizzi IP e porte, con un'azione corrispondente atta a sovrascrivere tali valori (rewrite).
+### Implementazioni di Controller e Switch SDN
 
-L'orchestrazione combinata di queste tabelle su più switch permette al controller di stabilire percorsi e comportamenti a livello di intera rete (network-wide behavior). Questa "programmabilità della rete", che affonda le sue radici storiche nel concetto di active networking e che trova oggi un'evoluzione generalizzata in strumenti come P4, rende l'elaborazione del singolo pacchetto un'operazione completamente programmabile.
+Nel corso degli anni, il mercato e la comunità open source hanno sviluppato numerose implementazioni di controller SDN. Il pioniere storico in questo campo è stato NOX, il primo controller SDN in assoluto, seguito a ruota da progetti come Ryu. Le architetture moderne più diffuse in ambito open source includono OpenDayLight (ODL), Open Network Operating System (ONOS) e TeraFlow SDN.
 
-### Funzionamento Interno di un OpenFlow Switch
+L'architettura del controller OpenDayLight, ad esempio, si distingue per la presenza di un Service Abstraction Layer (SAL), un livello intermedio vitale che ha il compito di interconnettere le applicazioni e i servizi interni con le risorse di rete sottostanti, disaccoppiando le logiche di base dai protocolli hardware.
 
-Un dispositivo di rete all'interno del Data Plane assolve a due scopi complementari. Da un lato troviamo la funzione di "Data forwarding", che accetta i flussi dati (come traffico TCP/IP, UDP/IP o altri protocolli) dai sistemi finali o da altri apparati, instradandoli secondo percorsi pre-calcolati dalle applicazioni SDN. Dall'altro lato, vi è la "Control support function", atta a gestire l'interazione costante con il controller SDN.
+Dal canto suo, il controller ONOS enfatizza in particolar modo la netta separazione delle applicazioni di controllo dal core del controller stesso. ONOS introduce un "intent framework", ovvero un sistema che permette agli amministratori di specificare il servizio desiderato ad alto livello ("cosa" si vuole ottenere, anziché "come" ottenerlo a livello di singoli flussi). ONOS pone inoltre una forte enfasi sul suo nucleo distribuito, essenziale per garantire affidabilità del servizio, performance di replica e scalabilità orizzontale.
 
-Il controller comunica con lo switch tramite un canale di controllo, incapsulando i messaggi (Protocol Data Units) di OpenFlow su connessioni sicure (OpenFlow/TLS/TCP/IP). Attraverso questo canale OpenFlow, il sistema direzionale può aggiungere, rimuovere o aggiornare le regole, agendo sia in modo proattivo (pre-caricando le rotte), sia in modo reattivo (rispondendo a specifici pacchetti "sconosciuti" allo switch).
+Sul fronte dell'hardware, ovvero del Data Plane, il supporto al protocollo OpenFlow è stato progressivamente integrato dai maggiori fornitori mondiali; tra gli esempi più noti figurano gli switch della serie Cisco Catalyst 9300, gli apparati NoviFlow e l'hardware Juniper, tutti dotati di specifiche documentazioni per l'abilitazione delle interfacce SDN.
 
-![](assets/2026-03-28-13-09-01-image.png)
+### Calcolo dei Percorsi e Inoltro Iniziale
 
-La vera flessibilità dell'SDN si concretizza nel modo in cui vengono gestite le regole interne, strutturate non come un'unica grande tabella, ma come una **Pipeline di Flow Table**. Le tabelle sono numerate sequenzialmente partendo dalla "Tabella 0". Quando un pacchetto fa il suo ingresso (Packet In), viene processato in primo luogo contro le voci della Tabella 0; in base al risultato di tale confronto, esso può essere indirizzato per ulteriori verifiche alle tabelle successive. Se viene trovato un match (che per convenzione deve essere sempre relativo alla regola con la priorità più alta), lo switch esegue il corredo di istruzioni associato.
+Un aspetto affascinante del paradigma SDN è il comportamento della rete al suo avvio. Inizialmente, le tabelle di flusso su tutti gli switch del Data Plane sono completamente vuote. Tuttavia, si presume che il database della topologia e la tabella degli host presso il controller siano già popolati con le conoscenze necessarie per mappare l'infrastruttura.
 
-Queste istruzioni possono modificare i metadati, aggiornare il cosiddetto "Action Set" o impartire una "Goto Instruction" che sposta il pacchetto più a valle nella pipeline, verso un'altra flow table, verso una Meter table, o verso una Group Table per essere infine inoltrato da una porta d'uscita.
+<img src="assets/2026-03-28-14-17-36-image.png" title="" alt="" data-align="center">
 
-Qualora un pacchetto non trovi alcuna regola specifica corrispondente, viene confrontato con una regola speciale detta "table-miss entry", la quale prevede tipicamente tre scenari:
+Quando un host sorgente (ad esempio, l'Host A) tenta di inviare il suo primo pacchetto a una destinazione (Host B) attraverso la rete, il primo switch incontrato (S1) non troverà alcuna corrispondenza nella propria tabella vuota. Di conseguenza, lo switch incapsulerà il pacchetto in un messaggio OpenFlow "Packet In" e lo invierà al controller. Il controller, grazie alla sua visione globale, calcolerà l'intero percorso tra sorgente e destinazione.
 
-1. Inviare il pacchetto al controller (in modo che quest'ultimo decida la nuova strada da impartire alla rete);
+Una volta stabilita la rotta, il controller annuncerà il percorso agli switch attraversati utilizzando i messaggi "Flow Modification" (Flow Mod). Ricevendo queste direttive, ogni switch lungo il cammino aggiungerà istantaneamente le voci di inoltro necessarie per gestire i pacchetti futuri appartenenti a quel medesimo flusso. Un dettaglio ingegneristico cruciale è che il controller invia questi messaggi Flow Mod agli switch in ordine rigorosamente inverso: partendo dallo switch più vicino alla destinazione (S2), risalendo a ritroso fino allo switch sorgente (S1). Questa strategia garantisce che, nel momento in cui lo switch di ingresso inizia a inoltrare i pacchetti successivi dello stesso flusso, l'intero percorso a valle sia già completamente configurato, evitando così inutili e ripetitivi viaggi di controllo verso il "cervello" centrale.
 
-2. Direzionare il pacchetto verso una tabella successiva della pipeline;
+### Sintesi Operativa: Messaggi e Centralizzazione
 
-3. Scartare definitivamente il pacchetto. Nel caso estremo in cui non sia presente neanche la table-miss entry e non ci sia alcun match positivo, il pacchetto viene semplicemente scartato.
+A scopo riassuntivo, è possibile schematizzare la semantica e la direzionalità dei tre messaggi OpenFlow fondamentali esaminati in questo capitolo:
 
-### Tabelle di Gruppo (Group Tables)
+| **Messaggio**  | **Sorgente** | **Destinazione** | **Semantica Operativa**                                                                                                |
+| -------------- | ------------ | ---------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| **packet-in**  | Switch       | Controller       | Trasferisce temporaneamente il controllo di un pacchetto sconosciuto al controller.                                    |
+| **packet-out** | Controller   | Switch           | Utilizzato dal controller per ordinare l'invio fisico di un pacchetto all'esterno di una porta specifica dello switch. |
+| **FlowMod**    | Controller   | Switch           | Lo scopo primario è l'aggiunta, l'eliminazione e la modifica capillare delle singole regole di flusso.                 |
 
-Esistono situazioni in cui è conveniente inviare i pacchetti non verso una specifica singola porta, ma verso logiche più complesse descritte in una tabella di gruppo (Group Table). Un record all'interno della Group Table è caratterizzato da un Group ID univoco, una tipologia (Group type) che stabilisce le logiche operative, e una serie di "Action buckets", ovvero contenitori contenenti le vere e proprie istruzioni di inoltro.
-
-Tra i comportamenti di gruppo più impiegati, spiccano i tipi "All" e "Select". Il tipo "All" viene utilizzato per le funzioni di trasmissione circolare (broadcast/multicast e flooding), poiché impone l'invio del pacchetto a tutti i bucket disponibili. Il tipo "Select", invece, risulta ideale per le funzioni di bilanciamento del carico (load balancing), in quanto il pacchetto viene inviato verso un solo bucket determinato dinamicamente tramite algoritmi appositi come l'hashing.
-
-| Group ID | Group Type | Buckets (actions)      |
-| -------- | ---------- | ---------------------- |
-| 1        | ALL        | Output: Port 2, Port 3 |
-| 2        | SELECT     | Output: Port 4 or 5    |
+A differenza delle reti tradizionali in cui la funzione di routing è computata e distribuita individualmente tra i vari router fisici , in una rete controllata tramite SDN la centralizzazione del routing all'interno del controller è la scelta architetturale predominante. Questa scelta logica permette al controller di sviluppare una visione totalmente coerente dello stato della rete. In questo modo è possibile non solo calcolare i percorsi più brevi in maniera deterministica e globale, ma anche implementare policy di routing avanzate "application-aware", basate sul tipo di servizio e non solo sulla destinazione topologica. Parallelamente, liberando i dispositivi del piano dati (switch) dal gravoso onere computazionale e di archiviazione associato all'algoritmica del routing, si ottiene un tangibile miglioramento delle prestazioni fisiche di inoltro.
 
 ---
-
-### Esercitazione e Consolidamento
-
-Per assimilare pienamente i concetti trattati in questa sezione, si invitano gli studenti a riflettere sui seguenti quesiti fondamentali:
-
-1. In che modo il "general forwarding" differisce dall'inoltro tradizionale basato sulla destinazione?
-
-2. Cosa si intende con l'operazione "match-action" all'interno di un router o di uno switch? E nel caso del destination-based forwarding, cosa viene specificatamente comparato e quale azione viene intrapresa?
-
-3. Relativamente al forwarding generalizzato nell'SDN, fornire tre esempi di campi di intestazione che possono essere verificati e tre tipologie di azioni intraprendibili dal dispositivo.
 
 ### Glossario / Concetti Chiave
 
-- **Forwarding Abstraction:** Il disaccoppiamento concettuale tra il piano direzionale e la componente fisica di trasporto, che rende i dispositivi di rete semplici meri esecutori di regole imposte.
+- **FlowMod (Modify-State):** Messaggio primario inviato dal controller allo switch per alterare attivamente le regole di inoltro, configurando dinamicamente il comportamento della rete.
 
-- **Match plus action:** Paradigma operativo degli switch SDN in cui si confrontano pattern specifici degli header a cui corrisponde l'esecuzione di un'azione.
+- **Packet-in / Packet-out:** Coppia di messaggi asincroni che gestisce il traffico non riconosciuto; lo switch delega il pacchetto al controller (in), e il controller risponde istruendo lo switch su come immetterlo nuovamente sulla rete (out).
 
-- **Flow Table Pipeline:** L'architettura interna degli switch OpenFlow che prevede il processamento a cascata dei pacchetti attraverso tabelle multiple.
+- **Link-state Routing App:** Un'applicazione centralizzata (spesso basata sull'algoritmo di Dijkstra) che risiede nel Control Plane e ricalcola i percorsi ottimali ogniqualvolta il controller riceve un aggiornamento sullo stato dei collegamenti.
 
-- **Table-miss entry:** Regola di default, interpellata quando il pacchetto in arrivo non combacia con nessuna delle regole esplicite preimpostate.
+- **Service Abstraction Layer (SAL):** Strato intermedio presente in controller come OpenDaylight, concepito per tradurre le richieste logiche delle applicazioni di alto livello nei comandi fisici per gli apparati hardware sottostanti.
 
-- **Group Tables:** Meccanismo per implementare operazioni evolute come il broadcast e il bilanciamento del carico tramite la creazione di "gruppi" di porte logiche.
-
----
+- **Intent Framework:** Approccio ad alto livello utilizzato in controller moderni (come ONOS) in cui si definisce l'obiettivo di rete desiderato senza doversi preoccupare dell'implementazione tecnica dettagliata del flusso sottostante.
+  
+  
+  
+  ---
+  
+   
 
 ### Le Funzioni di Routing Centralizzato
 
@@ -942,7 +970,7 @@ A differenza delle architetture tradizionali, nelle reti SDN il calcolo dei perc
 
 Il processo di riconoscimento inizia nel momento in cui un dispositivo viene acceso. Quando uno switch OpenFlow viene inizializzato, esso tenta immediatamente di stabilire una connessione di controllo con il controller SDN. A seguito di questo contatto, il controller invia un messaggio denominato **FEATURE REQUEST MESSAGE** per interrogare il dispositivo. Lo switch risponde con un **FEATURE REPLY MESSAGE**, comunicando al controller una serie di parametri fondamentali per la futura scoperta dei collegamenti, tra cui il proprio identificativo univoco (Switch ID) e un elenco completo delle porte attive in quel momento.
 
-[INSERIRE IMMAGINE: Controller connesso a due switch, Switch OF1 e Switch OF2, che illustra le porte di connessione p1 verso il controller e i collegamenti fisici p2 tra gli switch stessi ]
+![](assets/2026-03-28-14-18-24-image.png)
 
 Al termine di questa fase di "handshake" iniziale, il controller ha acquisito la conoscenza dell'esatto numero di porte attive presenti su tutti gli switch OpenFlow connessi. Tuttavia, questa informazione non è sufficiente per instradare il traffico: il controller, infatti, non conosce ancora come queste porte siano interconnesse fisicamente tra loro, rendendo obbligatorio l'avvio della vera e propria fase di "Topology discovery".
 
@@ -962,7 +990,7 @@ A livello tecnico, LLDP utilizza comunemente Ethernet come protocollo di "traspo
 
 - **End of LLDPDU (Type 4):** Segnala la fine effettiva del payload all'interno del frame LLDP.
 
-![](assets/2026-03-28-13-09-13-image.png)
+![](assets/2026-03-28-14-18-48-image.png)
 
 ### Il Processo Operativo di Mapping dei Collegamenti
 
@@ -996,7 +1024,7 @@ Oltre a mappare i nodi dell'infrastruttura di trasporto, il controller deve scop
 
 Quando un host (ad esempio, l'Host A) trasmette un dato, lo switch ricevente, non avendo ancora regole di inoltro per quella sorgente, subisce un "table-miss". Conformemente al protocollo, lo switch genera un messaggio Packet-In, delegando la gestione del pacchetto sconosciuto al controller. Ispezionando questo pacchetto, il controller estrapola l'indirizzo MAC (Eth Address) della sorgente e registra la porta e lo switch d'ingresso all'interno della sua "Host Table", acquisendo così la posizione esatta dell'utente sulla mappa di rete.
 
-![](assets/2026-03-28-13-09-22-image.png)
+![](assets/2026-03-28-14-19-10-image.png)
 
 | **Eth Address** | **Switch** | **Port** |
 | --------------- | ---------- | -------- |
