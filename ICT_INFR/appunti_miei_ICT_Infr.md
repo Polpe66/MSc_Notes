@@ -590,3 +590,5 @@ While InfiniBand remains dominant in dedicated supercomputing data centers (ofte
 - **InfiniBand and RDMA:** InfiniBand is an HPC-focused network fabric delivering ultra-low latency. It utilizes RDMA to write data directly into a remote machine's memory, bypassing CPU overhead. This capability is now available on standard networks via RoCE (RDMA over Converged Ethernet).
 
 ---
+
+# Lecture 8:
