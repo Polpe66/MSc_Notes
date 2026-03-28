@@ -2729,17 +2729,19 @@ I tre attributi in competizione sono la decentralizzazione, la scalabilità e la
 
 Analizzando i sistemi esistenti attraverso questa lente, emergono compromessi evidenti. Piattaforme storiche come Bitcoin ed Ethereum sono considerate decentralizzate e sicure, ma non sono affatto scalabili. Inoltre, la loro reale decentralizzazione viene messa in discussione a causa della presenza delle cosiddette mining pools. Al contrario, soluzioni come Hyperledger, Ripple, EOS e Stellar scelgono di privilegiare la sicurezza e la scalabilità. Il prezzo di questa scelta è la centralizzazione, poiché pochi nodi controllano l'intera rete, offrendo di conseguenza una minima resistenza alla censura. Infine, progetti come NANO, IOTA e Vechain puntano a essere scalabili e decentralizzati, ma sacrificano la sicurezza adottando meccanismi di consenso leggeri, come il "light PoW".
 
-[INSERIRE IMMAGINE: Grafico triangolare del Trilemma della Blockchain che mappa la posizione di varie criptovalute sui tre lati di Decentralizzazione, Scalabilità e Sicurezza]
+<img src="assets/2026-03-28-12-24-37-image.png" title="" alt="" data-align="center">
 
 ### I Limiti di Scalabilità delle Criptovalute
 
 Il motivo principale per cui le criptovalute tradizionali non scalano è che ogni singola transazione deve essere registrata globalmente sulla blockchain. Questo limite strutturale porta a due lamentele principali da parte degli utenti. La prima lamentela riguarda la lentezza dei trasferimenti: un blocco Bitcoin richiede circa 10 minuti per essere minato e, considerando i 6 blocchi necessari per le conferme, il tempo di regolamento (settlement) raggiunge all'incirca un'ora.
 
-La seconda lamentela evidenzia che Bitcoin non scala fisicamente. La dimensione del blocco è stata storicamente limitata a 1MB, passando teoricamente a 4MB a partire dal 2017. Poiché la dimensione media di una singola transazione è di circa 250 bytes, un blocco può contenere all'incirca 400 transazioni ogni 10 minuti. A livello globale, questo si traduce in appena 7 transazioni al secondo (TPS). A titolo di paragone, mentre Bitcoin elabora 7 TPS ed Ethereum 25 TPS, i sistemi di pagamento tradizionali come PayPal e Mastercard gestiscono rispettivamente 193 TPS e 5000 TPS. Reti ancora più veloci includono Visa con 24.000 TPS e Solana con 65.000 TPS.
+La seconda lamentela evidenzia che Bitcoin non scala fisicamente. La dimensione del blocco è stata storicamente limitata a 1MB, passando teoricamente a 4MB a partire dal 2017. Poiché la dimensione media di una singola transazione è di circa 250 bytes, un blocco può contenere all'incirca 400 transazioni ogni 10 minuti. 
 
 ### Le Soluzioni "On-Chain" e le Loro Criticità
 
-Per ovviare a queste restrizioni, sono state proposte diverse soluzioni di scalabilità cosiddette "on-chain", ma tutte presentano svantaggi critici. La prima opzione consiste nell'aumentare la dimensione del blocco. Tuttavia, blocchi più grandi richiedono più tempo per propagarsi nella rete, il che diminuisce gli incentivi per i validatori e porta a una maggiore centralizzazione. Una seconda alternativa è aumentare il tasso di produzione dei blocchi (block rate). Questa via causa una maggiore proliferazione di fork e, di conseguenza, comporta una minore sicurezza del network. Una terza soluzione prevede l'utilizzo di protocolli di consenso alternativi, come la Proof of Stake o altri meccanismi "lightweight". Questi protocolli offrono vantaggi significativi, tra cui un basso costo energetico, un'elevata scalabilità, transazioni veloci e la neutralizzazione degli attacchi al 51%. Tuttavia, gli svantaggi sono notevoli: in molti casi queste reti non sono realmente decentralizzate e favoriscono le disuguaglianze economiche, un concetto riassunto con l'espressione "poor stay poor".
+Per ovviare a queste restrizioni, sono state proposte diverse soluzioni di scalabilità cosiddette "on-chain", ma tutte presentano svantaggi critici. La prima opzione consiste nell'aumentare la dimensione del blocco. Tuttavia, blocchi più grandi richiedono più tempo per propagarsi nella rete, il che diminuisce gli incentivi per i validatori e porta a una maggiore centralizzazione. Una seconda alternativa è aumentare il tasso di produzione dei blocchi (block rate). Questa via causa una maggiore proliferazione di fork e, di conseguenza, comporta una minore sicurezza del network. 
+
+Una terza soluzione prevede l'utilizzo di protocolli di consenso alternativi, come la Proof of Stake o altri meccanismi "lightweight". Questi protocolli offrono vantaggi significativi, tra cui un basso costo energetico, un'elevata scalabilità, transazioni veloci e la neutralizzazione degli attacchi al 51%. Tuttavia, gli svantaggi sono notevoli: in molti casi queste reti non sono realmente decentralizzate e favoriscono le disuguaglianze economiche, un concetto riassunto con l'espressione "poor stay poor".
 
 Un esempio pratico del tentativo di incrementare la dimensione del blocco si è visto con BitcoinCash, un hard fork di Bitcoin che ha innalzato il limite inizialmente a 8MB e, più di recente, a 32MB. In realtà, questa non rappresenta una vera soluzione per la scalabilità. Per poter processare lo stesso volume di transazioni di VISA, la dimensione di un blocco dovrebbe raggiungere gli 8GB. In un simile scenario, i nodi della rete dovrebbero essere in grado di immagazzinare 400 TB di dati generati ogni anno, imponendo requisiti di spazio di archiviazione elevatissimi. Inoltre, i nodi necessiterebbero di un'altissima larghezza di banda, pari a 120 megabit al secondo. Queste barriere tecnologiche condurrebbero a una drastica riduzione del numero di nodi capaci di supportare la rete blockchain, sfociando in una centralizzazione più alta e in una conseguente perdita di sicurezza.
 
@@ -2753,15 +2755,19 @@ Per comprendere perché i payment channels sono così efficaci, basti immaginare
 
 I vantaggi di questo approccio sono molteplici. Prendendo quasi tutte le operazioni fuori catena, si eliminano i colli di bottiglia senza la necessità di ricorrere ad un "hard-fork" nel protocollo di base. Inoltre, si mantiene pressoché inalterata la sicurezza della catena principale, poiché il canale off-chain eredita le stesse assunzioni di sicurezza ed usa la blockchain come entità arbitrale per prevenire comportamenti disonesti. Infine, i tempi di regolamento e le commissioni di transazione si riducono drasticamente, poiché si ottiene un "local settlement" che non richiede il costoso consenso globale. Ovviamente, sussistono alcuni problemi potenziali, tra cui il blocco dei fondi (fund locking), una possibile centralizzazione (le cui dinamiche non sono ancora del tutto chiare) e la necessità che i dispositivi siano sempre connessi (always-on requirement).
 
+![](assets/2026-03-28-12-27-24-image.png)
+
 ### Il Lightning Network e un'Analogia Concreta
 
 La maturità tecnologica dei canali di pagamento è dimostrata dal fatto che sono ormai pronti per l'ambiente di produzione. L'esempio più illustre è il **Bitcoin Lightning Network**. Rilasciato in versione Alpha nel Gennaio del 2017, ha visto il suo primo acquisto verificato nel Gennaio del 2018. Questo risultato è frutto degli sforzi di sviluppo congiunti di numerosi gruppi. La rete ha dimostrato resilienza anche superando il suo primo attacco DDoS il 20 Marzo 2018, evento che portò temporaneamente offline 200 nodi. Tentativi simili sono stati effettuati anche altrove: ad esempio, il Raiden Network (o uRaiden) è stato lanciato sulla mainnet di Ethereum nel Novembre 2017, ma non ha ottenuto il successo sperato, lasciando spazio ad altre soluzioni "layer-2".
 
 A livello architetturale, i canali instaurati tra i vari nodi Bitcoin formano una rete "Layer 2" sovrapposta al livello base di Bitcoin. Questa infrastruttura si configura come una rete P2P di canali di pagamento. Poiché è basata nativamente su Bitcoin, le transazioni che avvengono nel Lightning Network sono a tutti gli effetti transazioni Bitcoin. Applicando la filosofia del "cosa succede se non pubblichiamo tutto?", il Lightning Network rende possibili pagamenti economici e micro-pagamenti istantanei, dando vita a un sistema estremamente scalabile.
 
-[INSERIRE IMMAGINE: Illustrazione a strati che mostra il livello 'Lightning' sovrapposto al livello 'Blockchain']
+<img src="assets/2026-03-28-12-27-50-image.png" title="" alt="" data-align="center">
 
 Per visualizzare in modo intuitivo il funzionamento del Lightning Network, si può ricorrere a un'analogia legata alla vita quotidiana. Immaginiamo che un cliente si rechi in un locale, consegni la propria carta di credito al barista e inizi a ordinare da bere. Invece di addebitare la carta di credito per ogni singola consumazione, il barista annota semplicemente le birre su un conto aperto (tab). Questa pratica evita di dover pagare le commissioni bancarie ogni volta che la carta viene strisciata e permette di conservare il saldo complessivo fino alla fine della serata. Non c'è alcun rischio per il barista poiché egli detiene fisicamente la carta di credito; se anche il cliente dovesse scappare, il barista possiede la carta come garanzia certa per coprire il debito.
+
+---
 
 ### Glossario e Concetti Chiave
 
@@ -2779,7 +2785,7 @@ Per visualizzare in modo intuitivo il funzionamento del Lightning Network, si pu
 
 Per tradurre l'analogia del barista in termini tecnici, nel Lightning Network il cliente non consegna una carta di credito, ma deposita i propri fondi (ad esempio, un deposito di 50.000 Satoshi o 50K) in un indirizzo crittografico specifico chiamato **payment channel** (canale di pagamento). A questo punto, i singoli pagamenti non vengono registrati immediatamente sulla blockchain come transazioni standard. Al contrario, essi vengono annotati in "registri privati" (private ledgers) gestiti direttamente dalle due parti coinvolte, in questo caso il cliente e il barista. Questo approccio è paragonabile ai pagamenti a rate o ai conti aperti che tradizionalmente si tenevano con il droghiere di fiducia.
 
-[INSERIRE IMMAGINE: Pagina di un vecchio quaderno con conti della spesa scritti a mano, a simboleggiare i registri privati]
+
 
 Quando il cliente ordina la prima consumazione, crea una transazione (ad esempio di 5.000 Satoshi) dal canale di pagamento verso il barista. Proprio come il barista dell'analogia non striscia subito la carta di credito, anche in questo caso il ricevente non trasmette la transazione alla blockchain, consapevole che il cliente potrebbe ordinare un altro drink. Questa scelta porta a due vantaggi immediati: non si spreca tempo per attendere la conferma del blocco (che richiederebbe decine di minuti) e non si spendono soldi per le commissioni di transazione della rete principale.
 
@@ -2789,7 +2795,7 @@ Ogni volta che il cliente consuma una nuova birra, genera e firma una nuova tran
 
 A livello formale, il Lightning Network è un protocollo "Layer-2" proposto dai ricercatori Poon e Dryja, basato sull'utilizzo di canali off-chain che possono essere unidirezionali o bidirezionali. Un canale di pagamento è una struttura crittografica che definisce tre operazioni fondamentali: l'apertura del canale (channel opening), gli impegni fuori catena (offchain commitments) e la chiusura del canale (channel closing). Come già accennato, solo l'apertura e la chiusura sono visibili sulla blockchain.
 
-[INSERIRE IMMAGINE: Diagramma temporale che mostra la "Channel Funding Transaction" iniziale, una serie di "Commitment Transaction" intermedie e la chiusura finale sulla Base Layer Blockchain]
+<img src="assets/2026-03-28-12-29-41-image.png" title="" alt="" data-align="center">
 
 Evitando di inserire ogni singola transazione nella blockchain principale, gli utenti non devono più attendere 10 minuti per la conferma del blocco, non pagano alte commissioni di transazione (sebbene una piccolissima fee sia prevista anche sul Lightning Network) e non sovraccaricano la rete con volumi di dati insostenibili. Tuttavia, operando fuori catena, è necessario un sistema per punire i comportamenti scorretti degli utenti. Se una delle due parti tenta di imbrogliare (ad esempio, pubblicando un vecchio saldo), tutti i fondi del canale vengono assegnati alla controparte lesa. Questo meccanismo di difesa è implementato tramite un "**remedy script**" (script di rimedio), che invalida il tentativo di frode e applica la punizione.
 
@@ -2809,7 +2815,7 @@ Seguiamo un esempio pratico della dinamica dei saldi:
 
 3. Bob invia ulteriori 10 BTC ad Alice. I saldi cambiano nuovamente in 40K per Alice e 60K per Bob. Entrambi conservano questa copia firmata, e fino a questo momento nessuna transazione è stata pubblicata sulla blockchain.
 
-[INSERIRE IMMAGINE: Sequenza di blocchi blockchain affiancati da fumetti che mostrano l'aggiornamento mentale dei saldi di Alice e Bob tramite le Commitment Transaction fuori catena]
+<img src="assets/2026-03-28-12-32-50-image.png" title="" alt="" data-align="center">
 
 ### Chiusura del Canale, Protezione e Prevenzione delle Truffe
 
@@ -2818,6 +2824,8 @@ Quando arriva il momento di riscuotere (ad esempio, è sabato sera e Bob ha biso
 Ma cosa impedisce ad Alice o a Bob di barare? Qui entra in gioco la **protezione dalla doppia spesa** (Double Spending Protection). Nel momento in cui una transazione viene pubblicata e confermata sulla blockchain, i fondi dell'indirizzo multi-firma vengono spesi. Di conseguenza, né Alice né Bob possono provare a inviare una transazione più vecchia e più favorevole (ad esempio, lo stato in cui Alice aveva 80 BTC invece di 40 BTC). Se ci provassero, la rete Bitcoin respingerebbe immediatamente il tentativo classificandolo come una doppia spesa illegittima.
 
 Esiste tuttavia un'altra potenziale vulnerabilità critica, nota come **scam del blocco dei fondi** (Trapping the Funds). Immaginiamo che Alice depositi 100 BTC nell'indirizzo multi-firma e, subito dopo, Bob scompaia nel nulla. Poiché per sbloccare i fondi dall'escrow sono necessarie entrambe le firme, il denaro di Alice rimarrebbe irrimediabilmente intrappolato. Per disinnescare questa truffa, si utilizza un meccanismo di garanzia preventiva basato sui **Time Locks** (blocchi temporali). Prima ancora di pubblicare la transazione di finanziamento (Funding Transaction) sulla rete, Alice obbliga Bob a firmare una "transazione di garanzia" (warranty transaction) off-chain. Questa transazione speciale stabilisce, ad esempio, un rimborso totale di 100 BTC ad Alice dopo un ritardo temporale prestabilito, come 7 o 30 giorni. Se Bob si dimostra non responsivo o scompare, Alice deve semplicemente attendere lo scadere del tempo e pubblicare la transazione di rimborso sulla blockchain, recuperando interamente il proprio capitale.
+
+---
 
 ### Concetti Chiave
 
@@ -2843,17 +2851,15 @@ Tuttavia, il sistema appena descritto presenta una criticità fondamentale. Nono
 
 Questo scenario apre le porte a una possibile truffa. Alice potrebbe decidere in malafede di pubblicare sulla blockchain una transazione precedente che risulta essere più favorevole per lei, come ad esempio la transazione iniziale di finanziamento che le assegnava 100K BTC. In realtà, avendo Bob già fornito a lei una consumazione (un "drink"), il vero saldo di Alice non è più di 100K. Purtroppo, la rete Bitcoin accetterebbe questa transazione obsoleta senza obiezioni, poiché essa è stata precedentemente firmata in modo crittograficamente valido da Bob.
 
-[INSERIRE IMMAGINE: Schema concettuale che illustra la truffa in cui un nodo tenta di inviare alla blockchain uno stato obsoleto del canale, simboleggiato da una bomba pronta a esplodere]
-
-Per chiarire questo concetto, si può utilizzare la metafora degli assegni. Le transazioni nei canali di pagamento sono paragonabili alla firma di assegni staccati da un conto cointestato a favore l'uno dell'altro, senza però incassarli immediatamente. Nel mondo fisico, ogni volta che si firma un nuovo set di assegni, si stracciano i precedenti per evitare che la controparte incassi una transazione annullata. Tuttavia, nel protocollo Bitcoin, non esiste alcun modo per "stracciare" digitalmente una transazione inviata fuori catena. Non vi è alcuna garanzia intrinseca che Alice non conservi una copia di un vecchio stato per poi trasmetterla alla rete in un secondo momento. Di conseguenza, è assolutamente necessario un meccanismo per garantire la sicurezza. Questa sfida rappresenta il problema più complesso da affrontare nell'implementazione della rete.
+<img src="assets/2026-03-28-12-35-44-image.png" title="" alt="" data-align="center">Per chiarire questo concetto, si può utilizzare la metafora degli assegni. Le transazioni nei canali di pagamento sono paragonabili alla firma di assegni staccati da un conto cointestato a favore l'uno dell'altro, senza però incassarli immediatamente. Nel mondo fisico, ogni volta che si firma un nuovo set di assegni, si stracciano i precedenti per evitare che la controparte incassi una transazione annullata. Tuttavia, nel protocollo Bitcoin, non esiste alcun modo per "stracciare" digitalmente una transazione inviata fuori catena. Non vi è alcuna garanzia intrinseca che Alice non conservi una copia di un vecchio stato per poi trasmetterla alla rete in un secondo momento. Di conseguenza, è assolutamente necessario un meccanismo per garantire la sicurezza. Questa sfida rappresenta il problema più complesso da affrontare nell'implementazione della rete.
 
 ### La Soluzione Punitiva e i Segreti di Revoca
 
-Il Lightning Network non potendo garantire tecnicamente la cancellazione fisica di una transazione off-chain da parte di Alice e Bob ogni volta che ne viene generata una nuova , adotta un approccio radicale: una soluzione basata sulla punizione. Il protocollo è progettato per punire severamente Alice o Bob qualora pubblichino una transazione più vecchia.
+Il Lightning Network non potendo garantire tecnicamente la cancellazione fisica di una transazione off-chain da parte di Alice e Bob ogni volta che ne viene generata una nuova, adotta un approccio radicale: una soluzione basata sulla punizione. Il protocollo è progettato per punire severamente Alice o Bob qualora pubblichino una transazione più vecchia.
 
-Questo meccanismo si fonda sull'utilizzo dei **segreti di revoca** (revocation secrets). Ogni singola transazione include un segreto di revoca specifico. Se Alice dovesse pubblicare una transazione precedente e ormai invalidata , chiunque possieda il relativo segreto di revoca ha il potere di "punire il comportamento illegale". La regola d'oro del protocollo stabilisce che Alice deve consegnare a Bob il segreto di revoca relativo alla transazione corrente *prima* di poter emettere una nuova transazione successiva. Di conseguenza, se Alice tenta la frode pubblicando una transazione passata (non più valida), Bob la punisce dimostrando alla rete di possedere il segreto di revoca corrispondente, arrogandosi così il diritto di prelevare l'intero importo del canale, comprese le quote di Alice.
+Questo meccanismo si fonda sull'utilizzo dei **segreti di revoca** (revocation secrets). Ogni singola transazione include un segreto di revoca specifico. Se Alice dovesse pubblicare una transazione precedente e ormai invalidata, chiunque possieda il relativo segreto di revoca ha il potere di "punire il comportamento illegale". La regola d'oro del protocollo stabilisce che Alice deve consegnare a Bob il segreto di revoca relativo alla transazione corrente *prima* di poter emettere una nuova transazione successiva. Di conseguenza, se Alice tenta la frode pubblicando una transazione passata (non più valida), Bob la punisce dimostrando alla rete di possedere il segreto di revoca corrispondente, arrogandosi così il diritto di prelevare l'intero importo del canale, comprese le quote di Alice.
 
-[INSERIRE IMMAGINE: Illustrazione del meccanismo di punizione, in cui Alice tenta di barare pubblicando lo "Stato 1 revocato" e Bob utilizza il segreto (chiave d'oro) per reclamare tutti i fondi (1000 sats)]
+<img src="assets/2026-03-28-12-36-51-image.png" title="" alt="" data-align="center">
 
 A livello di codice Bitcoin, questo sistema è implementato attraverso uno script noto come **hash lock script**. Analizzando la struttura di una "Commitment TXN" (transazione di impegno) dotata di segreto di revoca, notiamo che l'Input preleva costantemente i fondi dall'indirizzo multi-firma. L'Output distribuisce il denaro a Bob o ad Alice basandosi su condizioni rigorose. Ad esempio, l'Output1 (pari a 90k) stabilisce la seguente logica condizionale: "Se viene fornito il segreto di revoca, paga a Bob, altrimenti paga ad Alice". L'Output2, invece, assegna incondizionatamente 10k a Bob. Questo significa che uno degli output può essere sbloccato unicamente se viene esibito il segreto di revoca corretto. Se Bob possiede tale segreto e Alice pubblica uno stato a lei più favorevole, Bob attiverà la clausola punitiva prelevando anche la quota di Alice.
 
@@ -2871,7 +2877,7 @@ Il potenziale del Lightning Network si esprime appieno quando si considera la ne
 
 La soluzione consiste nel routing. Alice, ad esempio, potrebbe avere già un canale aperto con il barista della caffetteria locale. A sua volta, il barista ha un canale aperto con la pizzeria. Alice può quindi sfruttare questi canali già esistenti per raggiungere la sua destinazione.
 
-[INSERIRE IMMAGINE: Diagramma di routing in cui Alice utilizza il canale di pagamento del barista per far giungere i fondi alla pizzeria, superando la necessità di fiducia]
+
 
 Tuttavia, emerge un problema di fiducia: Alice non si fida ciecamente del barista e non può semplicemente inviargli il denaro sperando che egli lo inoltri alla pizzeria. Per superare questo ostacolo "trust", Alice crea uno speciale script Bitcoin che detta una regola inequivocabile: "paga il barista solamente se egli ha pagato la pizzeria".
 
@@ -2881,7 +2887,7 @@ Espandiamo questo concetto a una rete di pagamento più complessa, introducendo 
 
 Il rischio insito in questa catena è l'inaffidabilità dei nodi intermedi. Cosa succede se Bob decide di imbrogliare e si rifiuta di inoltrare il pagamento, trattenendo i fondi per sé? La soluzione anti-frode combina due degli strumenti crittografici già citati: l'**Hash Lock** e il **Time Lock**. L'unione di questi due elementi genera l'**HTLC (Hashed Timelock Contract)**.
 
-[INSERIRE IMMAGINE: Flusso di un pagamento multi-hop da Alice a Dave attraverso nodi intermedi, illustrando l'uso dei contratti Hashed Timelock Contract (HTLC) e la propagazione del segreto R]
+![](assets/2026-03-28-12-38-53-image.png)
 
 Il funzionamento dell'HTLC in un pagamento multi-hop si articola in fasi precise che garantiscono l'atomicità dell'operazione, ovvero il fatto che il pagamento avvenga interamente con successo oppure venga annullato per tutti:
 
@@ -2896,6 +2902,8 @@ Il funzionamento dell'HTLC in un pagamento multi-hop si articola in fasi precise
 5. **Conferma:** Nel momento in cui Alice riceve indietro la prova del segreto R, ha l'assoluta certezza matematica che chiunque lungo il percorso sia stato correttamente pagato e che la transazione sia andata a buon fine.
 
 In conclusione, è grazie all'architettura dei contratti HTLC che le operazioni di routing diventano completamente atomiche e prive di necessità di fiducia (trustless).
+
+---
 
 ### Glossario e Concetti Chiave
 
@@ -2919,7 +2927,7 @@ Questo meccanismo di sicurezza è implementato riducendo progressivamente il par
 
 Il modello di pagamento basato su HTLC si fonda sulla promessa: "Ti pagherò in cambio della pre-immagine dell'hash; se non rispondi, riavrò i miei soldi dopo un certo ritardo". All'atto pratico, questo si concretizza in una richiesta di pagamento (Payment Request) che contiene l'importo, l'hash e il ritardo temporale.
 
-[INSERIRE IMMAGINE: Esempio di fattura Lightning Network visualizzata su un'interfaccia grafica, contenente un codice QR scansionabile con un wallet abilitato]
+
 
 Un esempio pratico di fattura generata riporta l'ordine identificato dal codice `#CS6198295DE0E31C5B55CF1330EX675` per un totale di `0.000036 BTC`. I metadati associati a questa richiesta includono una descrizione dei beni acquistati ("1 Espresso Coin Panna, 1 Scala Chip Frappuccino"), l'hash di riferimento $H$ (`c2f7adaac99b5609b7df702ab9cf2b096b806e1a3c040994dde427811cfb071f`), l'identificativo del nodo (`035b55e3e08538afeef6ff9804e3830293eec1c4a6a9570f1e96a478dad1c86fed`), l'importo preciso di `3600000 MilliSatoshis` e un Timestamp specifico (`1514890568`). L'utente può quindi procedere al pagamento scansionando la fattura e cliccando su "OPEN WITH YOUR WALLET".
 
@@ -2927,7 +2935,7 @@ Un esempio pratico di fattura generata riporta l'ordine identificato dal codice 
 
 La struttura del Lightning Network si presenta come un grafo complesso e densamente interconnesso. La regola aurea di questa topologia è che è possibile pagare chiunque, a patto di riuscire a trovare una rotta valida per raggiungerlo. Tuttavia, per far viaggiare il denaro, non è sufficiente individuare un percorso qualsiasi tra due punti: è imperativo che tale rotta disponga di fondi sufficienti al suo interno per sostenere l'importo del pagamento.
 
-[INSERIRE IMMAGINE: Mappa della topologia del Lightning Network, che illustra un intricato grafo di nodi connessi e indica un percorso dal nodo 'Alice' al nodo 'Bob']
+
 
 Nel processo di instradamento, i pagamenti vengono inoltrati utilizzando i contratti HTLC, ma con una dinamica peculiare: ogni nodo intermediario impegna i *propri* fondi, piuttosto che limitarsi a passare i fondi appena ricevuti. Un nodo di routing deve quindi fungere da fornitore di liquidità (liquidity provider), disponendo di una cosiddetta **outbound liquidity** (liquidità in uscita). Questo avviene perché il nodo blocca il proprio bilancio in un contratto HTLC (una promessa di pagamento condizionata alla rivelazione del segreto) prima ancora di venire pagato dal nodo precedente. Ancora una volta, gli HTLC garantiscono l'atomicità: o ogni salto viene completato con successo (Success) e tutti vengono pagati, oppure l'operazione fallisce e tutti i fondi tornano al sicuro ai legittimi proprietari (Refund).
 
@@ -2935,7 +2943,7 @@ A questo punto è fondamentale distinguere due concetti di base. La **capacità 
 
 Per chiarire le dinamiche di liquidità, consideriamo due operatori di routing, identificati convenzionalmente come nodo arancione e nodo blu, che decidono di aprire un canale congiunto. Il nodo arancione mette a disposizione 1.000.000 di satoshis per instradare i pagamenti. In questa fase iniziale, la sua liquidità in uscita (outbound liquidity) è pari a 1.000.000, mentre la sua liquidità in entrata (inbound liquidity) è zero. Di conseguenza, il nodo arancione può inviare pagamenti verso l'operatore blu, ma non possiede ancora lo spazio per riceverne.
 
-[INSERIRE IMMAGINE: Diagramma di due nodi, arancione e blu, che aprono un canale. Il nodo arancione ha 1.000.000 sats (pallini arancioni) e il nodo blu 0 sats]
+<img src="assets/2026-03-28-12-40-40-image.png" title="" alt="" data-align="center">
 
 Se il nodo arancione riceve una richiesta per instradare un pagamento di 100.000 sats attraverso quel canale, esso blocca preventivamente i 100.000 sats. Questo gesto rappresenta una "promessa" di inviare i fondi all'operatore blu non appena riceverà il segreto. Una volta ottenuto il segreto, la transazione si concretizza: la nuova liquidità in uscita del nodo arancione scende a 900.000 sats, mentre la sua liquidità in entrata sale a 100.000 sats. Qualora venga instradato un ulteriore pagamento di 400.000 sats in ritardo, la liquidità in uscita si ridurrà ulteriormente a 500.000 sats, eguagliando la liquidità in entrata, ora anch'essa a 500.000 sats. Solamente a questo punto il nodo blu disporrà di una propria outbound liquidity e sarà in grado di inoltrare, ad esempio, un pagamento a ritroso di 200.000 sats verso il nodo arancione. A seguito di quest'ultima operazione, i saldi si stabilizzeranno a 700.000 sats in uscita e 300.000 sats in entrata per il nodo arancione. Un fornitore di liquidità può ovviamente aprire canali verso più nodi contemporaneamente; aprendo un ulteriore canale da 2.000.000 sats con un nodo verde, il nodo arancione andrà a combinare la liquidità dei due canali, incrementando la propria capacità di ricevere fondi. Questo processo di scambio continuo contribuisce al ribilanciamento dei canali (Rebalancing channels) all'interno della topologia di rete.
 
