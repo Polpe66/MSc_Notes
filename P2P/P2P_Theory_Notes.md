@@ -2393,7 +2393,7 @@ Di seguito è riportata la panoramica delle principali mining pool attive nel 20
 
 Oltre alla concentrazione nelle pool, è cruciale osservare la distribuzione geografica dell'hashing power. Analizzando la quota globale di hashrate tra il 2019 e il 2021, è possibile notare profondi mutamenti geopolitici. Paesi come Stati Uniti, Kazakistan, Russia, Canada, Irlanda, Malesia, Germania, Iran e Cina si sono contesi il predominio della rete.
 
-![](assets/2026-03-28-11-16-24-image.png)
+<img src="assets/2026-03-28-11-16-24-image.png" title="" alt="" data-align="center">
 
 La predominanza delle mining pool è facilmente verificabile in modo empirico sfruttando un qualsiasi Block Explorer, come ad esempio *Blockchain.info*. Osservando i blocchi estratti di recente, è evidente che la quasi totalità di essi viene ritrasmessa (relayed) dai nodi appartenenti alle grandi pool commerciali. La tabella sottostante mostra un estratto reale degli ultimi blocchi minati (all'altezza 626299), confermando il monopolio di entità come F2Pool, SlushPool, ViaBTC e AntPool.
 
@@ -2433,11 +2433,15 @@ La predominanza delle mining pool è facilmente verificabile in modo empirico sf
 
 ### Il Concetto di Multi-Signature (Firme Multiple)
 
-I protocolli a firma multipla consentono a un gruppo di firmatari di firmare collettivamente un determinato contenuto. La verifica della validità di tale firma viene eseguita utilizzando le chiavi pubbliche di tutti i soggetti coinvolti. Un modo banale per implementare questo meccanismo consiste nel far produrre a ciascun firmatario una firma autonoma utilizzando la propria chiave privata, per poi concatenare tutte le firme ottenute. Tuttavia, questo approccio presenta un problema di efficienza, poiché la dimensione della firma cresce in modo lineare all'aumentare del numero di firmatari. L'ideale, invece, sarebbe ottenere una dimensione indipendente dal numero di firmatari e il più possibile vicina a quella di una firma ordinaria.
+I protocolli a firma multipla consentono a un gruppo di firmare collettivamente un determinato contenuto. La verifica della validità della firma viene eseguita utilizzando le chiavi pubbliche di tutti i soggetti coinvolti. 
+
+Un modo banale per implementare questo meccanismo consiste nel far produrre a ciascun firmatario una firma autonoma utilizzando la propria chiave privata, per poi concatenare tutte le firme ottenute. 
+
+Tuttavia, questo approccio presenta un problema di efficienza, poiché la dimensione della firma cresce in modo lineare all'aumentare del numero di firmatari. L'ideale, invece, sarebbe ottenere una dimensione indipendente dal numero di firmatari e il più possibile vicina a quella di una firma ordinaria.
 
 Bitcoin ha originariamente adottato la soluzione più semplice per gestire questo processo. L'algoritmo standard utilizzato, basato sulle firme ECDSA, richiede infatti la generazione di firme multiple separate, non aggregate. Soltanto in seguito, con l'introduzione del protocollo Taproot, è stato possibile abilitare l'aggregazione delle firme tramite l'utilizzo delle firme Schnorr. In questo contesto, gli indirizzi multisignature (multisig) si configurano come un indirizzo Bitcoin accoppiato a uno script di blocco (locking script) che richiede, per poter spendere i fondi associati, un numero specificato (M) di firme valide estrapolate da un set prefissato di chiavi pubbliche (N).
 
-[INSERIRE IMMAGINE: Illustrazione di una cassaforte Bitcoin che rappresenta un indirizzo multisig "2 di 3", mostrando tre chiavi pubbliche in entrata e le relative firme richieste per sbloccare i fondi]
+<img src="assets/2026-03-28-12-03-56-image.png" title="" alt="" data-align="center">
 
 ### Applicazioni Pratiche dei Multisig
 
@@ -2447,9 +2451,19 @@ La logica multisig si applica anche alla sicurezza personale attraverso wallet c
 
 ### Struttura degli Script Locking e Unlocking per Multisig
 
-La forma generale di un *locking script* (script di blocco) che imposta una condizione Multi-signature M-di-N (Pay-to-Multisig o P2MS) segue una sintassi ben precisa: `M <Pubkey1> ... <PubKeyN> N OP_CHECKMULTISIG`. All'interno di questa struttura, N rappresenta il numero totale di chiavi pubbliche elencate, mentre M indica la soglia, ovvero il numero di firme richieste per poter spendere l'output. Di conseguenza, un esempio reale di locking script per una condizione Multi-Signature 2-di-3 si presenterebbe come: `2 <PkA><PkB><PkC> 3 OP_CHECKMULTISIG`.
+La forma generale di un *locking script* (script di blocco) che imposta una condizione Multi-signature M-di-N (Pay-to-Multisig o P2MS) segue una sintassi ben precisa.
 
-Per soddisfare questo *locking script*, l'utente deve fornire un *unlocking script* (script di sblocco) che contenga una qualsiasi combinazione valida del numero richiesto di firme. La sintassi del cosiddetto ScriptSig è semplicemente l'elenco delle firme: `<Signature 1> ... <Signature M>`. Riprendendo l'esempio della condizione 2-di-3 precedente, lo script di blocco può essere soddisfatto con uno script di sblocco contenente una combinazione qualsiasi di due firme derivanti dalle chiavi private corrispondenti alle tre chiavi pubbliche elencate. Un esempio valido sarebbe presentare la firma di A e la firma di C, codificate come `<Signature A> <Signature C>`. In sintesi, un output di transazione protetto da uno script P2MS che include le chiavi pubbliche di tre persone diverse richiederà che solo due di queste persone forniscano le rispettive firme nell'input della nuova transazione per spendere i bitcoin lì memorizzati.
+<img src="assets/2026-03-28-12-05-35-image.png" title="" alt="" data-align="center">
+
+All'interno di questa struttura, N rappresenta il numero totale di chiavi pubbliche elencate, mentre M indica la soglia, ovvero il numero di firme richieste per poter spendere l'output. Di conseguenza, un esempio reale di locking script per una condizione Multi-Signature 2-di-3 si presenterebbe come: `2 <PkA><PkB><PkC> 3 OP_CHECKMULTISIG`.
+
+Per soddisfare questo *locking script*, l'utente deve fornire un *unlocking script* (script di sblocco) che contenga una qualsiasi combinazione valida del numero richiesto di firme. La sintassi del cosiddetto ScriptSig è semplicemente l'elenco delle firme. 
+
+
+
+<img src="assets/2026-03-28-12-06-24-image.png" title="" alt="" data-align="center">
+
+Riprendendo l'esempio della condizione 2-di-3 precedente, lo script di blocco può essere soddisfatto con uno script di sblocco contenente una combinazione qualsiasi di due firme derivanti dalle chiavi private corrispondenti alle tre chiavi pubbliche elencate. Un esempio valido sarebbe presentare la firma di A e la firma di C, codificate come `<Signature A> <Signature C>`. In sintesi, un output di transazione protetto da uno script P2MS che include le chiavi pubbliche di tre persone diverse richiederà che solo due di queste persone forniscano le rispettive firme nell'input della nuova transazione per spendere i bitcoin lì memorizzati.
 
 ### Le Transazioni Escrow (Deposito a Garanzia)
 
@@ -2465,17 +2479,25 @@ I problemi sorgono nel caso di una disputa, ad esempio se Bob non ha effettivame
 
 ### Le Problematiche degli Script Multi-Signature (P2MS)
 
-Nonostante la loro utilità, gli script multisignature nativi sono macchinosi da utilizzare. Il difetto principale risiede nel fatto che l'intero script deve essere comunicato a chiunque intenda effettuare un pagamento verso un indirizzo multi-sig. Immaginiamo, ad esempio, l'indirizzo multisig del fondo cassa congiunto di marito e moglie: se un amico desidera inviare del denaro a quell'indirizzo per fare un regalo, la coppia dovrà comunicargli l'intero *locking script*. L'amico dovrà poi inserire manualmente questo script multi-sig nella parte di blocco della sua transazione.
+Nonostante la loro utilità, gli script multisignature nativi sono macchinosi da utilizzare. Il difetto principale risiede nel fatto che l'intero script deve essere comunicato a chiunque intenda effettuare un pagamento verso un indirizzo multi-sig. 
 
-Questo problema diventa ancora più evidente in ambito aziendale. Immaginiamo un cliente che vuole inviare dei bitcoin a un'azienda formata da 5 partner, la quale richiede una multisignature 2-di-5 per spendere quei bitcoin. Lo script si presenterebbe come: `2 <Public Key 1> <Public Key 2> <Public Key 3> <Public Key 4> <Public Key 5> 5 CHECKMULTISIG`. I problemi che ne derivano sono molteplici: in primo luogo, l'azienda deve trasmettere queste complesse informazioni ai propri clienti. Il cliente, a sua volta, ha bisogno di un software wallet speciale in grado di creare uno script di transazione multisignature personalizzato. Inoltre, la transazione risultante è cinque volte più grande di una normale, il che significa che necessita di più commissioni (fees) per essere presa in considerazione dai minatori. L'onere economico di questa transazione extra-large verrebbe quindi sostenuto dal cliente. Lo script potrebbe essere persino troppo lungo per essere inserito in una singola immagine di un codice QR. Infine, dal punto di vista dell'architettura di rete, un grande script di transazione rimarrebbe memorizzato nel set UTXO all'interno della memoria RAM di ogni nodo completo (full node) fino al momento in cui viene speso, inquinando i dati di sistema.
+Immaginiamo, ad esempio, l'indirizzo multisig del fondo cassa congiunto di marito e moglie: se un amico desidera inviare del denaro a quell'indirizzo per fare un regalo, la coppia dovrà comunicargli l'intero *locking script*. L'amico dovrà poi inserire manualmente questo script multi-sig nella parte di blocco della sua transazione.
+
+Questo problema diventa ancora più evidente in ambito aziendale. Immaginiamo un cliente che vuole inviare dei bitcoin a un'azienda formata da 5 partner, la quale richiede una multisignature 2-di-5 per spendere quei bitcoin. Lo script si presenterebbe come: `2 <Public Key 1> <Public Key 2> <Public Key 3> <Public Key 4> <Public Key 5> 5 CHECKMULTISIG`. 
+
+I problemi che ne derivano sono molteplici: in primo luogo, l'azienda deve trasmettere queste complesse informazioni ai propri clienti. Il cliente, a sua volta, ha bisogno di un software wallet speciale in grado di creare uno script di transazione multisignature personalizzato. Inoltre, la transazione risultante è cinque volte più grande di una normale, il che significa che necessita di più commissioni (fees) per essere presa in considerazione dai minatori. L'onere economico di questa transazione extra-large verrebbe quindi sostenuto dal cliente. Lo script potrebbe essere persino troppo lungo per essere inserito in una singola immagine di un codice QR. Infine, dal punto di vista dell'architettura di rete, un grande script di transazione rimarrebbe memorizzato nel set UTXO all'interno della memoria RAM di ogni nodo completo (full node) fino al momento in cui viene speso, inquinando i dati di sistema.
 
 ### L'Introduzione del Pay-to-Script-Hash (P2SH)
 
 Per risolvere queste inefficienze, nel gennaio del 2012 è stato introdotto il meccanismo Pay-to-Script-Hash (P2SH) attraverso il BIP-16. L'idea principale del P2SH è quella di designare come beneficiario di una transazione bitcoin l'hash di uno script, anziché il proprietario di una chiave pubblica. In pratica, anziché includere il lungo script originale nel *locking script*, si include solamente l'hash di tale script.
 
+<img src="assets/2026-03-28-12-09-10-image.png" title="" alt="" data-align="center">
+
 Con questo sistema, il mittente invia il denaro a un hash invece che a un indirizzo pubblico complesso, e può utilizzare dei software wallet semplici per farlo. Per sbloccare e riscattare la transazione, il destinatario deve presentare sia lo script originale che produce lo stesso hash contenuto nello script di blocco, sia le firme richieste da quello script. Questo approccio si rivela un'ottima soluzione per gli script multi-sig e, più in generale, per permettere di specificare script arbitrari e complessi come destinazioni di pagamento.
 
 Tecnicamente, il *locking script* in un'operazione P2SH assume la forma standardizzata: `OP_HASH160 <RedeemScriptHash> OP_EQUAL`. L' *unlocking script*, invece, deve fornire la risposta (ovvero le firme) e l'intero script originale: `<Response To Redeem Script> <Redeem Script>`. Riprendendo l'esempio di un multisig 1-di-2, dove il locking script originale sarebbe `OP_1 <PubKey1> <PubKey2> OP_2 OP_CHECKMULTISIG` e lo script di sblocco `OP_0 <Sig1>` oppure `OP_0 <Sig2>`, con il P2SH la struttura cambia. Il locking script P2SH conterrà solo l'hash: `OP_HASH160 <RedeemScriptHash> OP_EQUAL`, mentre lo sblocco sarà formulato come: `OP_0 <Sig1><Sig2>|<OP_2 <PubKey1> <PubKey2> <PubKey3> OP_3 OP_CHECKMULTISIG>`. In questo modo, la prima parte funge da risposta allo script di riscatto, mentre la seconda espone l'array di byte del Redeem Script originale.
+
+<img src="assets/2026-03-28-12-09-48-image.png" title="" alt="" data-align="center">
 
 I benefici del P2SH sono notevoli. Gli script complessi vengono sostituiti da impronte digitali (fingerprints) più brevi nell'output della transazione, rendendo la transazione molto più piccola. Gli script vengono così codificati come normali indirizzi. Soprattutto, il P2SH sposta un enorme onere dal mittente al destinatario. Nello specifico, sposta il carico della costruzione dello script sul destinatario anziché sul mittente. Inoltre, trasferisce l'onere dell'archiviazione dei dati per il lungo script dall'output (che risiede nella preziosa memoria UTXO) all'input (che viene semplicemente archiviato staticamente sulla blockchain). Questo posticipa anche l'onere dell'archiviazione dati dal momento presente (quando avviene il pagamento) a un momento futuro (quando i fondi vengono spesi). Infine, sposta il costo delle commissioni di transazione dovute alla grandezza dello script dal mittente al destinatario.
 
@@ -2493,11 +2515,7 @@ Per riassumere questa prima parte, ecco i concetti fondamentali affrontati:
 
 ---
 
-# Applicazioni Avanzate degli Script e Client Leggeri (SPV)
-
-In questa sezione, proseguendo l'analisi degli script Bitcoin avanzati, ci addentreremo in due dei concetti più innovativi per la scalabilità e l'interoperabilità delle blockchain: gli *Hash-Time Locked Contracts* (HTLC) e gli *Atomic Swaps*. Successivamente, esploreremo le metodologie per registrare dati arbitrari o distruggere monete in modo verificabile, per poi concludere con l'architettura dei client leggeri (SPV), fondamentali per l'utilizzo di Bitcoin su dispositivi mobili.
-
-### I Benefici del Pay-to-Script-Hash (P2SH)
+## I Benefici del Pay-to-Script-Hash (P2SH)
 
 Prima di procedere, è essenziale completare il discorso relativo al P2SH introdotto in precedenza. I vantaggi di questo paradigma sono strutturali : gli script complessi vengono sostituiti da impronte digitali (fingerprints) molto più brevi all'interno dell'output della transazione, rendendo di fatto la transazione più piccola. In questo modo, gli script vengono codificati e trattati come normali indirizzi, permettendo l'utilizzo di software wallet molto più semplici. Il paradigma P2SH sposta un onere significativo dal mittente al destinatario. Nello specifico:
 
@@ -2512,8 +2530,6 @@ Prima di procedere, è essenziale completare il discorso relativo al P2SH introd
 ### Hash-Time Locked Contracts (HTLC)
 
 Gli Hash-Time Locked Contracts (HTLC) sono una tipologia speciale di script caratterizzati da una condizione di riscatto complessa, alla base del funzionamento di canali di pagamento come la Lightning Network di Bitcoin.
-
-[INSERIRE IMMAGINE: Loghi di Bitcoin e rete Lightning, insieme al simbolo di Ethereum, per illustrare l'interoperabilità cross-chain]
 
 Un HTLC combina due meccanismi di blocco crittografico:
 
@@ -2583,7 +2599,7 @@ Dopo il 2013, è stata adottata una soluzione di compromesso con l'introduzione 
 
 Uno script *proof-of-burn* non può mai essere riscattato. L'invio di monete verso un "burn address" (un indirizzo privo di chiave privata) le distrugge per sempre. Poiché non esiste alcun modo possibile per spenderle, è matematicamente dimostrabile (provable) che quei bitcoin sono stati distrutti.
 
-[INSERIRE IMMAGINE: Rappresentazione grafica di un portafoglio con un teschio e monete Bitcoin in fiamme che illustra il processo e il flusso del "Proof of Burn"]
+
 
 Ma perché qualcuno dovrebbe distruggere il proprio denaro? Le applicazioni principali sono due:
 
@@ -2597,7 +2613,7 @@ Passando all'architettura di rete, sorge una domanda: è davvero necessario scar
 
 La soluzione a questo ostacolo è rappresentata dai client SPV. I client SPV (o client leggeri - lightweight client) richiedono il download esclusivamente degli header dei blocchi. Poiché un header pesa solo 80 byte, si registra una differenza di dimensioni di circa 1.000 volte rispetto a un full node. Questo approccio permette l'installazione di wallet su telefoni cellulari, risultando decisamente meno intensivo sia dal punto di vista della memoria (RAM/Storage) che della CPU, in quanto non è necessario impiegare grande potenza di calcolo per validare le transazioni di altri utenti.
 
-[INSERIRE IMMAGINE: Schema concettuale di una blockchain ridotta, costituita esclusivamente dagli Header dei blocchi collegati tra loro (Block 1, Block 2, ecc.)]
+<img src="assets/2026-03-28-12-17-19-image.png" title="" alt="" data-align="center">
 
 Un client SPV è interessato unicamente a ricevere e processare le transazioni che riguardano gli indirizzi contenuti nel proprio portafoglio (wallet). Per tale ragione, non scarica l'intera blockchain e non riceve le innumerevoli transazioni che gli sarebbero inutili. Ciononostante, la sicurezza delle transazioni rimane elevata : l'header contiene infatti il "nonce", permettendo all'SPV di verificare la Proof of Work (PoW), e, attraverso un meccanismo specifico, l'SPV può verificare anche la validità dell'inclusione di una transazione.
 
@@ -2637,7 +2653,7 @@ Come abbiamo visto, un client SPV (Simplified Payment Verification) possiede una
 
 Il processo di verifica, illustrato visivamente nelle diapositive tramite la ricostruzione passo-passo di un albero di hash, si basa sui rami di Merkle. Il full node, per dimostrare l'autenticità del dato, invia all'SPV non solo la transazione richiesta, ma anche il **Merkle branch** (ramo di Merkle) a essa associato. A questo punto, l'SPV calcola l'hash della transazione ricevuta e lo combina iterativamente con gli hash forniti nel Merkle branch, risalendo l'albero crittografico. L'operazione si conclude con successo solo se l'hash finale calcolato dall'SPV coincide perfettamente con la **Merkle Root** memorizzata all'interno dell'header del blocco. Questo rigoroso passaggio matematico garantisce che la transazione appartenga inequivocabilmente a quel blocco, prevenendo qualsiasi tentativo di falsificazione da parte del full node.
 
-[INSERIRE IMMAGINE: Diagramma animato del processo di Transaction Verification in ambiente SPV, che mostra come l'hash di una transazione venga combinato con il Merkle branch fornito dal full node per ricalcolare e verificare la Merkle Root nell'header del blocco]
+<img src="assets/2026-03-28-12-17-47-image.png" title="" alt="" data-align="center">
 
 ### Il Problema della Privacy e i Filtri Bloom
 
@@ -2647,13 +2663,13 @@ Per mitigare questo problema, si adotta una soluzione algoritmica elegante: l'in
 
 Una volta ricevuta la connessione e il filtro Bloom, il full node testa gli indirizzi di output di ogni singola transazione contro il filtro stesso. Il full node utilizza le medesime funzioni di hashing. Se tutte le funzioni restituiscono l'indice di un elemento impostato a 1 all'interno del filtro Bloom, significa che la transazione *potrebbe* essere interessante per l'SPV. In questa fase sono possibili dei falsi positivi, il che contribuisce all'offuscamento. Al contrario, se anche solo una funzione restituisce uno 0, la transazione è definitivamente da scartare in quanto non interessante per quel wallet. Il nodo completo invierà all'SPV esclusivamente le transazioni rilevanti, garantendo così un duplice vantaggio: un risparmio notevole di larghezza di banda (bandwith saving) e un livello di offuscamento degli indirizzi (address obfuscation) che, seppur limitato e oggetto di continue proposte di miglioramento, tutela la privacy dell'utente.
 
-[INSERIRE IMMAGINE: Schema del funzionamento dei filtri Bloom tra un client SPV su smartphone e un Full Bitcoin node, con il dettaglio degli array di bit (PKHa, PKHb) e le operazioni logiche OR sottostanti]
+<img src="assets/2026-03-28-12-18-19-image.png" title="" alt="" data-align="center">
 
 ### Lo Stack del Protocollo Bitcoin e il Bootstrapping della Rete P2P
 
 Per comprendere appieno il flusso dei dati, è necessario inquadrare il Bitcoin Protocol Stack, una struttura a strati sovrapposti. Partendo dall'alto troviamo l'**Application layer**, che ospita le applicazioni rivolte all'utente (user facing) che sfruttano la tecnologia blockchain. Subito sotto risiede il **Transaction layer**, il quale contiene la Virtual Machine (VM) e gli script, ospitando la logica necessaria per decidere se le transazioni siano valide. Più in basso opera il **Consensus layer**, incaricato di eseguire gli algoritmi e i protocolli per concordare quali transazioni debbano essere incorporate in via definitiva. Alla base di tutto vi è il **Network (P2P) layer**, responsabile della trasmissione (broadcasting) dei dati tra i nodi.
 
-[INSERIRE IMMAGINE: Diagramma a blocchi orizzontali del Bitcoin Protocol Stack che mostra la gerarchia dei quattro livelli: Application layer, Transaction layer (con VM e script), Consensus layer e Network (P2P) layer]
+![](assets/2026-03-28-12-20-01-image.png)
 
 Questa infrastruttura di rete P2P è intrinsecamente non strutturata (unstructured) e aperta a chiunque. Ma in che modo un nuovo client riesce a connettersi? Il processo iniziale, definito bootstrapping, richiede che il client contatti altri peer (nodi) per iniziare a ricevere i blocchi. Esistono diversi metodi per farlo:
 
@@ -2679,7 +2695,7 @@ La diffusione delle informazioni a livello di rete nella maggior parte delle blo
 
 Tuttavia, per non saturare la banda passante, i dati pesanti non vengono inviati alla cieca. Si utilizza una procedura di annuncio standard. Quando un nodo riceve una nuova transazione o un nuovo blocco, ne estrapola l'hash e invia ai vicini un messaggio di annuncio chiamato **INV**. Il messaggio INV contiene solo le impronte digitali (hash) degli oggetti, non i dati completi. Se un peer vicino si accorge di non possedere quei dati, risponde con un messaggio di richiesta **GETDATA**. Solo a questo punto il nodo originario trasmetterà l'effettivo blocco o transazione all'interno dei rispettivi messaggi **BLOCK** o **TRANSACTION**. Un aspetto cruciale per minimizzare il consumo di banda è la regola per cui un nodo deve richiedere un qualsiasi oggetto a un *singolo* peer alla volta: anche se riceve lo stesso hash (INV) contemporaneamente da più nodi vicini, invierà il comando "get" esclusivamente a uno di essi.
 
-[INSERIRE IMMAGINE: Diagramma di sequenza temporale (sequence diagram) che illustra lo scambio bidirezionale di messaggi "inv", "getdata" e "tx" (transazione) tra il Peer 1 e il Peer 2]
+<img src="assets/2026-03-28-12-20-42-image.png" title="" alt="" data-align="center">
 
 Questo complesso sistema di scambio dati funge anche da protezione contro attacchi informatici. Per prevenire attacchi di tipo Denial of Service (DoS) – in cui nodi malevoli inondano (flooding) la rete con oggetti non validi per saturarla e aumentare i ritardi di trasmissione – si adotta una semplice ma ferrea decisione di design: un nodo invia un messaggio INV ai suoi peer *solo ed esclusivamente dopo* aver validato localmente il blocco o la transazione (verificando, ad esempio, le firme o l'integrità degli UTXO). In aggiunta, i nodi mantengono un sistema di reputazione dei propri peer basato su euristiche predefinite. Se un nodo si comporta in modo anomalo (ad esempio inviando transazioni con firme non valide), la sua reputazione viene declassata. Una volta raggiunta una certa soglia minima di tolleranza, il nodo disonesto viene definitivamente disconnesso.
 
@@ -2704,8 +2720,6 @@ Infine, per gestire situazioni più complesse, come un peer che è rimasto disco
 ---
 
 # Lezione 12:  Scalabilità della Blockchain e il Bitcoin Lightning Network
-
-Questa sezione si basa sugli argomenti trattati nella lezione "SCALING BLOCKCHAIN: THE BITCOIN LIGHTNING NETWORK", tenutasi il 26/03/2026 per il corso accademico primaverile di "P2P Systems and Blockchains". Il modulo è stato curato dai docenti Laura Ricci e Damiano Di Franceso Maesa presso il Dipartimento di Informatica dell'Università degli Studi di Pisa.
 
 ### Il Trilemma della Blockchain
 
