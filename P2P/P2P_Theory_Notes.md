@@ -6,15 +6,15 @@
 
 L'evoluzione verso le reti decentralizzate richiede prima di tutto una profonda comprensione del tradizionale paradigma Client-Server. In questa architettura asimmetrica, il sistema è diviso in due entità distinte. Il Client è un software eseguito sugli host finali degli utenti (end-hosts) che manifesta un comportamento intermittente definito "on/off" (si accende e si spegne a discrezione dell'utente). Il client agisce come mero consumatore del servizio inviando richieste (issue requests), ed è tecnicamente isolato, poiché i client non comunicano mai direttamente tra di loro. Per poter funzionare, un client ha il bisogno assoluto di conoscere a priori l'indirizzo IP del server bersaglio. Di contro, il Server è eseguito su macchine host altamente specializzate e dedicate a questo unico scopo, rimanendo perpetuamente accese e connesse (always on) per operare come fornitori del servizio. Essi ricevono le richieste e hanno il compito di soddisfarle tutte indistintamente. Proprio per poter essere sempre rintracciabili dai client, i server necessitano di un indirizzo IP fisso, o in alternativa di un nome DNS stabile nel tempo. 
 
-<img src="file:///home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-13-21-23-14-image.png" title="" alt="" data-align="center">
+<img src="assets/2026-03-28-10-58-00-image.png" title="" alt="" data-align="center">
 
 Il paradigma Peer-to-Peer scardina completamente questa asimmetria gerarchica. In una rete P2P, l'entità software chiamata "Peer" viene sempre eseguita sugli host finali e presenta lo stesso comportamento intermittente (on/off) dei client tradizionali; tuttavia, la rete deve essere ingegnerizzata in modo da poter tollerare e gestire questo continuo e imprevedibile ricambio di nodi, un fenomeno tecnico noto come "churn". Un peer ha la necessità intrinseca di sapersi unire al network ("need to join") e di possedere protocolli atti a scoprire autonomamente la presenza di altri pari ("need to discover other peers"). L'aspetto rivoluzionario è che ogni singolo peer incarna contemporaneamente il ruolo di fornitore e di consumatore di servizi, potendo comunicare direttamente con i suoi pari senza passare per un centro nevralgico. 
 
-<img src="file:///home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-13-21-24-01-image.png" title="" alt="" data-align="center">
+<img src="assets/2026-03-28-10-58-10-image.png" title="" alt="" data-align="center">
 
 Proprio a causa di questa totale libertà strutturale, diventa imperativo stabilire rigorose regole di comunicazione. È necessario implementare dei meccanismi sociali e crittografici per prevenire il problema del "free riding" (il comportamento opportunistico di chi sfrutta la rete senza restituire risorse) incentivando, al contrario, la partecipazione attiva e il principio di reciprocazione tra gli utenti. Sebbene la condivisione delle risorse avvenga unicamente tra pari, va precisato che un server centralizzato potrebbe rivelarsi ancora necessario unicamente per facilitare le primissime fasi di connessione ("bootstrap"), ma non è in alcun modo coinvolto o richiesto durante le fasi vere e proprie di resource sharing. 
 
-<img src="file:///home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-13-21-25-14-image.png" title="" alt="" data-align="center">
+![](assets/2026-03-28-10-58-26-image.png)
 
 ### Condivisione delle Risorse e File Sharing
 
@@ -62,7 +62,7 @@ Per ovviare a queste vulnerabilità legali e strutturali, è nata la **seconda g
 
 Se il file sharing ha dimostrato la fattibilità delle reti distribuite, la **Blockchain** ne ha espanso enormemente le potenzialità, diventando la seconda "killer application" del mondo P2P. Possiamo fornire diverse definizioni per inquadrare questa tecnologia. La prima definizione la descrive come un database condiviso e archiviato in copie multiple su computer sparsi in tutto il mondo, mantenuto in funzione senza la necessità di un'autorità centrale (come potrebbe essere una banca, un governo o un'entità come Google). Una seconda, più tecnica definizione, la inquadra come un sistema di archiviazione dati replicato e coerente, immutabile, di tipo "append-only" (in cui si possono solo aggiungere dati, ma non modificarli o cancellarli) e intrinsecamente resistente alle manomissioni. Infine, una terza definizione la identifica come una macchina a stati decentralizzata, di sola scrittura, mantenuta da attori che non si fidano necessariamente l'uno dell'altro, ma la cui sicurezza è garantita da specifici incentivi economici. A causa di queste caratteristiche, i dati su una blockchain non possono essere cancellati, la rete non può essere spenta o censurata e supporta solo operazioni ben definite e concordate dai partecipanti. In queste reti, tipicamente pubbliche, i partecipanti potrebbero non conoscersi affatto, ma agiscono nel migliore interesse di tutti semplicemente rispettando le regole del protocollo per ottenere la loro ricompensa economica.
 
-<img src="file:///home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-13-21-28-27-image.png" title="" alt="" data-align="center">
+![](assets/2026-03-28-10-58-53-image.png)
 
 In sintesi, il ciclo vitale di una transazione su blockchain si articola in passaggi precisi: qualcuno richiede una transazione; questa viene trasmessa in broadcast a una rete P2P formata da computer chiamati "nodi". La rete di nodi valida la transazione e lo stato dell'utente utilizzando algoritmi noti. Una volta verificata, la transazione viene combinata con altre per creare un nuovo blocco di dati per il registro (ledger). Infine, il nuovo blocco viene aggiunto alla blockchain esistente in modo permanente e inalterabile, portando a compimento la transazione.
 
@@ -70,7 +70,7 @@ Per funzionare, la blockchain si affida a solide tecnologie di base. Le **firme 
 
 ### Quando è Davvero Necessaria una Blockchain?
 
-<img src="file:///home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-13-21-29-16-image.png" title="" alt="" data-align="center">
+![](assets/2026-03-28-10-59-01-image.png)
 
 Una domanda classica nello sviluppo software è: perché usare una blockchain invece di un normale database?. Un'analisi rigorosa suggerisce di farsi diverse domande: abbiamo bisogno di memorizzare uno stato? Ci sono molteplici attori che devono scrivere dati?. Se la risposta a queste prime domande è no, non si dovrebbe usare una blockchain. Se invece dobbiamo archiviare dati da parte di più scrittori, dobbiamo chiederci se è possibile utilizzare una Terza Parte Fidata (TTP) sempre online. Se sì, la blockchain è superflua. Se non possiamo usare una TTP, dobbiamo valutare se tutti gli scrittori sono noti. Se non sono noti, la soluzione ideale è una **Permissionless Blockchain** (pubblica e senza autorizzazioni). Se invece gli scrittori sono noti, dobbiamo chiederci se sono tutti fidati. Sorprendentemente, se tutte le parti sono note e fidate, *non* si dovrebbe usare una blockchain, ma affidarsi a database standard. Molti dei casi d'uso proposti per le aziende cadono erroneamente in questa categoria! Se gli scrittori sono noti ma *non* fidati, dobbiamo infine capire se è richiesta una verificabilità pubblica. In caso affermativo, la scelta ricade su una **Public Permissioned Blockchain**; in caso negativo, su una **Private Permissioned Blockchain**. Va ribadito che se i partecipanti sono noti e fidati, ma necessitano solo di un registro immutabile, non serve la blockchain: è sufficiente usare database tradizionali potenziati con checksum crittografici, come AWS QLDB o Apache Kafka.
 
@@ -98,7 +98,7 @@ Nonostante l'entusiasmo, le reti P2P e le blockchain devono affrontare important
 
 Per comprendere la gravità del problema della scalabilità, basti confrontare il numero di Transazioni Per Secondo (TPS) dei sistemi blockchain rispetto a quelli della finanza tradizionale. Mentre il circuito Visa gestisce in media circa 24.000 TPS, una criptovaluta ad alta velocità come Ripple ne gestisce 1.500. Piattaforme centralizzate come PayPal elaborano 193 TPS. Spostandoci sulle blockchain pure, i numeri crollano drasticamente: Bitcoin Cash gestisce 60 TPS, Litecoin 56 TPS, Dash 48 TPS, Ethereum si ferma a sole 20 TPS, e Bitcoin processa appena 7 TPS.
 
-<img src="file:///home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-13-21-31-19-image.png" title="" alt="" data-align="center">
+<img src="assets/2026-03-28-10-59-15-image.png" title="" alt="" data-align="center">
 
 Queste problematiche portano al famoso **Blockchain Trilemma**, che descrive il delicato equilibrio tra Sicurezza, Decentralizzazione e Scalabilità. Reti come Bitcoin ed Ethereum massimizzano Sicurezza e Decentralizzazione, sacrificando drasticamente la Scalabilità. Progetti come Ripple (XRP) o Hyperledger optano per altissima Sicurezza e Scalabilità, ma a discapito della vera Decentralizzazione. Altri network emergenti, come IOTA o Nano, puntano su Decentralizzazione e Scalabilità. La grande sfida scientifica e ingegneristica attuale consiste proprio nel trovare una soluzione a questa equazione: come possiamo migliorare drasticamente la scalabilità senza ridurre il livello di sicurezza e mantenendo contemporaneamente un alto grado di decentralizzazione?.
 
@@ -197,7 +197,7 @@ Nonostante l'innovazione, il modello di Napster celava ancora significative debo
 
 La risposta tecnologica ai limiti strutturali e legali di Napster è giunta con la teorizzazione e la creazione dei sistemi completamente decentralizzati, il cui esempio paradigmatico è stato Gnutella.
 
-<img title="" src="file:///home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-13-21-41-00-image.png" alt="" data-align="center" width="392">
+<img src="assets/2026-03-28-10-59-43-image.png" title="" alt="" data-align="center">
 
 In modo del tutto analogo a Napster, anche in Gnutella i file musicali sono memorizzati e residenti direttamente presso i computer degli utenti del sistema. Tuttavia, a differenza del suo predecessore, non esiste assolutamente alcun server centrale adibito alla localizzazione dei file; il che significa la totale assenza di un indice centrale di ricerca. Per sopperire a questa mancanza, i peer stabiliscono tra loro connessioni dirette e non transitorie, le quali vengono utilizzate unicamente per veicolare le query di ricerca e non per il download effettivo dei contenuti. L'insieme di queste interconnessioni logiche tra pari definisce a tutti gli effetti una rete **overlay**. I vantaggi innegabili di questo approccio "Fully Decentralized" risiedono nella completa assenza di infrastrutture dedicate e di amministrazione centralizzata, eliminando alla radice la minaccia del singolo punto di fallimento. Di contro, queste architetture affrontano debolezze intrinseche notevoli, tra cui la generazione di un elevatissimo traffico di rete per l'inoltro delle ricerche, la mancanza di un sistema di ricerca strutturato ed efficiente, e il gravoso problema del "free-riding", ovvero quegli utenti passivi che sfruttano la rete per scaricare senza mai contribuire condividendo le proprie risorse.
 
@@ -205,7 +205,7 @@ In modo del tutto analogo a Napster, anche in Gnutella i file musicali sono memo
 
 Per comprendere a fondo i sistemi P2P, è necessario definire la rete overlay: si tratta essenzialmente di una rete logica, costruita idealmente al di sopra di una preesistente rete fisica. I collegamenti in questo overlay si comportano come dei "tunnel" virtuali che attraversano la rete fisica sottostante in modo trasparente. Ne consegue che non tutti i collegamenti logici di un overlay corrispondono a collegamenti fisici diretti. Un singolo collegamento logico tra due peer può infatti corrispondere a un vasto insieme di collegamenti fisici e può richiedere l'attraversamento di una lunga serie di router hardware.
 
-![](/home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-13-21-41-38-image.png)![](/home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-13-21-41-51-image.png)
+![](assets/2026-03-28-10-59-57-image.png)
 
 È fondamentale sottolineare come molteplici e differenti reti overlay possano coesistere simultaneamente sulla medesima rete fisica sottostante; ciascuna di esse fornisce un proprio servizio particolare e specializzato, il quale non è reso nativamente disponibile dall'infrastruttura di base. I nodi che compongono l'overlay sono spesso normali host terminali (end hosts) che si assumono l'onere di agire come nodi intermedi, instradando e inoltrando il traffico per fornire un servizio alla collettività della rete, come ad esempio l'accesso a un file. Nella pratica moderna, la stragrande maggioranza delle reti overlay P2P è costruita operando al livello applicativo (application layer), appoggiandosi alla solidità della suite di protocolli di rete TCP/IP. Questo implica formalmente che le reti overlay P2P sono, a tutti gli effetti pratici, delle astrazioni di livello applicativo. Sebbene per il proprio funzionamento l'overlay si affidi e si appoggi imprescindibilmente agli strati sottostanti (underlays) per le funzionalità di rete più basilari come il routing e il forwarding dei bit, esso è in grado di offrire nuove funzionalità proprietarie di instradamento logico senza richiedere alcuna costosa o complessa modifica ai router fisici.
 
@@ -221,9 +221,15 @@ Prendendo come caso di studio esemplare Gnutella, la rete si poggia in modo esse
 
 Per risolvere la prima problematica, ovvero il bootstrap, un nuovo nodo che desidera unirsi al sistema si affida interrogando dei server DNS noti e pubblici, i quali memorizzano e restituiscono gli indirizzi IP di un insieme predefinito di "peer stabili". Ottenuto questo punto di appoggio, il nodo esegue localmente uno script progettato per interagire e dialogare con questi peer veterani. La conoscenza della rete (la cache) del client viene così aggiornata in maniera dinamica e automatica; questa memoria interna conserva accuratamente gli indirizzi IP dei peer contattati durante la sessione di rete in corso, nonché in quelle precedenti. Per non rendere obsolete le proprie informazioni, la cache viene infine mantenuta aggiornata attraverso una comunicazione in background di tipo "gossiping" (un chiacchiericcio costante) con i peer adiacenti.
 
-<img src="file:///home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-13-21-42-55-image.png" title="" alt="" data-align="center">Da un punto di vista procedurale, lo scenario operativo in una rete P2P non strutturata si articola in una chiara sequenza di fasi. Il **Passo 0** consiste nel processo di join per unirsi alla rete, come appena descritto. Il **Passo 1** mira a determinare e tracciare attivamente "chi è attualmente presente sulla rete". Per fare ciò in assenza di un registro, il peer invia in broadcast un pacchetto di "ping" per annunciare formalmente la propria presenza globale; di rimando, gli altri peer che ricevono il segnale rispondono con un pacchetto di "pong", che contiene a sua volta informazioni utili sul peer che lo ha generato. In aggiunta, per diffondere la conoscenza, i nodi provvedono a inoltrare il "ping" originale a tutti gli altri peer a cui sono connessi. Giunti al **Passo 2**, prende luogo la ricerca vera e propria: attraverso la creazione e l'invio di un pacchetto "query", il peer richiede formalmente un determinato contenuto agli altri nodi circostanti (si pensi a una domanda del tipo: "Hai nei tuoi dischi un file che corrisponde esattamente alla stringa 'Back to Black'?"). I peer interpellati verificano i propri database locali alla ricerca di corrispondenze: se trovano il file richiesto inviano una risposta positiva, in caso contrario agiscono da ponti e inoltrano il pacchetto a tutti i peer a cui sono connessi. Per non saturare la rete all'infinito, questo rimpallo esplorativo continua unicamente per un numero di salti rigorosamente limitato da un parametro tecnico chiamato TTL (Time-To-Live). Al termine della ricerca, si giunge al **Passo 3**, corrispondente alla fase di download: in questo step, il trasferimento del contenuto binario avviene abbandonando l'overlay di ricerca e stabilendo connessioni dirette tra il nodo richiedente e quello offerente, prelevando il file tramite l'utilizzo del consolidato metodo GET del protocollo HTTP.
+<img src="assets/2026-03-28-11-00-47-image.png" title="" alt="" data-align="center">
 
-![](/home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-13-21-43-26-image.png)
+
+
+
+
+Da un punto di vista procedurale, lo scenario operativo in una rete P2P non strutturata si articola in una chiara sequenza di fasi. Il **Passo 0** consiste nel processo di join per unirsi alla rete, come appena descritto. Il **Passo 1** mira a determinare e tracciare attivamente "chi è attualmente presente sulla rete". Per fare ciò in assenza di un registro, il peer invia in broadcast un pacchetto di "ping" per annunciare formalmente la propria presenza globale; di rimando, gli altri peer che ricevono il segnale rispondono con un pacchetto di "pong", che contiene a sua volta informazioni utili sul peer che lo ha generato. In aggiunta, per diffondere la conoscenza, i nodi provvedono a inoltrare il "ping" originale a tutti gli altri peer a cui sono connessi. Giunti al **Passo 2**, prende luogo la ricerca vera e propria: attraverso la creazione e l'invio di un pacchetto "query", il peer richiede formalmente un determinato contenuto agli altri nodi circostanti (si pensi a una domanda del tipo: "Hai nei tuoi dischi un file che corrisponde esattamente alla stringa 'Back to Black'?"). I peer interpellati verificano i propri database locali alla ricerca di corrispondenze: se trovano il file richiesto inviano una risposta positiva, in caso contrario agiscono da ponti e inoltrano il pacchetto a tutti i peer a cui sono connessi. Per non saturare la rete all'infinito, questo rimpallo esplorativo continua unicamente per un numero di salti rigorosamente limitato da un parametro tecnico chiamato TTL (Time-To-Live). Al termine della ricerca, si giunge al **Passo 3**, corrispondente alla fase di download: in questo step, il trasferimento del contenuto binario avviene abbandonando l'overlay di ricerca e stabilendo connessioni dirette tra il nodo richiedente e quello offerente, prelevando il file tramite l'utilizzo del consolidato metodo GET del protocollo HTTP.
+
+![](assets/2026-03-28-11-00-58-image.png)
 
 ### Meccanismi di Ricerca: Il Flooding
 
@@ -572,7 +578,7 @@ L'affidabilità ferrea di questi mattoni crittografici non solo regge le comples
 
 Per comprendere appieno le innovazioni di Kademlia, è utile fare un breve passo indietro e richiamare il funzionamento di Chord. Nel sistema Chord, i nodi scelgono un identificatore (ID) in modo quasi uniformemente casuale all'interno di un anello logico. Questo approccio partiziona gli identificatori in blocchi contigui lungo la struttura circolare logica. È fondamentale distinguere gli identificatori presenti sull'anello, che vengono definiti **chiavi**, dagli ID veri e propri dei nodi. Ad esempio, le chiavi il cui identificatore ricade in uno specifico segmento colorato dell'anello vengono assegnate al nodo responsabile di quella porzione. Di conseguenza, un nodo con un determinato identificatore $ID$ ha il compito di memorizzare le chiavi calcolate tramite la formula $successor(ID+2^{i})$ per le diverse potenze di 2 fino a $2^{m}$, dove $m$ rappresenta il numero di bit che compongono gli identificatori.
 
-<img src="file:///home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-14-14-44-47-image.png" title="" alt="" data-align="center">
+![](assets/2026-03-28-11-01-58-image.png)
 
 Superando le limitazioni strutturali di Chord, il sistema **Kademlia** si è affermato come l'algoritmo di ricerca standard de facto per le reti P2P (peer-to-peer) su Internet. Progettato da Petar Maymounkov (uno studioso di origini bulgare) e David Mazieres, il sistema è stato presentato per la prima volta nel 2002. Una curiosità interessante riguarda l'origine del nome: "Kademlia" deriva da una parola turca che indica un "uomo fortunato" e, cosa ancora più rilevante per le origini del suo creatore, è il nome di un picco montuoso in Bulgaria. Le specifiche complete del protocollo sono liberamente accessibili online.
 
@@ -586,7 +592,7 @@ Il successo di Kademlia è dovuto a un insieme di caratteristiche uniche non off
 
 Il cuore dell'architettura di Kademlia risiede nel modo in cui organizza lo spazio degli identificatori. A differenza dell'anello di Chord, in Kademlia gli identificatori dei nodi e dei dati sono strutturati all'interno di una topologia virtuale che assume la forma di un **trie binario completo**. Un trie binario è una struttura dati ad albero specializzata nella memorizzazione di chiavi o identificatori binari. In questo albero, ogni livello rappresenta esattamente un bit. Procedendo dalla radice verso il basso, ogni nodo interno possiede al massimo due figli: il ramo di sinistra corrisponde al bit 0, mentre il ramo di destra corrisponde al bit 1. Seguendo un percorso completo dalla radice fino a una foglia, si compone un identificatore completo, il quale è logicamente conservato all'interno del nodo foglia stesso.
 
-<img src="file:///home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-14-14-45-41-image.png" title="" alt="" data-align="center">
+![](assets/2026-03-28-11-02-08-image.png)
 
 Le foglie di questo albero delineano l'intero spazio degli identificatori disponibile sia per i nodi che per i dati. Tuttavia, nella realtà, solo una minima frazione di queste foglie corrisponde a nodi fisicamente attivi. Immaginiamo, a titolo di esempio, che solo tre nodi partecipino alla DHT. L'identificatore di ciascun peer (tipicamente derivato dall'indirizzo IP) viene sottoposto a una funzione di hash, e l'output risultante corrisponde a uno specifico identificatore (una foglia dell'albero). Nell'esempio mostrato a lezione, i nodi effettivamente partecipanti al protocollo possiedono gli identificatori 000, 110 e 111. È importante tenere a mente che, in uno scenario reale, lo spazio totale degli identificatori è immenso e il numero dei nodi attivi è di gran lunga inferiore rispetto al numero di tutti i possibili identificatori rappresentabili.
 
@@ -596,7 +602,7 @@ Una volta definita la struttura ad albero, sorge la necessità di partizionare q
 
 Applicando questa regola di partizionamento, si prende una chiave (identificatore del dato) e la si assegna al nodo DHT che possiede l'LCA ottimale con tale chiave. Osservando gli esempi grafici, se abbiamo nodi colorati (es. un nodo rosso, uno blu e uno giallo) e chiavi rappresentate con colori tenui (foglie non cerchiate), le chiavi colorate di azzurro tenue verranno assegnate al nodo blu, mentre le chiavi rosso tenue saranno assegnate al nodo rosso.
 
-<img src="file:///home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-14-14-47-25-image.png" title="" alt="" data-align="center">
+![](assets/2026-03-28-11-02-16-image.png)
 
 Tuttavia, può presentarsi una situazione di stallo. Potrebbe accadere che l'LCA calcolato tra una specifica chiave e due nodi differenti (ad esempio, il nodo blu e il nodo giallo) risulti essere esattamente lo stesso nodo interno dell'albero. In questo scenario, le chiavi non verrebbero teoricamente assegnate in modo univoco, lasciando potenzialmente un nodo "a secco". Per risolvere questa ambiguità, Kademlia introduce una regola per **spezzare i legami** (breaking the ties) e dividere equamente le chiavi tra le due foglie.
 
@@ -628,7 +634,7 @@ La scelta della metrica XOR non è casuale ed è superiore alle implementazioni 
 
 Questa metrica è strettamente legata ai **prefissi degli identificatori**: maggiore è la lunghezza del prefisso iniziale in comune tra due nodi, minore sarà la loro distanza calcolata tramite $\oplus$. I nodi considerati "vicini" sono accomunati proprio da un lungo prefisso condiviso. Per fare un esempio pratico reale su uno spazio a 160 bit, se la chiave di destinazione è l'hash del file "Communication Breakdown", e calcoliamo lo XOR tra questa chiave e gli ID hashati di tre nodi (A, B e C), il nodo che restituisce il valore XOR alfanumerico minore sarà il candidato prescelto per memorizzare i dati (nell'esempio delle slide, il nodo B).
 
-<img src="file:///home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-14-14-48-11-image.png" title="" alt="" data-align="center">
+<img src="assets/2026-03-28-11-02-31-image.png" title="" alt="" data-align="center">
 
 È vitale non confondere la distanza XOR con la semplice differenza numerica. Essendo lo spazio degli identificatori un albero binario bilanciato, due foglie possono apparire molto vicine nell'albero e avere una differenza numerica irrisoria, ma risultare estremamente distanti secondo la metrica $\oplus$. Ad esempio, lo XOR tra 1000 e 0111 genera 1111 (pari a 15, la massima distanza su 4 bit), nonostante la loro differenza aritmetica classica sia soltanto di 1.
 
@@ -656,19 +662,19 @@ L'obiettivo primario della tabella di routing in Kademlia è definire una proced
 
 Questa organizzazione si concretizza attraverso l'uso dei cosiddetti **k-bucket**. Dal punto di vista del nodo sorgente (ad esempio, il nodo identificato come 0000), l'albero di Kademlia viene suddiviso in diversi sottoalberi. A ogni sottoalbero corrisponde un secchio, o "bucket", che raccoglie un sottoinsieme di nodi appartenenti a quello specifico ramo. Più precisamente, ogni bucket copre un determinato intervallo di distanza (distance range) rispetto al nodo sorgente. Il primo k-bucket copre le distanze nell'intervallo $[2^0, 2^1)$, il secondo copre $[2^1, 2^2)$, il terzo $[2^2, 2^3)$, e così via, fino all'n-esimo k-bucket che gestisce l'intervallo $[2^{n-1}, 2^n)$. Una regola fondamentale di questa architettura impone che ogni bucket possa registrare al massimo $k$ contatti, da cui deriva proprio il nome "k-bucket".
 
-<img src="file:///home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-14-14-50-15-image.png" title="" alt="" data-align="center">
+![](assets/2026-03-28-11-02-45-image.png)
 
 Le relazioni matematiche tra i sottoalberi e la metrica XOR sono essenziali per comprendere il calcolo delle distanze. Considerando due identificatori $x$ e $y$ di lunghezza $L$, se questi condividono un prefisso comune di lunghezza $p$ e differiscono, di conseguenza, negli ultimi $i = L - p$ bit, la loro distanza secondo la metrica XOR ricadrà sempre nell'intervallo $2^{i-1} \le d(x,y) < 2^i$. Per chiarire, se abbiamo $X = 0101010$ e $Y = 0101110$, l'operazione $X \oplus Y$ genera il valore $0000100$, il che equivale a una distanza minima $d(x,y) = 2^3 = 8$. Se invece confrontiamo $X = 010110$ con $Y = 011001$, il loro XOR produce $001111$, indicando una distanza massima pari a $d(x,y) = 2^4 - 1 = 15$. In questo modo, ogni specifico intervallo di distanza viene rigorosamente associato all'estensione di un sottoalbero secondo le regole della metrica XOR.
 
 Queste dinamiche di calcolo spiegano la profonda differenza tra la distanza strutturale nell'albero degli identificatori e la classica differenza numerica. Ad esempio, consideriamo lo spazio dei numeri a 4 bit e prendiamo una foglia situata nel sottoalbero sinistro e una nel sottoalbero destro. Tra questi nodi, la lunghezza del prefisso condiviso è pari a 0 e la loro distanza varia nell'intervallo $2^3 \le d < 2^4$. L'operazione $0000 \oplus 1111$ restituisce $1111$, ovvero una distanza massima di 15, sebbene in questo caso anche la differenza numerica pura rifletta una grande lontananza. Tuttavia, il calcolo $0111 \oplus 1000$ restituisce $1111$ (15), mostrando che due nodi numericamente adiacenti (7 e 8 in decimale) si trovano in realtà alla massima distanza possibile nella topologia XOR. Al contrario, tra due nodi come $0110$ (6) e $0111$ (7), che differiscono unicamente nell'ultimo bit, la distanza risulta minima, ricadendo nell'intervallo $2^0 \le d < 2^1$ poiché $0110 \oplus 0111 = 0001 = 1$.
 
-<img src="file:///home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-14-14-50-47-image.png" title="" alt="" data-align="center">
+![](assets/2026-03-28-11-02-53-image.png)
 
 È inoltre fondamentale ricordare che lo spazio degli identificatori, tipicamente vastissimo (ad esempio 160 bit), non è interamente popolato. I nodi fisicamente attivi nella rete sono in numero enormemente inferiore rispetto agli identificatori teorici possibili, il che significa che non a tutti gli identificatori è associato un peer reale. Di conseguenza, l'albero dei nodi si configura come una visione alternativa e semplificata del trie formale: si tratta di un albero binario sbilanciato in cui vengono mostrate esclusivamente le foglie che corrispondono a peer realmente presenti nell'overlay. In questa struttura ottimizzata, una foglia dell'albero dei nodi corrisponde a un preciso prefisso identificativo. Il peer accoppiato a una determinata foglia possiede un prefisso che lo identifica univocamente all'interno della rete; non esisterà nessun altro peer attivo con il medesimo prefisso di routing, rendendo di fatto del tutto superflua la navigazione della parte più profonda del percorso (i bit meno significativi) al fine di individuare quel singolo peer.
 
 Strutturalmente, la tabella di routing di un singolo nodo può essere vista come un array di righe, dove ogni riga rappresenta un **k-bucket** (per identificatori a 160 bit, l'indice $i$ varierà da $0$ a $160$). Ogni riga $i$ contiene al massimo $k$ contatti la cui distanza $d$ dal nodo proprietario rientra nell'intervallo $2^i \le d < 2^{i+1}$. Ciascuna voce immagazzinata consiste in una tripla di informazioni: indirizzo IP, porta UDP e ID del Nodo. La tabella è strutturata in modo che le primissime voci corrispondano ai peer che condividono un lunghissimo prefisso comune con il proprietario della tabella. Essendo questa porzione di spazio estremamente ristretta, i bucket iniziali conterranno generalmente pochissimi contatti. Scendendo nella tabella (o salendo, in caso di ordine invertito dipendente dall'implementazione), si trovano i bucket associati a prefissi via via sempre più brevi, i quali coprono porzioni molto più ampie dello spazio degli identificatori. Questi ultimi bucket ospiteranno fisiologicamente un numero maggiore di contatti, raggiungendo spesso la capienza massima fissata dal parametro $k$. Il valore esatto di $k$ viene scelto a livello di sistema in modo da rendere statisticamente remoto l'evento critico in cui più di $k$ nodi all'interno di uno stesso bucket collassino o si disconnettano simultaneamente.
 
-<img src="file:///home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-14-14-52-35-image.png" title="" alt="" data-align="center">
+![](assets/2026-03-28-11-03-05-image.png)
 
 ### Gestione e Manutenzione dei Contatti nei K-Bucket
 
@@ -722,19 +728,31 @@ Il pilastro dell'efficienza di Kademlia è l'operazione di **NODE LOOKUP**, un a
 
 Per cristallizzare questi concetti, analizziamo un esempio pratico e completo della procedura di Look-up. Immaginiamo un nodo sorgente $P$ che necessiti di cercare una chiave $Q$, la quale può rappresentare l'identificatore di un altro nodo o di un contenuto . Come prima mossa, il nodo $P$ ispeziona la propria lista di K-Bucket per scovare i nodi attualmente memorizzati che risultano matematicamente più vicini a $Q$ . Nello specifico, $P$ cerca all'interno del k-bucket che copre la distanza più prossima alla chiave e che non risulta vuoto. Se questo specifico bucket contiene un numero di nodi inferiore al parametro $\alpha$ (ipotizziamo $\alpha=3$), l'algoritmo compensa estrapolando i contatti mancanti dai bucket spazialmente più vicini. Di conseguenza, i contatti selezionati per avviare la ricerca possono appartenere a k-bucket differenti.
 
-<img title="" src="file:///home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-14-14-54-46-image.png" alt="" data-align="center">Una volta isolati questi nodi, che chiameremo $A$, $B$ e $C$, il nodo $P$ invia in parallelo e in modo asincrono la query tramite la RPC FIND_NODE(Q) a tutti i contatti selezionati.
+![](assets/2026-03-28-11-03-30-image.png)
 
-<img src="file:///home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-14-14-59-15-image.png" title="" alt="" data-align="center">
+
+
+
+
+Una volta isolati questi nodi, che chiameremo $A$, $B$ e $C$, il nodo $P$ invia in parallelo e in modo asincrono la query tramite la RPC FIND_NODE(Q) a tutti i contatti selezionati.
+
+![](assets/2026-03-28-11-03-41-image.png)
+
+
 
 A questo punto, la palla passa ai nodi interpellati: ogni nodo contattato ($A$, $B$ e $C$) analizza a sua volta la propria tabella di routing per individuare i $k$ nodi che ritiene essere ancora più prossimi alla chiave $Q$. Naturalmente, data la diversa prospettiva topologica, ogni nodo interpellato attingerà a un bucket diverso della propria tabella di routing.
 
 Completata questa sotto-ricerca, si manifesta la natura del Routing Iterativo: ogni nodo interrogato restituisce autonomamente i risultati raccolti al nodo sorgente $P$ . Il nodo $P$ funge da centro di controllo, raccogliendo questi nuovi risultati e inserendoli in una lista rigorosamente ordinata in base alla distanza metrica tra ciascun nuovo nodo e la chiave $Q$. Attraverso queste nuove coordinate, $P$ può continuare il processo di routing inabissandosi ulteriormente nella rete.
 
-<img src="file:///home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-14-15-08-06-image.png" title="" alt="" data-align="center">
+![](assets/2026-03-28-11-03-49-image.png)
 
 Con le nuove informazioni alla mano (che ipotizziamo abbiano svelato l'esistenza dei nodi $M$, $N$ e $O$), il nodo $P$ aggiorna doverosamente i propri k-bucket. Successivamente, seleziona nuovamente un sottoinsieme di $\alpha$ nodi dalle informazioni appena ricevute. Se questi nuovi nodi risultano effettivamente più vicini al target rispetto a quelli esplorati in precedenza, $P$ avvia un nuovo ciclo di look-up inviando loro delle nuove richieste FIND_NODE(Q). Qualora i nuovi nodi non garantissero un avvicinamento significativo, l'algoritmo non si arrende, ma sceglie ulteriori nodi alternativi tra quelli immagazzinati che non sono ancora stati contattati.
 
-![](/home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-14-15-08-24-image.png)Questo imponente processo ricorsivo non prosegue all'infinito, ma è governato da una rigorosa condizione di terminazione: l'iterazione si conclude definitivamente quando un intero round di chiamate FIND_NODE fallisce nel restituire nodi che siano più vicini di quelli già individuati nel round precedente.
+![](assets/2026-03-28-11-04-07-image.png)
+
+
+
+Questo imponente processo ricorsivo non prosegue all'infinito, ma è governato da una rigorosa condizione di terminazione: l'iterazione si conclude definitivamente quando un intero round di chiamate FIND_NODE fallisce nel restituire nodi che siano più vicini di quelli già individuati nel round precedente.
 
 Formalizzando l'intero algoritmo, la procedura inizia popolando una lista chiamata "k-closest" con $\alpha$ contatti prelevati dal k-bucket non vuoto più vicino alla chiave. Nel caso in cui questo bucket disponga di meno di $\alpha$ contatti, la lista viene rimpinguata unendo (tramite operazione logica di unione $U$) i contatti più vicini estratti da altri bucket adiacenti. Viene inoltre inizializzata una variabile "closestNode" che traccia il nodo in assoluto più vicino all'interno della lista. Entrando nel ciclo ricorsivo o iterativo, il sistema seleziona dalla lista "k-closest" gli $\alpha$ contatti più vicini che non sono ancora stati interrogati e invia loro, in parallelo e asincronamente, le chiamate FIND_NODE. Ciascun contatto ancora in vita risponderà restituendo $k$ nodi, i quali verranno aggiunti alla lista "k-closest", permettendo di aggiornare conseguentemente la variabile "closestNode". Questo ciclo si ripete ininterrottamente fino a quando i nodi contattati non riescono più a restituire alcun nodo che sia più vicino al target rispetto all'attuale "closestNode". A questo punto, come ultima azione a garanzia della massima copertura, il nodo sorgente invia parallelamente e asincronamente una chiamata FIND_NODE ai $k$ nodi più vicini che non ha ancora interrogato, restituendo infine all'applicazione utente l'elenco consolidato dei $k$ nodi definitivi.
 
@@ -760,7 +778,9 @@ Tirando le somme, tra i punti di forza (Strengths) di Kademlia spiccano: un irri
 
 Per i lettori che desiderassero approfondire visualmente la cinematica della rete, si raccomanda l'osservazione dell'animazione interattiva disponibile all'indirizzo *kelseyc18.github.io/kademlia_vis/basics/1/*.
 
-<img src="file:///home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-14-15-09-11-image.png" title="" alt="" data-align="center">
+
+
+![](assets/2026-03-28-11-04-28-image.png)
 
 ---
 
@@ -866,7 +886,7 @@ Una manifestazione visibile della sicurezza di un hash è il suo **effetto valan
 
 Non tutte le funzioni di hash sono progettate per resistere ad attacchi crittografici. Un esempio classico è la **parità di blocco a 8 bit** (8-bit block parity). In questo metodo, il digest viene calcolato analizzando i bit per colonna. È estremamente facile trovare una collisione in questo sistema: basta invertire un numero pari di bit all'interno della stessa colonna nel messaggio originale ($m_1$) per ottenere un messaggio alterato ($m_2$) che manterrà esattamente lo stesso digest (es. `00011100`). Questa intrinseca vulnerabilità lo rende del tutto insicuro per scopi crittografici.
 
-<img src="file:///home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-14-15-16-28-image.png" title="" alt="" data-align="center">
+<img src="assets/2026-03-28-11-04-47-image.png" title="" alt="" data-align="center">
 
 Un altro esempio di hash non sicuro è il **Cyclic Redundancy Check (CRC)**. Essenzialmente, il CRC calcola il resto di una lunga divisione ed è eccellente per rilevare errori di trasmissione casuali (burst errors), poiché è improbabile che errori fortuiti producano una collisione. Tuttavia, per un malintenzionato è un'operazione banale costruire intenzionalmente delle collisioni. Nonostante la sua evidente insicurezza crittografica, il CRC è stato storicamente e rovinosamente impiegato in contesti in cui era richiesta integrità, come nel protocollo di sicurezza wireless **Wired Equivalent Privacy (WEP)**.
 
@@ -876,9 +896,9 @@ Attaccare una funzione di hash attraverso un metodo a **forza bruta** significa 
 
 Gli analisti crittografici, pertanto, non ricorrono alla forza bruta pura, ma alla **criptoanalisi**, che mira a sfruttare le debolezze logiche dell'algoritmo, cercando scorciatoie (shortcut) o falle (hole) matematiche. Quando una collisione può essere trovata in un tempo significativamente inferiore rispetto a quello richiesto dalla forza bruta, la funzione di hash viene dichiarata "rotta" (broken).
 
-<img src="file:///home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-14-15-16-59-image.png" title="" alt="" data-align="center">
+![](assets/2026-03-28-11-05-00-image.png)
 
-In assenza di difetti di progettazione intrinseci, la forza di una funzione di hash contro gli attacchi a forza bruta dipende esclusivamente dalla lunghezza in bit del suo output (valore hash). Come riassunto in precedenza, la resistenza alla pre-immagine e alla seconda pre-immagine richiede un livello di sforzo proporzionale a $2^n$, mentre la resistenza alle collisioni è proporzionale a $2^{n/2}$.
+
 
 Pertanto, un hash a 56 bit (livello di sicurezza di 56 bit) può essere forzato con $2^{56}$ operazioni. Allo stato attuale, un ammontare di $2^{128}$ operazioni è assolutamente irrealizzabile, mentre $2^{80}$ operazioni iniziano a diventare teoricamente fattibili (con la consapevolezza che calcolare $2^{81}$ operazioni richiede il doppio del tempo rispetto a $2^{80}$). Per garantire un margine di sicurezza adeguato, oggi è richiesto un livello di sicurezza di almeno 80 bit. Analizzando gli algoritmi comuni: l'MD5 offre solo 64 bit di sicurezza ($128/2$), lo SHA-1 offre 80 bit ($160/2$), mentre lo **SHA-256**, l'algoritmo alla base della blockchain di Bitcoin, offre un solidissimo margine di 128 bit di sicurezza ($256/2$). Esistono versioni ancora più potenti come lo SHA-512 che spingono la sicurezza a 256 bit ($512/2$).
 
@@ -943,7 +963,9 @@ Un'altra colonna portante dei network blockchain è il **Search Puzzle** (o Hash
 
 L'obiettivo dei miner (i nodi della rete) è trovare un segmento di input mancante (il valore $x$) tale per cui, calcolando l'hash del messaggio concatenato $m = r || x$, il digest risultante $H(m)$ cada all'interno dell'insieme target $S$ ($H(m) \in S$).
 
-<img src="file:///home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-14-15-19-23-image.png" title="" alt="" data-align="center">
+![](assets/2026-03-28-11-05-20-image.png)
+
+
 
 La difficoltà del puzzle viene modulata dinamicamente dal protocollo ridefinendo le dimensioni dell'insieme $S$: se $S$ è grande, trovare un hash che vi ricada all'interno sarà statisticamente meno difficile e richiederà meno potenza di calcolo. Nel caso specifico di Bitcoin, l'insieme $S$ è definito dal numero di "zeri iniziali" che il digest SHA-256 finale deve possedere (ad esempio, un hash valido deve iniziare obbligatoriamente con un certo numero di stringhe `000...`).
 
@@ -965,9 +987,17 @@ Per concludere l'argomento delle funzioni di hash, è indispensabile citare la p
 
 Tali funzioni robuste trovano la loro massima espressione nelle Tabelle Hash Distribuite (DHT) e nelle Blockchain. Una Distributed Hash Table (DHT) rappresenta una classe di sistema distribuito e decentralizzato che eroga un servizio di ricerca del tutto simile a quello di una tabella hash tradizionale, operando su coppie di "(chiave, valore)". Le coppie di dati vengono archiviate all'interno della DHT in modo che qualsiasi nodo partecipante (peer) possa recuperare in maniera estremamente efficiente il valore associato a una specifica chiave.
 
-<img src="file:///home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-14-15-21-35-image.png" title="" alt="" data-align="center">Nel contesto delle criptovalute, Bitcoin impiega una "block chain", la quale è concettualmente una vera e propria catena di hash (hash chain) utilizzata per memorizzare il registro generale delle transazioni (ledger) all'interno di una rete Peer-to-Peer (P2P). Il concatenamento sequenziale degli hash garantisce la totale inviolabilità del registro, una proprietà definita come "tamper freeness" (a prova di manomissione).
+![](assets/2026-03-28-11-05-36-image.png)
 
-![](/home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-14-15-21-54-image.png)
+
+
+Nel contesto delle criptovalute, Bitcoin impiega una "block chain", la quale è concettualmente una vera e propria catena di hash (hash chain) utilizzata per memorizzare il registro generale delle transazioni (ledger) all'interno di una rete Peer-to-Peer (P2P). Il concatenamento sequenziale degli hash garantisce la totale inviolabilità del registro, una proprietà definita come "tamper freeness" (a prova di manomissione).
+
+![](assets/2026-03-28-11-05-50-image.png)
+
+
+
+
 
 ### La Rivoluzione della Crittografia Asimmetrica a Chiave Pubblica
 
@@ -995,17 +1025,17 @@ Attraverso la firma digitale, il mittente (chiamiamolo Bob) firma un documento p
 
 Per capire come funziona matematicamente, partiamo da un esempio "ingenuo" (*naive*). Chiamiamo $K_B^-$ la chiave privata di Bob e $K_B^+$ la sua chiave pubblica. Bob decide di firmare il suo messaggio $m$ crittografandolo per intero usando la sua chiave privata, creando così il messaggio firmato $K_B^-(m)$. Bob invia poi ad Alice due cose: il messaggio in chiaro $m$, e il messaggio crittografato $K_B^-(m)$. È importante notare che in questo schema di base la confidenzialità non è garantita, dato che il testo viaggia in chiaro affiancato alla sua firma.
 
-![](/home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-14-15-22-48-image.png)
+![](assets/2026-03-28-11-06-08-image.png)
 
-Quando Alice riceve la coppia $m$ e $K_B^-(m)$, deve verificarne la validità. Per farlo, applica la chiave pubblica di Bob ($K_B^+$) alla firma $K_B^-(m)$ e controlla se il risultato ottenuto è uguale al messaggio in chiaro $m$, verificando quindi l'equazione $K_B^+(K_B^-(m)) = m$. Se i due valori coincidono, Alice sa con assoluta certezza tre cose: Bob ha firmato il messaggio, nessun altro lo ha fatto al suo posto, e Bob ha firmato esattamente il messaggio $m$ originale e non una versione modificata $m'$. Grazie alla proprietà di non ripudio, Alice potrebbe addirittura portare $m$ e la firma in tribunale come prova schiacciante delle azioni di Bob.
+
 
 ### L'Ottimizzazione: Firmare l'Hash
 
 L'approccio appena visto funziona in teoria, ma ha un grave difetto pratico: crittografare messaggi lunghi richiede troppe risorse ed è un'operazione computazionalmente molto costosa. Per risolvere il problema, si introduce la funzione di hash. Invece di cifrare l'intero documento, il mittente applica una funzione di hash $H$ al messaggio esteso $m$, ottenendo un *digest* di dimensione fissa $H(m)$. A questo punto, il mittente firma (cioè crittografa) esclusivamente questo breve digest, generando l'output $K_B^-(H(m))$.
 
-<img src="file:///home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-14-15-23-06-image.png" title="" alt="" data-align="center">
+![](assets/2026-03-28-11-06-23-image.png)
 
-Questo metodo garantisce l'**integrità**, poiché ci permette di sapere con certezza se il messaggio ricevuto è identico a quello inviato originariamente. Tuttavia, come abbiamo detto, il messaggio viene inviato in chiaro e non è confidenziale. Per ottenere contemporaneamente la confidenzialità e l'integrità dei dati, dobbiamo combinare le due tecniche: il mittente prima firma il documento con la propria chiave privata, e poi crittografa il tutto usando la chiave pubblica del destinatario. Il destinatario farà le operazioni inverse: decritterà il file con la sua chiave privata e applicherà la chiave pubblica del mittente al documento risultante per verificare la firma. Se il risultato finale ha senso, la trasmissione è sicura.
+
 
 ### Il Problema dell'Autenticazione Debole e il "Pizza Prank"
 
@@ -1051,13 +1081,17 @@ Per chiudere l'argomento, è fondamentale capire bene la differenza tecnica tra 
 
 Un concetto cardine per garantire la sicurezza delle strutture dati distribuite è il **Puntatore Hash** (Hash Pointer). A differenza di un puntatore tradizionale, un puntatore hash è composto da due elementi inseparabili: un puntatore classico che indica dove l'informazione è memorizzata fisicamente o logicamente, unito a un hash crittografico di quella stessa informazione.
 
-<img src="file:///home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-14-15-37-38-image.png" title="" alt="" data-align="center">
 
-Il vantaggio di questa struttura è duplice. Possedendo un puntatore hash, un sistema può ovviamente richiedere e ottenere indietro i dati desiderati, ma può allo stesso tempo verificare matematicamente che l'informazione non sia stata alterata nel frattempo. Per questo motivo, l'equazione fondamentale su cui si basano questi sistemi è che un puntatore a dati evidente alle manomissioni (tamper-evident) è esattamente uguale a un Puntatore Hash.
+
+![](assets/2026-03-28-11-06-49-image.png)
 
 L'idea chiave alla base delle architetture blockchain è proprio quella di costruire intere strutture dati sfruttando questi puntatori hash. La **blockchain**, nella sua accezione più tecnica, non è altro che una lista concatenata in cui i nodi sono uniti tramite puntatori hash. Per calcolare il puntatore hash di un blocco, è necessario eseguire la funzione di hash sull'intero blocco, il che include inevitabilmente anche il puntatore hash che questo blocco possiede verso il suo predecessore. Questo meccanismo a cascata crea un log evidente alle manomissioni (tamper-evident log), che rappresenta la struttura dati di base su cui si fondono criptovalute come Bitcoin ed Ethereum.
 
-<img src="file:///home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-14-15-37-55-image.png" title="" alt="" data-align="center">
+![](assets/2026-03-28-11-07-19-image.png)
+
+
+
+
 
 Se un ipotetico avversario tentasse di manomettere i dati contenuti nel blocco $k$-esimo della catena, l'hash memorizzato all'interno del blocco successivo ($k+1$) non corrisponderebbe più ai nuovi dati. La robustezza del sistema è garantita dalla resistenza alle collisioni intrinseca alle funzioni di hash: è computazionalmente infattibile per un malintenzionato modificare i dati in modo tale che il loro nuovo hash sia identico a quello calcolato prima della manomissione. Nei sistemi basati su **Proof of Work** (PoW), il blocco contiene anche la prova crittografica che il calcolo del PoW è stato eseguito con successo. Di conseguenza, se anche un solo bit di dati viene alterato, il Proof of Work deve essere rieseguito non solo per quel blocco, ma per tutti i blocchi successivi ad esso.
 
@@ -1069,7 +1103,9 @@ Più in generale, i puntatori hash possono essere integrati in qualsiasi struttu
 
 Spostandoci verso l'ottimizzazione delle query, incontriamo il **Problema dell'Appartenenza agli Insiemi** (Set Membership Problem). Si consideri un insieme $S=\{S_{1},S_{2},....,S_{n}\}$ composto da $n$ elementi, dove $n$ è un numero estremamente grande. La necessità tecnica è definire una struttura dati efficiente che supporti query di appartenenza del tipo "$k$ è un elemento di $S$?". Idealmente, una funzione $f(k)$ dovrebbe restituire il valore vero se e solo se $k \in S$, e falso se e solo se $k \notin S$, determinando l'esito unicamente in base alla presenza di $k$ nell'insieme dato.
 
-<img src="file:///home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-14-15-38-20-image.png" title="" alt="" data-align="center">
+![](assets/2026-03-28-11-07-57-image.png)
+
+
 
 Tuttavia, quando le risorse sono limitate, è necessario virare verso una soluzione approssimata. Il problema si trasforma quindi nella scelta di una rappresentazione degli elementi dell'insieme $S$ che permetta di calcolare il risultato della query in modo efficiente, riducendo drasticamente lo spazio di memoria richiesto. In questo scenario, la funzione $f(k)$ garantisce un risultato "falso" certo se $k \notin S$, ma restituisce un ambiguo "forse $k \in S$" in caso di esito positivo. I risultati vengono quindi approssimati per risparmiare spazio, introducendo la possibilità di ottenere **falsi positivi**. Si delinea così un chiaro compromesso (trade-off) tra lo spazio di memoria richiesto e la probabilità matematica di riscontrare falsi positivi.
 
@@ -1077,7 +1113,9 @@ Tuttavia, quando le risorse sono limitate, è necessario virare verso una soluzi
 
 Il **Filtro di Bloom** è la struttura dati probabilistica ideata per risolvere questa specifica problematica. A livello strutturale, viene istanziato a partire da un vettore $B$ (o $S$) costituito da $m$ bit, tutti inizializzati a zero. Per mappare gli $n$ elementi dell'insieme, si definiscono $k$ funzioni di hash indipendenti ($h_{1}, ..., h_{k}$). A livello dimensionale, si assume che il numero di bit $m$ sia di gran lunga superiore al numero di elementi $n$ (generalmente $m > n \cdot k$). Ogni funzione di hash $h_{i}$ esegue una mappatura dall'insieme $S$ a un intervallo $[1..m]$, restituendo un valore distribuito in modo uniforme.
 
-<img src="file:///home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-14-15-38-55-image.png" title="" alt="" data-align="center">
+![](assets/2026-03-28-11-08-13-image.png)
+
+
 
 Per inserire un elemento $x \in S$ nel Filtro di Bloom, si applicano tutte le $k$ funzioni di hash all'elemento. Se una funzione restituisce una determinata posizione (ad esempio $f(x)=A$), il bit in quella posizione nel vettore viene impostato a 1 (ossia, si imposta $S[A]=1$). Formalmente, per ogni elemento inserito, il vettore $B$ viene aggiornato in modo tale che $B[h_{j}(x)]=1, \forall j=1,2,...k$. Poiché lo spazio è condiviso, è del tutto normale che un singolo bit del vettore funga da target per più di un elemento.
 
@@ -1119,11 +1157,13 @@ Questa probabilità dipende da due variabili cruciali: il rapporto $m/n$ (ovvero
 
 Riprendendo il concetto di probabilità dei falsi positivi, è cruciale analizzare il comportamento del filtro al variare dei parametri architetturali. Fissato il rapporto $m/n$ (ovvero il numero di bit disponibili per ogni elemento), la probabilità di falsi positivi segue un andamento non lineare rispetto all'aumentare di $k$ (il numero di funzioni di hash). Inizialmente, all'aumentare di $k$, il tasso di falsi positivi diminuisce, ma superata una certa soglia, ricomincia a salire.
 
-<img src="file:///home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-14-15-40-36-image.png" title="" alt="" data-align="center">
+![](assets/2026-03-28-11-08-26-image.png)
+
+
 
 Ad esempio, se imponiamo $m/n=2$, concedendo quindi pochissimi bit per ogni elemento, non è possibile sfruttare "troppe" funzioni di hash. L'eccesso di funzioni finirebbe per saturare rapidamente il filtro riempiendolo di 1, causando l'impennata dei falsi positivi. Al contrario, con un rapporto più generoso come $m/n=10$, l'impiego di un numero maggiore di funzioni di hash abbassa costantemente il tasso di falsi positivi senza mai farlo risalire.
 
-<img src="file:///home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-14-15-40-51-image.png" title="" alt="" data-align="center">
+![](assets/2026-03-28-11-08-34-image.png)
 
 Se invece fissiamo preventivamente il parametro $k$ e facciamo variare la dimensione della struttura, notiamo che la probabilità di incappare in falsi positivi diminuisce in maniera esponenziale all'aumentare di $m$ (la dimensione totale in bit del vettore). Per valori molto bassi di $m/n$, la probabilità di errore si rivela decisamente più alta se si scelgono valori grandi per $k$.
 
@@ -1172,7 +1212,7 @@ La soluzione ottimale al problema appena esposto è fornita dai **Merkle Trees**
 
 A livello architetturale, un Albero di Merkle è un albero binario completo e pieno (complete full binary tree) costituito da hash crittografici, generato a partire da un insieme iniziale di dati $\{f_{1}, ... f_{i}, ... f_{n}\}$. Il processo di costruzione, assumendo di avere $n$ blocchi di dati ($x_{1}, x_{2}, ..., x_{n}$) con $n$ che è una potenza di 2, parte dalla base. L'i-esima "foglia" (leaf) dell'albero memorizza l'hash $h_{i}$ del corrispondente dato $f_{i}$ (o $x_{i}$). Salendo di livello, ogni nodo interno immagazzina l'hash risultante dalla concatenazione degli hash dei propri nodi figli. Matematicamente, l'operazione in un nodo interno è espressa come $H(x, y) = H(x || y)$, dove il simbolo $||$ rappresenta la concatenazione crittografica.
 
-<img src="file:///home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-14-15-41-56-image.png" title="" alt="" data-align="center">
+![](assets/2026-03-28-11-08-48-image.png)
 
 Questo processo iterativo continua fino a confluire nell'unico nodo al vertice della struttura. L'ultimo hash calcolato e conservato nella radice, nonché il "commitment" finale, prende il nome di **Merkle Root Hash** (nell'esempio delle slide, indicato come $y_{2n-1}$ o specificamente $y_{15}$ per 8 blocchi di dati). È sufficiente salvare questo singolo valore per avere la garanzia crittografica dell'intero set di dati sottostante.
 
@@ -1190,7 +1230,7 @@ Nel nostro caso specifico, per dimostrare l'appartenenza di $x_{4}$, il Prover e
 
 4. Calcolerà infine l'hash radice: $z_{15} = h(z_{13} || y_{14})$. Se e solo se il risultato finale $z_{15}$ corrisponde in modo esatto all'hash radice fidato ($y_{15}$) in possesso del client, l'integrità e l'appartenenza del blocco $D$ sono provate oltre ogni ragionevole dubbio.
 
-<img src="file:///home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-14-15-42-42-image.png" title="" alt="" data-align="center">
+![](assets/2026-03-28-11-08-56-image.png)
 
 Analizzando le performance computazionali, la costruzione dell'albero necessita di $O(n)$ in termini di spazio e di computazione di hash. La dimensione del commitment è eccezionale: solamente $O(1)$, corrispondente di fatto a un root a 256-bit. Le Merkle Proofs eccellono in efficienza richiedendo un tempo di calcolo, uno spazio di memoria e un numero di hash da verificare pari a soli $O(\log n)$. In termini di consistenza, questo meccanismo annulla i falsi negativi (è sempre possibile costruire una prova corretta se il dato appartiene effettivamente all'insieme) e rende computazionalmente inattuabili i falsi positivi: superare il test con dati alterati significherebbe trovare deliberatamente un "falso fratello" in grado di restituire l'hash genitore corretto, operazione che equivale a forzare la resistenza alle collisioni della funzione crittografica.
 
@@ -1210,7 +1250,7 @@ Prima di esplorare la variante complessa usata in Ethereum, è essenziale padron
 
 Il Trie è strutturato in modo che le "chiavi" (keys) siano tipicamente stringhe di testo. Gli spigoli (edges) o rami che uniscono i nodi sono etichettati con le singole lettere dell'alfabeto. Seguendo un percorso (path) dal nodo radice verso il basso, la sequenza di rami attraversati definisce fisicamente la composizione della stringa. I nodi includono un indicatore di stato che si attiva per demarcare che quel particolare nodo rappresenta la fine compiuta di una parola valida. Una delle particolarità più interessanti è che, in un Trie, ogni nodo eccetto la radice rappresenta a tutti gli effetti il prefisso di una stringa (da cui il nome prefix-tree). Ad esempio, in un dizionario della lingua inglese, il numero massimo teorico di diramazioni che possono partire da un singolo nodo è 26, corrispondente al numero di lettere dell'alfabeto.
 
-![](/home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-14-15-43-50-image.png)
+![](assets/2026-03-28-11-09-06-image.png)
 
 ### Dinamiche di Inserimento e Ricerca nel Trie
 
@@ -1316,7 +1356,7 @@ Nel *Branch Node* (che ha hash `9fb93297`), la chiave "do" termina il suo percor
 
 **Fase 3: Struttura Completa e Manomissione** Iterando il processo per tutte le parole, noteremo che tutti i prefissi inseriti iniziano con il nibble `6` (`64` per le prime tre, `68` per horse). Il MPT creerà dunque un nodo condiviso radice esclusivamente per il nibble `6`. Terminata la costruzione, l'albero calcolerà l'hash di root globale, che in questo scenario risulterà essere `fa6dc296`.
 
-<img src="file:///home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-14-15-45-39-image.png" title="" alt="" data-align="center">
+![](assets/2026-03-28-11-09-27-image.png)
 
 La vera potenza della struttura si manifesta in fase di **modifica**. Cosa accade se alteriamo un singolo dato in profondità nell'albero? Supponiamo di aggiornare il valore della chiave "horse", cambiandolo da "stallion" a "pony". Il Leaf Node finale assumerà un nuovo hash (nell'esempio `e53aed38`). Essendo legato crittograficamente ai suoi genitori, questa variazione di hash si propagherà a cascata verso l'alto (effetto valanga), andando a mutare l'hash di tutti i nodi sovrastanti. Di conseguenza, il Root Hash globale muterà irreversibilmente, passando da `fa6dc296` al nuovo valore `e6ed1967`.
 
@@ -1380,7 +1420,7 @@ I protocolli di consenso cercano di emulare un "mondo ideale" in una rete distri
 
 Qui entra in gioco l'**Attacco Sybil**. Il termine prende ispirazione dalle Sibille dell'Antica Grecia (come la Sibilla Delfica), profetesse che vaticinavano sotto l'influenza divina, dove non parlava la persona ma un'entità superiore attraverso di lei. Divenuta una metafora per indicare identità multiple per una singola persona, è stata resa celebre dal libro del 1973 "Sybil" di Flora Rheta Schreiber (racconto di una donna con 16 personalità distinte) e trova rappresentazione anche nel magnifico pavimento del Duomo di Siena.
 
-<img src="file:///home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-14-16-40-14-image.png" title="" alt="" data-align="center">
+<img src="assets/2026-03-28-11-09-51-image.png" title="" alt="" data-align="center">
 
 In un sistema P2P, iniettare finte identità è estremamente facile; basta registrarsi ripetutamente in una Distributed Hash Table (DHT). Senza meccanismi di blocco, non c'è garanzia che a un singolo nodo corrisponda una sola identità logica. Gli attaccanti utilizzano queste identità multiple per orchestrare attacchi di routing, controllare i dati replicati, interrompere la connettività di rete e, in ambito blockchain, ottenere la maggioranza fittizia nei voti di consenso. Tornando al problema del double spending, se un'entità (come Alice) esegue un attacco Sybil assumendo più del 50% delle identità della rete (cosa semplice in una rete come Bitcoin qualora non usasse la PoW), ella potrebbe agilmente auto-approvare la spesa della stessa criptovaluta verso due destinatari differenti (Bob e Charlie), rendendo l'attacco vincente. Per difendersi da questo scenario, si implementano difese algoritmiche come la **Proof of Work** (che richiede di dimostrare l'impiego di potenza computazionale, come in Bitcoin ed Ethereum), la **Proof of Stake** (che richiede il blocco di capitali o "stake") o l'utilizzo di Certified Node-IDs, il quale però richiede un'autorità centrale, rinunciando alla natura pura del peer-to-peer.
 
@@ -1402,7 +1442,7 @@ In un sistema P2P, iniettare finte identità è estremamente facile; basta regis
 
 Come abbiamo visto in precedenza, l'assenza di un controllo rigoroso sulle identità può portare a conseguenze disastrose in un sistema peer-to-peer. Immaginiamo che Alice, agendo in modo malevolo, decida di orchestrare un attacco Sybil all'interno della rete. Assumendo il controllo di molteplici identità fittizie fino a superare la soglia critica del 50% dei nodi—una manovra che in una rete come Bitcoin risulterebbe estremamente facile se non vi fossero ulteriori difese matematiche—Alice acquisisce di fatto il potere decisionale della maggioranza.
 
-<img src="file:///home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-14-16-43-34-image.png" title="" alt="" data-align="center">
+![](assets/2026-03-28-11-10-06-image.png)
 
 A questo punto, Alice può eseguire un attacco di **double spending** (doppia spesa), inviando lo stesso identico gettone digitale (bitcoin) contemporaneamente sia a Bob che a Charlie. Poiché ogni operazione all'interno della blockchain deve essere approvata dalla rete attraverso il meccanismo di consenso, Alice sfrutterà il suo esercito di identità fittizie per validare e approvare la propria spesa fraudolenta verso entrambi i destinatari. Il risultato è che l'attacco ha successo, minando irrimediabilmente l'integrità del registro distribuito.
 
@@ -1422,7 +1462,7 @@ Richiedendo un enorme dispendio di calcolo, falsificare la propria influenza non
 
 Tuttavia, garantire l'inalterabilità del registro non è sufficiente. Oltre al consenso, è indispensabile stabilire un solido meccanismo di prova di proprietà (**Proof of Ownership**). Consideriamo un nuovo esempio: Alice decide di aprire un ristorante, ma si scontra con affitti molto alti e "venture capitalist" avidi. Per superare l'ostacolo, decide di ricorrere a un'ICO (**Initial Coin Offering**). Attraverso questa operazione, Alice propone al pubblico un progetto aziendale che verrà interamente implementato su una blockchain. In cambio dei finanziamenti ricevuti dai partecipanti, Alice genera e distribuisce dei token come forma di compensazione. Questi token fungono da veri e propri "cryptocoupons", garantendo ai finanziatori sconti sui pasti una volta che il ristorante sarà operativo.
 
-![](/home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-14-16-44-14-image.png)
+![](assets/2026-03-28-11-10-15-image.png)
 
 ### Crittografia a Chiave Asimmetrica per la Proprietà
 
@@ -1482,7 +1522,7 @@ L'idea di un contante elettronico affidabile (reliable Internet e-cash) precede 
 
 Il sistema di Chaum si basava sul concetto crittografico delle **blind signatures** (firme cieche). Per comprendere questo meccanismo, si può usare l'analogia di un messaggio sigillato in una busta rivestita internamente di carta carbone (carbon copy paper). Quando si appone una firma (sign) premendo sulla busta, la carta carbone trasferisce il tratto, firmando il messaggio all'interno senza rivelarne il contenuto. Nel sistema e-Cash, l'utente genera una moneta sotto forma di un token casuale univoco, la "acceca" (blinds the coin) e la invia alla banca per la firma. La banca, pur non potendo vedere il token effettivo, appone la firma sulla moneta accecata a condizione che l'utente disponga di fondi sufficienti. Successivamente, l'utente "svela" (unblinds) la moneta, ottenendo una valuta valida e firmata che può essere spesa in modo anonimo. In questa fase, la banca è consapevole di aver firmato una moneta, ma ignora quale sia nello specifico.
 
-<img src="file:///home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-14-16-52-04-image.png" title="" alt="" data-align="center">
+![](assets/2026-03-28-11-10-27-image.png)
 
 Questo ingegnoso sistema presenta però un limite intrinseco. Anche se la banca verifica la disponibilità dei fondi, la firma cieca non previene da sola il **double spending** (doppia spesa), poiché l'utente disonesto potrebbe inviare la medesima moneta a due commercianti differenti. Per arginare il problema, il commerciante deve sottoporre la moneta alla banca per una verifica al momento della spesa. La banca controlla quindi il proprio database delle monete già spese: se la moneta è nuova, approva la transazione; se è già stata spesa, la rifiuta. Pur prevenendo il double spending attraverso la registrazione centralizzata, questo meccanismo evidenzia il fallimento dell'obiettivo di decentralizzazione: è ancora strettamente necessaria l'intermediazione della banca. In sintesi, la sfida storica dei sistemi e-Cash è stata quella di mantenere gli attributi fisici del contante, rendendolo infalsificabile (unforgeable, senza doppia spesa) e irrintracciabile (untraceable, secondo il principio *pecunia non olet*).
 
@@ -1557,13 +1597,13 @@ In un sistema di pagamento tradizionale, le identità sono gestite da un'autorit
 
 Il controllo sui fondi è garantito dal possesso della chiave privata. Solamente il proprietario della chiave privata può autorizzare una spesa. Dal punto di vista matematico, se una transazione contiene una firma digitale (**sig**) e la funzione di verifica *verify(pk, data, sig)* restituisce "vero", la rete ha la garanzia assoluta che la transazione sia stata generata dal possessore di quella specifica chiave pubblica. L'algoritmo crittografico utilizzato da Bitcoin per le firme digitali è l'**Elliptic Curve Signature Algorithm (ECDSA)**, e nello specifico impiega una curva ellittica denominata **secp256k1**, descritta dall'equazione matematica $y^{2}=x^{3}+ax+b$ mod p.
 
-<img src="file:///home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-14-17-01-40-image.png" title="" alt="" data-align="center">
+<img src="assets/2026-03-28-11-10-46-image.png" title="" alt="" data-align="center">
 
 È fondamentale sfatare un malinteso comune: in Bitcoin, nessun dato viene crittografato nel senso di essere reso illeggibile o segreto. Tutti i dettagli delle transazioni sono pubblici e trasparenti sulla blockchain. Le chiavi crittografiche servono unicamente a dimostrare in modo inconfutabile la proprietà dei fondi. Qualora un utente necessiti di maggiore privacy, deve ricorrere a tecniche avanzate esterne, come le prove a conoscenza zero (Zero Knowledge proofs).
 
 La generazione di un **indirizzo Bitcoin** (Bitcoin Address) segue un percorso algoritmico unidirezionale ben preciso. Si parte dalla chiave privata (k), che è semplicemente un numero generato casualmente. Tramite una moltiplicazione sulla curva ellittica (un'operazione "one-way", facile da calcolare in una direzione ma impossibile da invertire), si ottiene la chiave pubblica a 512 bit (K). Successivamente, a questa chiave pubblica completa di prefisso viene applicata una prima funzione di hash, la SHA-256. L'output di questa operazione viene immediatamente passato a una seconda funzione di hash, il RIPEMD-160, ottenendo così l'hash della chiave pubblica.
 
-<img src="file:///home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-14-17-02-00-image.png" title="" alt="" data-align="center">
+![](assets/2026-03-28-11-10-57-image.png)
 
 L'ultimo passaggio per ottenere l'indirizzo finale utilizzabile dall'utente consiste nell'applicare la codifica **Base58**. In questa fase, viene anche aggiunto un checksum (un codice di controllo) per rilevare eventuali errori di battitura. La scelta della codifica Base58 è molto intelligente: partendo dai 62 caratteri alfanumerici standard (lettere maiuscole, minuscole e numeri), il protocollo esclude 4 caratteri che possono essere facilmente confusi visivamente tra loro, ovvero lo zero (0), la O maiuscola, l'uno (1) e la l (elle) minuscola. Questo formato riduce la lunghezza delle stringhe e previene costosi errori durante la copiatura manuale degli indirizzi.
 
@@ -1573,13 +1613,17 @@ In sintesi, all'interno della rete, le identità prendono il nome di indirizzi. 
 
 Il processo di pagamento inizia tipicamente al di fuori della rete Bitcoin. Immaginiamo che una cliente, Alice, voglia pagare un commerciante, Bob. Bob genera un nuovo indirizzo e lo comunica ad Alice tramite un canale esterno (ad esempio via email, chat o mostrandole un QR code). Alice utilizza il suo portafoglio software (wallet) per costruire una transazione *t*, la quale specifica l'invio di fondi all'indirizzo di Bob. Alice trasmette quindi questa transazione alla rete peer-to-peer. I nodi della rete, in particolare i miner, raccolgono la transazione, la validano e la inseriscono in un blocco candidato. Una volta che il blocco viene minato, la transazione diventa pubblica. Bob attenderà prudenzialmente un certo numero di "conferme" (ovvero l'aggiunta di blocchi successivi) prima di considerare definitivo il pagamento e consegnare la merce.
 
-<img title="" src="file:///home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-14-17-02-25-image.png" alt="" data-align="center">
+![](assets/2026-03-28-11-11-04-image.png)
 
 Dal punto di vista tecnico, una transazione è composta da uno o più **input**, uno o più **output** e da una marca temporale (Timestamp). La regola fondamentale e inviolabile del protocollo è che la somma dei fondi inseriti come input deve essere maggiore o uguale alla somma dei fondi in uscita ($\sum inputs\ge\sum outputs$). La differenza tra questi due valori costituisce la **transaction fee** (commissione di transazione). Sebbene opzionale, questa commissione viene incassata dai miner come incentivo per aver validato la transazione; pagarla garantisce tempi di conferma molto più rapidi.
 
 Ma da dove provengono fisicamente gli input? In Bitcoin, le transazioni non sono isolate, ma incatenate tra loro formando una catena cronologica della proprietà. Quando Alice riceve dei bitcoin, questi diventano l'output di una transazione e vengono associati al suo indirizzo. In futuro, per poterli spendere, Alice dovrà utilizzare quello specifico output come input per una nuova transazione. Questo meccanismo è alla base del modello contabile di Bitcoin, noto come **UTXO (Unspent Transaction Output)**, ovvero gli output di transazione non ancora spesi.
 
-<img src="file:///home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-14-17-02-47-image.png" title="" alt="" data-align="center">Il concetto di "saldo" di un conto corrente in Bitcoin non esiste a livello di protocollo. Il saldo visualizzato da un utente nel proprio wallet non è altro che la somma matematica di tutti i suoi UTXO sparsi per la rete. Quando un UTXO viene referenziato come input in una nuova transazione, esso viene considerato "speso" e non può essere riutilizzato. Inoltre, gli UTXO devono essere consumati per intero. Se Alice possiede un UTXO da 0.8 BTC e vuole pagare a Bob 0.5 BTC, la sua transazione consumerà l'intero input di 0.8 BTC e genererà due output: uno da 0.5 BTC diretto a Bob, e un secondo output (che chiamiamo "change" o resto) di 0.3 BTC meno le commissioni, che tornerà a un indirizzo di proprietà di Alice.
+![](assets/2026-03-28-11-11-21-image.png)
+
+
+
+Il concetto di "saldo" di un conto corrente in Bitcoin non esiste a livello di protocollo. Il saldo visualizzato da un utente nel proprio wallet non è altro che la somma matematica di tutti i suoi UTXO sparsi per la rete. Quando un UTXO viene referenziato come input in una nuova transazione, esso viene considerato "speso" e non può essere riutilizzato. Inoltre, gli UTXO devono essere consumati per intero. Se Alice possiede un UTXO da 0.8 BTC e vuole pagare a Bob 0.5 BTC, la sua transazione consumerà l'intero input di 0.8 BTC e genererà due output: uno da 0.5 BTC diretto a Bob, e un secondo output (che chiamiamo "change" o resto) di 0.3 BTC meno le commissioni, che tornerà a un indirizzo di proprietà di Alice.
 
 A seconda di come vengono gestiti input e output, le transazioni assumono diverse forme. La **Common Transaction** (transazione comune) è la più diffusa: presenta un solo input e due output (il pagamento al destinatario e il resto che torna al mittente).
 
@@ -1764,13 +1808,13 @@ Il sistema ideato per Bitcoin introduce una nuova soluzione chiamata **Consenso 
 
 Per comprendere appieno la necessità del consenso, ipotizziamo uno scenario in cui Bitcoin ne sia sprovvisto. Immaginiamo che un utente, Bob, invii dei bitcoin ad Alice, generando così una specifica transazione (che per comodità chiameremo transazione "verde"). Questa transazione viene propagata all'interno della rete P2P fino a raggiungere tutti i nodi. Supponendo l'assenza di un meccanismo di consenso, ogni nodo scriverebbe la transazione direttamente sul proprio ledger (registro) non appena la riceve. In un primo momento, la transazione verde verrebbe inserita in ciascun registro, aggiornandoli tutti contemporaneamente. Tuttavia, la situazione non è sempre così semplice.
 
-![](/home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-14-17-15-00-image.png)
+![](assets/2026-03-28-11-11-49-image.png)
 
 Supponiamo infatti che Bob, successivamente, spenda con un altro utente, July, gli stessi identici bitcoin che ha già inviato ad Alice. Questa nuova transazione (la transazione "rossa") rappresenta un vero e proprio **double spending** (doppia spesa). Ora, supponiamo che questa transazione rossa venga inserita nella rete attraverso un altro nodo, in un momento in cui non tutti i nodi hanno ancora ricevuto la precedente transazione verde. Un nodo specifico, chiamiamolo nodo N, potrebbe ricevere la transazione rossa prima di quella verde. Senza meccanismi di controllo, il nodo N scriverebbe direttamente la transazione rossa sul suo ledger. Più tardi, ricevendo la transazione verde, il nodo N riconoscerebbe il tentativo di doppia spesa e scarterebbe semplicemente quest'ultima transazione.
 
 A questo punto, quando il nodo N riconosce il double spending, le transazioni sono già state memorizzate nei vari ledger sparsi per la rete. Il risultato è che il ledger replicato contiene ora due transazioni in conflitto. Quale delle due è da considerarsi valida? Diventa imperativo trovare un consenso su quale dei due valori debba essere definitivamente aggiunto al registro.
 
-<img src="file:///home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-14-17-15-22-image.png" title="" alt="" data-align="center">
+![](assets/2026-03-28-11-12-00-image.png)
 
 ### La MemPool e la Necessità di Consenso
 
@@ -1806,7 +1850,7 @@ Il cuore del mining è la Proof of Work. L'operazione inizia impostando il valor
 
 Se l'hash calcolato non si trova al di sotto di questo target, il miner incrementa il valore del nonce. Mantenendo inalterate tutte le altre informazioni del block header ma incrementando il nonce, il miner ottiene un hash completamente diverso. Questo processo prosegue tramite tentativi continui, incrementando progressivamente il nonce fino a quando non viene trovato un valore che soddisfi il requisito di trovarsi sotto la soglia.
 
-<img src="file:///home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-14-17-17-21-image.png" title="" alt="" data-align="center">
+![](assets/2026-03-28-11-12-11-image.png)
 
 Per riassumere questo ciclo: si esegue il calcolo `SHA256(SHA256(Block-Header + Nonce))`. Se il valore dell'hash non è minore del target, si aggiunge 1 al nonce e si riprova. Se invece la condizione è soddisfatta, il blocco è stato validamente creato e viene inviato a tutti i nodi vicini.
 
@@ -1836,7 +1880,7 @@ Tuttavia, il numero di zeri iniziali potrebbe rimanere lo stesso anche se la dif
 
 Come abbiamo visto, i campi **target** e **nonce** all'interno del Block Header sono gli elementi fondanti su cui si basa il lavoro dei miner. Per semplificare la comprensione della Proof of Work, possiamo focalizzarci sul numero di zeri iniziali (leading zeros) richiesti nell'hash risultante. Il target, di fatto, definisce quanti zeri devono essere obbligatoriamente presenti all'inizio dell'hash calcolato per considerare la prova valida.
 
-![](/home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-14-17-18-47-image.png)
+![](assets/2026-03-28-11-12-21-image.png)
 
 Il **nonce** è un valore a 32 bit che il miner può variare liberamente per tentare di trovare l'hash vincente tramite una ricerca esaustiva (brute-force search). Immaginiamo che il target richieda un hash che inizi con una stringa di zeri (ad esempio `000...`). Se, applicando la funzione di hash al blocco `hash(b)` variando il nonce, il risultato inizia con `010...` oppure `101...`, la prova è considerata invalida. Solo iterando fino a trovare un nonce che produca un hash che inizia effettivamente con `000...` il blocco verrà accettato come valido dalla rete.
 
@@ -1903,9 +1947,9 @@ Per avere un quadro completo, riassumiamo l'anatomia di un blocco e del suo head
 
 Analizziamo ora un esempio pratico. Supponiamo che al Tempo $t$, le transazioni "Alice invia 1 BTC a Bob" e "Dave invia 1 BTC a Bob" vengano trasmesse in broadcast sulla rete, ma non siano ancora sulla blockchain. I vari miner (rappresentati metaforicamente con dei picconi) iniziano a competere per proporre il blocco successivo elaborando la Proof of Work.
 
-![](/home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-14-17-20-03-image.png)
+![](assets/2026-03-28-11-12-39-image.png)
 
-![](/home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-14-17-20-22-image.png)
+
 
 ### Perché diventare un Miner? La Coinbase Transaction e gli Incentivi
 
@@ -1933,7 +1977,7 @@ Per ripercorrere la storia:
 
 - Il processo continuerà fino ad arrivare all'Era 33, quando la ricompensa sarà pari alla più piccola frazione indivisibile, ovvero $1\text{ Satoshi}$ ($0.00000001\text{ BTC}$).
 
-![](/home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-14-17-20-50-image.png)
+![](assets/2026-03-28-11-12-52-image.png)
 
 Questo meccanismo di progressiva deflazione garantisce la **Limited Supply** di Bitcoin: non esisteranno mai più di 21 milioni di bitcoin. Questa caratteristica lo rende resistente all'alta inflazione , discostandosi completamente dalle valute legali (fiat currency) dove l'emissione monetaria è decisa arbitrariamente da uno stato o da un ente centrale. La fornitura smetterà matematicamente di crescere intorno all'anno 2140. Se si possiede 1 bitcoin oggi, si avrà la certezza matematica di possedere per sempre almeno un ventunomilionesimo dell'intera riserva monetaria.
 
@@ -1969,7 +2013,7 @@ Come discusso in precedenza, il protocollo Bitcoin mira a mantenere un intervall
 
 Lo scenario ideale per la stabilità del network prevede che tutti i miner concentrino la loro potenza di calcolo (mining power) sull'estensione di un'unica catena di blocchi condivisa. Questo allineamento è possibile solo se si concede al blocco appena coniato il tempo materiale di propagarsi attraverso l'intera topologia della rete prima che un altro miner riesca a estrarre il blocco successivo.
 
-<img src="file:///home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-14-17-22-16-image.png" title="" alt="" data-align="center">
+![](assets/2026-03-28-11-13-16-image.png)
 
 ### Bitcoin contro Ethereum: Scelte Progettuali a Confronto
 
@@ -1993,7 +2037,7 @@ Ci si potrebbe chiedere se, in un network decentralizzato, tutti i nodi condivid
 
 Per comprendere intuitivamente la Proof of Work, possiamo ricorrere a un'efficace metafora: è come "lanciare freccette a un bersaglio essendo bendati". In questa analogia, vi è un'uguale probabilità di colpire qualsiasi anello del bersaglio. Il successo si ottiene quando la freccetta atterra all'interno del cerchio verde. La difficoltà dell'impresa è inversamente proporzionale alle dimensioni di questo cerchio verde. L'hardware di mining più potente è paragonabile a "lanciatori più veloci", capaci di effettuare più tiri al secondo. Se i lanciatori diventano progressivamente più abili, il cerchio verde deve rimpicciolirsi per mantenere la competizione equilibrata.
 
-<img src="file:///home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-14-17-22-45-image.png" title="" alt="" data-align="center">
+![](assets/2026-03-28-11-13-34-image.png)
 
 Modificare l'estensione del cerchio verde equivale, nel protocollo, a sintonizzare lo sforzo computazionale aumentando o riducendo il numero di zeri iniziali richiesti nel prefisso dell'hash. Dal punto di vista probabilistico, l'aggiunta di un singolo zero iniziale raddoppia mediamente lo sforzo computazionale necessario, mentre la rimozione di uno zero lo dimezza.
 
@@ -2001,17 +2045,17 @@ Modificare l'estensione del cerchio verde equivale, nel protocollo, a sintonizza
 
 Tutte queste meccaniche concorrono a creare un sistema brillantemente auto-adattivo. Poiché il lavoro di mining prevede una ricompensa economica, è naturale che sempre più miner si uniscano costantemente alla rete. Questo afflusso di partecipanti si traduce in una maggiore potenza di elaborazione, che a sua volta garantisce maggiori possibilità di trovare l'hash corretto in tempi più rapidi. Con l'incremento del tasso di creazione dei blocchi e la diminuzione del tempo medio di mining, interviene il protocollo. Poiché il sistema è programmato per mantenere un tempo di estrazione ideale di circa 10 minuti, esso reagisce diminuendo il valore del target per aumentare la difficoltà. Questo provvidenziale aumento di difficoltà fa sì che il tasso di creazione dei blocchi rallenti e il tempo medio di mining aumenti nuovamente, stabilizzando il sistema. Naturalmente, lo stesso principio si applica in senso inverso se il tasso di creazione dei blocchi dovesse calare. Questo ciclo continuo dimostra la fondamentale importanza del valore del target nell'architettura di Bitcoin.
 
-<img src="file:///home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-14-17-23-12-image.png" title="" alt="" data-align="center">
+![](assets/2026-03-28-11-13-43-image.png)
 
 ### Struttura e Identificatori della Blockchain
 
 In conclusione di questa sezione, osserviamo la macro-struttura della **Bitcoin Blockchain**. Essa si presenta come una lista lineare di blocchi, ognuno dei quali è strutturalmente composto da un block header e da una lista completa di transazioni. La solidità di questa struttura è garantita dai puntatori hash (hash pointers) che concatenano indissolubilmente ogni blocco al suo predecessore.
 
-![](/home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-14-17-23-29-image.png)
+![](assets/2026-03-28-11-13-50-image.png)
 
 All'interno di questo vasto registro, in che modo i blocchi vengono identificati con precisione dai nodi? Esistono due identificatori primari. Il primo è il **block hash**, un valore che non viene memorizzato fisicamente all'interno del blocco, ma viene ricalcolato dal nodo non appena il blocco viene ricevuto dalla rete. Questo approccio facilita le operazioni di indicizzazione locale e di recupero rapido delle informazioni. Il secondo identificatore è la **block height** (altezza del blocco), che rappresenta il numero esatto di blocchi che lo precedono nella blockchain. Il conteggio della *height* inizia sempre dal Genesis Block, il quale, essendo il primo tassello in assoluto della catena, si trova per definizione all'altezza $0$.
 
-<img src="file:///home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-22-16-55-50-image.png" title="" alt="" data-align="center">
+![](assets/2026-03-28-11-13-57-image.png)
 
 ---
 
@@ -2041,7 +2085,9 @@ A questo punto, è lecito chiedersi: perché i miner utilizzano i blocchi come u
 
 Nonostante la natura deterministica della crittografia, il sistema è soggetto a eventi probabilistici. Cosa succede se due miner "vincono" la Proof of Work quasi contemporaneamente? Questo scenario genera i cosiddetti **temporary forks** (biforcazioni temporanee). I due miner validano e trasmettono in broadcast il loro blocco quasi in simultanea. Entrambi i blocchi puntano al medesimo blocco genitore, creando di fatto un bivio, una biforcazione nella blockchain: la rete vede ora due rami distinti che partono dallo stesso punto.
 
-![](/home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-14-17-24-33-image.png)
+![](assets/2026-03-28-11-14-23-image.png)
+
+
 
 È fondamentale sottolineare che entrambi i rami sono assolutamente legittimi, in quanto creati da miner onesti che hanno seguito alla lettera le regole del protocollo. Tuttavia, questa duplicazione crea due istanze parallele della blockchain, portando alcune transazioni ad apparire in un blocco ma non nell'altro. Diventa quindi imperativo per il sistema riconciliare queste due versioni per stabilire in modo univoco quali bitcoin siano stati realmente spesi. Questo fenomeno è radicalmente diverso da un attacco di *double spending* orchestrato da un miner disonesto.
 
@@ -2101,7 +2147,7 @@ Al contrario, Bitcoin è una rete P2P aperta, pubblica e priva di permessi (perm
 
 ### Architettura e Modelli di Sicurezza
 
-![](/home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-19-19-20-29-image.png)
+![](assets/2026-03-28-11-14-38-image.png)
 
 ---
 
@@ -2123,7 +2169,9 @@ Per comprendere un attacco di Double Spending più sofisticato, analizziamo uno 
 
 In sintesi, Bob spende tutti i suoi bitcoin sul ramo "onesto" della blockchain pubblica, ovvero quella creata dai minatori onesti che continuano a trasmettere i loro blocchi. Contemporaneamente, Bob esclude volutamente la transazione dell'acquisto della barca dalla sua blockchain privata. Su questo ramo segreto, egli risulta possedere ancora quei bitcoin.
 
-![](/home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-19-19-21-51-image.png)
+![](assets/2026-03-28-11-14-51-image.png)
+
+
 
 L'obiettivo di Bob è creare una catena più lunga di quella pubblica. Non appena ci riesce, la trasmette improvvisamente al resto della rete. A causa della regola della catena più lunga (longest chain rule), questa versione manipolata verrà inesorabilmente accettata da tutti gli altri minatori, che abbandoneranno il loro lavoro precedente per allinearsi alla nuova catena predominante. Affinché questa strategia abbia successo, il minatore malintenzionato ha bisogno di una potenza di calcolo superiore a quella di tutto il resto della rete combinato, detenendo idealmente il **51% dell'hashing power**. Solo così può sperare di aggiungere blocchi alla sua versione della blockchain più velocemente degli altri e costruire una catena più lunga.
 
@@ -2137,7 +2185,7 @@ In condizioni normali, per Bob è estremamente difficile rendere il suo fork pi�
 
 La teoria dell'Attacco del 51% si è scontrata con la realtà il 18 Giugno 2014, quando la distribuzione dell'hashing power ha mostrato segnali di pericolosa centralizzazione. In quel periodo, la mining pool GHash.IO deteneva il 38.24% della potenza totale. Le altre porzioni erano divise tra attori sconosciuti (16.52%), F2Pool (13.34%), BTC Guild (11.61%), Eligius (7.04%), KnCMiner (5.01%), Slush (3.67%), Polmine (1.84%), BitMinter (1.49%), EclipseMC (0.60%), AntPool (0.50%), Triplemining.com (0.05%), DigitalBTC (0.05%) e SockThing (0.05%).
 
-![](/home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-19-19-22-13-image.png)
+
 
 GHash.IO arrivò pericolosamente vicino a superare la soglia del 50%, scatenando il panico generale, ma di fatto non si verificò alcun attacco. La spiegazione risiede nella teoria economica: anche se un minatore (o una pool) ottiene oltre il 50% del potere di mining, non significa necessariamente che avvierà un attacco distruttivo. Mantenere una potenza simile ha costi enormi, ed è di gran lunga più redditizio continuare a minare blocchi onestamente, incassando le ricompense, piuttosto che minare la fiducia nel sistema per annullare una singola transazione.
 
@@ -2153,7 +2201,7 @@ Per illustrare il concetto, consideriamo una metafora. Alice scrive una lettera 
 
 A questo punto si innesca una competizione (race). I minatori, incaricati di validare le operazioni, controllano la firma di Alice per accertarsi dell'autenticità. Nel momento in cui una delle due transazioni viene confermata, la seconda viene ignorata dalla rete perché riconosciuta come un banale duplicato. Il problema sorge se è la transazione duplicata e alterata da Bob ad essere validata per prima. I 50 bitcoin vengono regolarmente scalati dal conto di Alice e trasferiti a Bob, in quanto la firma di Alice rimane crittograficamente valida anche sulla copia. Tuttavia, a questo punto, Bob può sostenere fraudolentemente di non aver mai ricevuto i fondi. Alice non ha alcun modo per dimostrare l'avvenuto pagamento: per farlo le servirebbe la ricevuta originale associata al $TXID=1234$, ma quella transazione è stata scartata dalla rete in favore di quella validata da Bob. Ignara dell'esistenza della transazione "malleata" da Bob, Alice si ritrova costretta a reinviare i 50 BTC per onorare il suo presunto debito.
 
-<img src="file:///home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-28-10-00-11-image.png" title="" alt="" data-align="center">
+![](assets/2026-03-28-11-15-04-image.png)
 
 ---
 
@@ -2161,7 +2209,7 @@ A questo punto si innesca una competizione (race). I minatori, incaricati di val
 
 Ma come è tecnicamente possibile modificare il TXID senza invalidare la firma e la transazione stessa? Si tratta di un attacco subdolo basato sull'alterazione di dati secondari che compongono l'hash della transazione, ma che non compromettono i campi critici. Una transazione su Bitcoin coinvolge svariati componenti, tra cui un set di input e output. Gli input della transazione sono sempre firmati con la chiave privata del proprietario dei fondi, un meccanismo essenziale per verificare la reale proprietà del denaro. Il **TXID** non è altro che l'hash combinato di tutte le componenti della transazione: input, firma, output e altri campi ausiliari.
 
-<img src="file:///home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-19-19-25-05-image.png" title="" alt="" data-align="center">
+![](assets/2026-03-28-11-15-11-image.png)
 
 Il cuore del problema risiede nell'algoritmo crittografico **ECDSA** (Elliptic Curve Digital Signature Algorithm), impiegato da Bitcoin per firmare digitalmente i dati e verificarne l'autenticità. Nell'algoritmo ECDSA, una firma digitale non si esprime come un'unica stringa monolitica, bensì è composta da una coppia di numeri denotati come $(r,s)$.
 
@@ -2185,11 +2233,11 @@ A causa delle specifiche proprietà matematiche delle curve ellittiche utilizzat
 
 Riprendendo il concetto della malleabilità delle firme introdotto in precedenza, è fondamentale scendere nel dettaglio del meccanismo crittografico che lo rende possibile. Come abbiamo visto, Bitcoin si affida all'algoritmo ECDSA per la validazione. Questo algoritmo genera una firma composta da due valori, indicati come **$(r,s)$**. La vulnerabilità si annida in una specifica proprietà matematica delle curve ellittiche: data una costante $n$ associata alla curva, se la firma originale $(r,s)$ è ritenuta valida dal sistema, anche la sua rappresentazione equivalente **$(r,n-s)$** sarà matematicamente valida.
 
-![](/home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-19-19-26-07-image.png)
+![](assets/2026-03-28-11-15-20-image.png)
 
 All'atto pratico, questo significa che un attaccante può prendere la firma originale di Alice e alterarla matematicamente nella sua forma manomessa $(r,n-s)$ senza invalidare l'autorizzazione al trasferimento dei fondi. Poiché l'identificativo della transazione originale è calcolato come l'hash dei dati della transazione combinati con la firma $(r,s)$ — ovvero $TXID\_A = Hash(Transaction Data + (r,s))$ — la minima variazione crittografica genera un risultato diverso. Sostituendo la firma, l'attaccante produce un nuovo identificativo, calcolato come $TXID\_B = Hash(Transaction Data + (r,n-s))$. Di conseguenza, ci si ritrova con due TXID differenti per la medesima operazione logica, ed entrambi i formati risultano perfettamente validi agli occhi della rete.
 
-![](/home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-19-19-26-23-image.png)
+![](assets/2026-03-28-11-15-28-image.png)
 
 ---
 
@@ -2211,7 +2259,7 @@ Per porre fine in modo definitivo al problema della malleabilità, la comunità 
 
 L'idea principale alla base di SegWit consiste nel cambiare la struttura stessa dei dati della transazione, separando fisicamente (segregando) tutte le informazioni malleabili, inclusa la firma, e collocandole in una sezione dati separata denominata "witness data". Di conseguenza, il TXID viene ora calcolato escludendo lo script della firma dall'operazione di hash.
 
-![](/home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-19-19-28-05-image.png)
+![](assets/2026-03-28-11-15-37-image.png)
 
 Grazie a questa innovazione architettonica, anche se un attaccante riuscisse a modificare la firma crittografica sfruttando le proprietà matematiche, l'identificativo principale (TXID) della transazione non subirebbe alcuna variazione. La transazione diventa così immutabile nel suo tracciamento, neutralizzando del tutto il vettore di attacco.
 
@@ -2221,7 +2269,7 @@ Grazie a questa innovazione architettonica, anche se un attaccante riuscisse a m
 
 Esistono anche minacce di natura differente, seppur meno distruttive, come l'attacco di **Denial of Service (DoS)**. Ipotizziamo uno scenario in cui un minatore, chiamiamola Alice, provi una forte antipatia verso un altro utente, Bob, e decida deliberatamente di negargli il servizio di validazione. Alice può configurare il proprio nodo per scartare sistematicamente qualsiasi transazione proveniente dagli indirizzi di Bob, rifiutandosi di includerle nei blocchi che lei propone alla blockchain. Tuttavia, l'architettura distribuita di Bitcoin mitiga questo problema in modo naturale: se Alice ignora la transazione di Bob, questa rimarrà semplicemente in attesa nella Mempool globale. Bob dovrà solamente pazientare fino a quando un nodo onesto non riuscirà a estrarre un nuovo blocco. A quel punto, il minatore onesto includerà la transazione di Bob nel suo blocco, confermandola e inserendola stabilmente nella blockchain, rendendo il boicottaggio di Alice del tutto inefficace a lungo termine.
 
-![](/home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-19-19-29-30-image.png)
+![](assets/2026-03-28-11-15-45-image.png)
 
 Per comprendere meglio come i vari utenti interagiscono con la rete durante queste dinamiche, è utile classificare gli attori di Bitcoin in base alle funzionalità del software che eseguono:
 
@@ -2249,7 +2297,7 @@ La **Terza Generazione (FPGA Mining)** ha visto l'introduzione dei Field Program
 
 Infine, la **Quarta Generazione (ASIC Mining)**, iniziata nel 2013, ha segnato il definitivo passaggio all'hardware specializzato. Gli ASIC (Application Specific Integrated Circuits) sono chip progettati, ingegnerizzati e costruiti per svolgere un unico, singolare compito: minare Bitcoin eseguendo l'algoritmo SHA-256 nel modo più rapido ed efficiente possibile. Questa nicchia di mercato è stata inizialmente dominata da pochi grandi produttori che sfornavano chip a ritmi serrati, sebbene i primissimi modelli non fossero sempre affidabili. Un esempio emblematico dell'epoca è stato il *TerraMiner 4*, un dispositivo dal costo di circa 3.500 dollari USA in grado di sprigionare una sbalorditiva potenza di 2 TeraHash al secondo.
 
-![](/home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-19-19-30-07-image.png)
+
 
 ---
 
@@ -2313,13 +2361,13 @@ Sebbene le pool centralizzate siano dominanti, la necessità di doversi fidare c
 
 L'idea di base consiste nel creare una rete di minatori parallela a quella di Bitcoin, che non necessita di un manager. I minatori della pool costruiscono una blockchain separata e privata, definita **sharechain** (catena delle quote). Su questa catena privata vengono estratti dei "blocchi deboli" (weak blocks), caratterizzati da una difficoltà di rete ($n'$) di gran lunga inferiore rispetto alla difficoltà ufficiale di Bitcoin ($n$). Il parametro $n'$ viene calibrato in modo che un nuovo blocco debole appaia molto frequentemente, ad esempio uno ogni 30 secondi.
 
-<img src="file:///home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-28-10-14-52-image.png" title="" alt="" data-align="center">
+![](assets/2026-03-28-11-16-06-image.png)
 
 Questa sharechain viene costruita appoggiandosi crittograficamente in cima all'ultimo blocco valido della blockchain pubblica. Ogni blocco della sharechain corrisponde esattamente a una "share" di lavoro completata da uno specifico minatore. Invece di inviare privatamente questa prova a un operatore centrale, il minatore la scrive indelebilmente sulla blockchain condivisa della pool.
 
 Il meccanismo di distribuzione dei compensi avviene in maniera progressiva e trasparente. Il primo blocco della sharechain includerà una transazione di pagamento destinata ad AAA, il primo minatore ad aver generato una share. Il secondo blocco includerà un pagamento sia ad AAA sia a BBB, il secondo minatore che è riuscito a risolvere la Proof of Work (PoW) ridotta. Questo processo iterativo continua accumulando i beneficiari.
 
-<img src="file:///home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-28-10-15-21-image.png" title="" alt="" data-align="center">
+![](assets/2026-03-28-11-16-13-image.png)
 
 Quando, in base alla pura probabilità, un minatore della pool riesce a risolvere la PoW con la difficoltà reale ($n$), l'ultimo blocco viene definitivamente collegato alla vera blockchain pubblica di Bitcoin attraverso un processo chiamato **merge mining**. Questo sistema garantisce equità e sicurezza: nessun minatore può barare "dimenticandosi" di inserire nei blocchi successivi i pagamenti dovuti a tutti i colleghi che hanno lavorato prima di lui. La totale tracciabilità (auditability) della tecnologia blockchain permette a chiunque di verificare in tempo reale la correttezza delle operazioni. Gli obiettivi di questo design sono chiari: creare uno schema di pagamenti assolutamente equo e trasparente, garantendo al contempo un'efficienza tecnica con un sovraccarico prestazionale (overhead) minimo.
 
@@ -2345,7 +2393,7 @@ Di seguito è riportata la panoramica delle principali mining pool attive nel 20
 
 Oltre alla concentrazione nelle pool, è cruciale osservare la distribuzione geografica dell'hashing power. Analizzando la quota globale di hashrate tra il 2019 e il 2021, è possibile notare profondi mutamenti geopolitici. Paesi come Stati Uniti, Kazakistan, Russia, Canada, Irlanda, Malesia, Germania, Iran e Cina si sono contesi il predominio della rete.
 
-<img src="file:///home/francesco/.var/app/com.github.marktext.marktext/config/marktext/images/2026-03-28-10-16-00-image.png" title="" alt="" data-align="center">
+![](assets/2026-03-28-11-16-24-image.png)
 
 La predominanza delle mining pool è facilmente verificabile in modo empirico sfruttando un qualsiasi Block Explorer, come ad esempio *Blockchain.info*. Osservando i blocchi estratti di recente, è evidente che la quasi totalità di essi viene ritrasmessa (relayed) dai nodi appartenenti alle grandi pool commerciali. La tabella sottostante mostra un estratto reale degli ultimi blocchi minati (all'altezza 626299), confermando il monopolio di entità come F2Pool, SlushPool, ViaBTC e AntPool.
 
