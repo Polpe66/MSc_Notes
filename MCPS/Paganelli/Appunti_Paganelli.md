@@ -121,8 +121,6 @@ Inoltre, le condizioni del canale wireless sono spazialmente diverse tra trasmet
 
 Quello che conta davvero non è l'interferenza presso chi invia il messaggio, ma l'interferenza presso chi lo deve ricevere. Questa asimmetria spaziale è la radice dei complessi problemi del terminale nascosto e del terminale esposto, che richiedono soluzioni MAC radicalmente diverse da quelle studiate per il mondo cablato.
 
-
-
 ### Anatomia del Problema del Terminale Nascosto
 
 Per comprendere a fondo i limiti del rilevamento della portante nel wireless, dobbiamo analizzare topologicamente il **Problema del Terminale Nascosto** (Hidden Terminal Problem). Immaginiamo una disposizione lineare di quattro nodi, denominati A, B, C e D . In questo scenario, il raggio radio del nodo A copre il nodo B, ma non riesce a raggiungere il nodo C. Ipotizziamo ora che il nodo A stia inviando una trasmissione al nodo B.
@@ -616,8 +614,6 @@ Per capire l'SDN, bisogna distinguere le due funzioni vitali di un router:
 | **Configurazione** | Manuale e individuale per ogni apparato. | **Unificata:** si programma l'intera rete in una volta sola.   |
 | **Flessibilità**   | Bassa (sistema chiuso e rigido).         | **Alta** (grazie al software programmabile).                   |
 
-
-
 L'SDN toglie l'intelligenza dai singoli router (spesso chiusi e proprietari) e la sposta in un **controllore software centrale**. I router diventano così semplici esecutori di ordini, rendendo la rete molto più agile, economica e facile da gestire.
 
 > **Curiosità:** È un po' come passare da una città dove ogni semaforo decide da solo quando diventare verde, a una città con un computer centrale che coordina tutto il traffico in tempo reale per evitare ingorghi.
@@ -955,12 +951,8 @@ A differenza delle reti tradizionali in cui la funzione di routing è computata 
 - **Service Abstraction Layer (SAL):** Strato intermedio presente in controller come OpenDaylight, concepito per tradurre le richieste logiche delle applicazioni di alto livello nei comandi fisici per gli apparati hardware sottostanti.
 
 - **Intent Framework:** Approccio ad alto livello utilizzato in controller moderni (come ONOS) in cui si definisce l'obiettivo di rete desiderato senza doversi preoccupare dell'implementazione tecnica dettagliata del flusso sottostante.
-  
-  
-  
+
   ---
-  
-   
 
 ### Le Funzioni di Routing Centralizzato
 
@@ -1042,4 +1034,151 @@ Quando un host (ad esempio, l'Host A) trasmette un dato, lo switch ricevente, no
 
 ---
 
-# Capitolo 6:
+# Capitolo 6:# Applicazioni del SDN: Il Caso di Studio B4 di Google
+
+Questo capitolo esplora le applicazioni pratiche del Software-Defined Networking (SDN), concentrandosi su uno dei casi di studio più rilevanti del settore: l'infrastruttura di rete B4 sviluppata da Google. Attraverso l'analisi di questa architettura, comprenderemo come i grandi fornitori di servizi cloud abbiano superato i limiti del routing tradizionale per gestire in modo efficiente enormi volumi di traffico inter-datacenter.
+
+### I Primi Adottanti e i Casi d'Uso del SDN
+
+I primi ad adottare le tecnologie SDN sono stati i grandi fornitori di servizi cloud, tra cui spiccano nomi come Google, Amazon, Facebook e Microsoft. L'obiettivo principale di questi colossi era abilitare un potenziamento (upscaling) efficiente dei propri data center. Tra i casi d'uso fondamentali del SDN troviamo la gestione delle "switching fabrics" all'interno dei data center, che ha permesso il passaggio da switch proprietari ("black box") a dispositivi aperti ("white box"), dove l'interconnessione dei server è controllata via software. Inoltre, il SDN facilita la creazione, gestione e rimozione di reti virtuali, rendendo più semplice l'utilizzo di VPN e VLAN. Su scala più ampia, per le Wide Area Network (WAN), il SDN abilita l'ingegneria del traffico (Traffic Engineering), permettendo di gestire dinamicamente i percorsi end-to-end sui collegamenti tra i vari data center.
+
+### L'Infrastruttura B4 di Google e le sue Motivazioni
+
+B4 è la Wide Area Network (WAN) definita dal software di Google, implementata a livello globale per fungere da dorsale (backbone) tra i data center dell'azienda. È fondamentale precisare che B4 è una rete privata, dedicata esclusivamente alla connessione dei data center, e non rappresenta la dorsale rivolta a Internet per il traffico degli utenti. Questa infrastruttura collega un numero modesto di siti, nell'ordine di una dozzina.
+
+[INSERIRE IMMAGINE: Mappa globale che illustra i collegamenti intercontinentali della rete WAN di Google tra i vari data center]
+
+All'interno del proprio ecosistema, Google gestisce due dorsali separate: la B2, che trasporta il traffico rivolto a Internet e cresce a un ritmo superiore rispetto a quello della rete Internet stessa, e la B4, dedicata al traffico tra i data center. La rete B4 gestisce un volume di traffico persino maggiore rispetto alla B2 e presenta tassi di crescita ancora più elevati, registrando un aumento di 10 volte in soli 3,5 anni (da luglio 2012 a gennaio 2015), raggiungendo picchi di 15.000 Mbps.
+
+La necessità di una dorsale di backend così potente deriva dalla distribuzione globale dei data center, pensata per servire i contenuti garantendo località geografica e per replicare i dati assicurando tolleranza ai guasti. Per connettere queste strutture era necessaria una rete altamente conveniente per volumi di traffico elevati, mantenuta separata dall'Internet pubblico. Questo traffico di massa è caratterizzato da pattern temporali irregolari e "bursty". A tal proposito, come definito da R. Krzanowski al 66° IETF di Montreal, un "burst" è un gruppo di pacchetti che presentano intervalli tra un pacchetto e l'altro più brevi rispetto ai pacchetti che arrivano prima o dopo quel gruppo. Le applicazioni ad alta intensità WAN che generano questo traffico includono YouTube, Web Search, Google+, Google Maps, AppEngine, Photos, Hangouts e gli aggiornamenti per Android e Chrome.
+
+### I Limiti del Routing Tradizionale vs. le Caratteristiche di B4
+
+Le moderne reti WAN sono critiche per le prestazioni e l'affidabilità di Internet. Nel routing tradizionale, i singoli collegamenti WAN sono estremamente costosi e la perdita di pacchetti è considerata inaccettabile; di conseguenza, i router WAN sono apparecchiature specializzate di fascia altissima. Tradizionalmente, le WAN trattano tutti i bit allo stesso modo e, in caso di guasti inevitabili, tutte le applicazioni subiscono lo stesso trattamento. A causa di questa rigidità, i collegamenti WAN vengono tipicamente utilizzati solo al 30-40% della loro capacità, richiedendo un sovradimensionamento (overprovisioning) della larghezza di banda di 2 o 3 volte.
+
+Google ha invece categorizzato i flussi di traffico principali in base al volume, alla sensibilità alla latenza e alla priorità:
+
+1. **Replica dei dati utente** verso data center remoti per disponibilità e affidabilità: ha il volume più basso, ma è estremamente sensibile alla latenza e possiede la priorità assoluta.
+
+2. **Accesso allo storage remoto** per supportare calcoli su dati distribuiti geograficamente: presenta un volume moderato ed è sensibile alla latenza.
+
+3. **Trasferimenti di dati su larga scala** per sincronizzare lo stato tra più data center: genera il volume più alto in assoluto, ma è il meno sensibile alla latenza e ha la priorità più bassa.
+
+I costi rappresentano un problema centrale, viste le alte proiezioni di crescita. Le caratteristiche della rete B4 rispondono proprio a queste sfide: la domanda di banda è elastica e le applicazioni possono tollerare guasti periodici o riduzioni temporanee di banda. Essendo i siti in numero moderato (poche dozzine), non vi è necessità di tabelle di routing di grandi dimensioni. Un elemento chiave è il controllo a grana fine da parte delle applicazioni finali, che gestiscono le priorità e i burst di controllo, eliminando la necessità di sovrastimare i collegamenti. Infine, vi è una forte sensibilità ai costi: l'approccio tradizionale avrebbe portato a proiezioni insostenibili (costi 2-3 volte superiori a quelli di una WAN pienamente utilizzata), pertanto i costosi collegamenti intercontinentali privati devono essere sfruttati alla loro massima capacità (100%).
+
+### Decisioni Architetturali e Migrazione SDN
+
+Per realizzare B4, Google ha preso decisioni progettuali radicali. In primo luogo, l'uso di hardware di switching a basso costo, progettato su misura con silicio commerciale ("commodity silicon"). Questi switch si limitano a inoltrare il traffico senza un software di controllo complesso a bordo; il controllo risiede nelle applicazioni periferiche (edge), limitando così la necessità di grandi buffer e tabelle di inoltro. In secondo luogo, l'adozione di controller OpenFlow che mantengono lo stato della rete in base alle direttive delle applicazioni di controllo e agli eventi degli switch, istruendo i dispositivi su come impostare le voci di inoltro e sfruttando la grande potenza di calcolo dei server Google.
+
+Inoltre, il controllo dell'intera rete è affidato a un'applicazione centrale. Il Traffic Engineering (TE) centralizzato permette un'ottimizzazione più rapida ed efficiente rispetto al routing distribuito, condividendo la banda tra applicazioni in competizione. Il TE è definito come l'insieme delle tecniche per ottimizzare e controllare i flussi di traffico in una rete di telecomunicazioni al fine di garantire il massimo throughput e un livello di QoS sufficiente. L'obiettivo finale è aumentare l'utilizzo dei costosi collegamenti di trasporto a lungo raggio.
+
+[INSERIRE IMMAGINE: Diagrammi a blocchi (Fase 1, 2 e 3) che mostrano il percorso di migrazione SDN di Google da un'architettura distribuita a una fisicamente decentralizzata ma logicamente centralizzata]
+
+La migrazione verso SDN è avvenuta per fasi, passando da un'architettura hardware (piano di controllo e dati) monolitica e completamente distribuita a una architettura con piano di controllo fisicamente decentralizzato ma logicamente centralizzato. Nella Fase 1, la rete di partenza prevedeva cluster (domini lato server) attaccati ai siti WAN (nodi WAN) tramite router di bordo (Cluster Border Router) comunicanti via eBGP, mentre i siti remoti comunicavano tramite iBGP/ISIS. Successivamente, sono stati introdotti i Site Controllers, dotati di protocolli come Quagga e Paxos, affiancati da OpenFlow Controller in comunicazione con i dispositivi fisici (Fase 2). Infine, nella Fase 3, è stato integrato un Server TE Centrale che si interfaccia con i controller di sito.
+
+L'uso del protocollo BGP è stato mantenuto per la familiarità degli operatori e perché era in uso prima del SDN, permettendo un rilascio graduale per la raggiungibilità; l'ingegneria del traffico (selezione dei percorsi e allocazione della banda) è stata invece delegata al sistema TE centralizzato.
+
+### Struttura Generale a Livelli
+
+L'architettura B4 si compone di tre livelli principali:
+
+- **Livello Switch Hardware:** Come accennato, hardware semplice basato su silicio commerciale che si limita a inoltrare i pacchetti.
+
+- **Livello di Controllo:** I Network Control Servers (NCS) ospitano sia gli OpenFlow Controller (OFC) che le Network Control Applications (NCA). Gli OFC mantengono lo stato della rete e istruiscono gli switch. Per garantire la tolleranza ai guasti, ogni sito utilizza un'istanza del protocollo Paxos per eleggere una replica software primaria tra diverse disponibili su server fisici distinti.
+
+- **Livello Globale:** Costituito da applicazioni logicamente centralizzate, ovvero l'SDN Gateway e il Central TE Server. Il Gateway astrae i dettagli di OpenFlow e dell'hardware per il server TE. Quest'ultimo utilizza una vista globale della topologia e della domanda per calcolare le assegnazioni di percorsi e larghezza di banda a livello di sito per i gruppi di flussi.
+
+### Ingegneria del Traffico (TE) Centralizzata
+
+Il Server TE ha l'obiettivo di condividere la larghezza di banda tra applicazioni in competizione, potendo utilizzare anche percorsi multipli. In ingresso (Input), il server riceve un grafo della topologia di rete (dove i siti sono i vertici e le connettività sono gli archi), una astrazione che riduce la complessità rispetto alla rete reale. Le applicazioni non vengono gestite individualmente, ma aggregate in un "Flow Group" (FG), definito dalla tupla {sito sorgente, sito destinazione, QoS}. Le funzioni di banda, fornite da un modulo chiamato "Bandwidth Enforcer", specificano l'allocazione per un'applicazione derivandola da pesi statici impostati dagli amministratori.
+
+In uscita (Output), il Server TE genera dei Tunnel (T), che rappresentano percorsi a livello di sito (es. A -> B -> C) implementati tramite incapsulamento IP in IP. Genera inoltre i Tunnel Group (TG), che mappano i Flow Group sui tunnel. Questi dati vengono inviati al Gateway SDN, che a sua volta li inoltra agli OFC affinché vengano installati negli switch tramite OpenFlow.
+
+[INSERIRE IMMAGINE: Diagramma dell'algoritmo di Traffic Engineering che mostra il flusso di dati dal Bandwidth Enforcer al TE Server fino all'SDN Gateway]
+
+### Esempio di Inoltro Multipath e Risultati Ottenuti
+
+Un aspetto tecnico cruciale è la capacità della rete di gestire percorsi multipli (Multipath). Ad esempio, se uno switch deve distribuire uniformemente i flussi destinati al prefisso 9.0.0.0/24 tra due tunnel differenti, esso esegue un hashing dei contenuti dell'intestazione (header) del pacchetto, applicando l'operazione modulo rispetto al numero di voci restituite dalla tabella ACL (Access Control List).
+
+| **DIP**                                                   | **TOS/TOS Mask** | **Multipath Table Index** | **Number of Entries** |
+| --------------------------------------------------------- | ---------------- | ------------------------- | --------------------- |
+| 9.0.0.0/24                                                | 0x10/0xff        | 0                         | 2                     |
+| Tabella: Esempio di ACL Table per il forwarding multipath |                  |                           |                       |
+
+In conclusione, l'adozione di OpenFlow ha aiutato Google a migliorare drasticamente la propria dorsale B4. La rete riesce ora a mantenere un utilizzo vicino al 100% per carichi elastici, riducendo sia la complessità sistemica che i costi complessivi. Come sviluppi futuri e miglioramenti successivi, la letteratura indica il passaggio verso una topologia gerarchica e algoritmi di TE decentralizzati.
+
+---
+
+### Glossario e Concetti Chiave
+
+- **B4:** La Wide Area Network (WAN) privata e definita dal software di Google, utilizzata esclusivamente come dorsale per interconnettere i data center con un'efficienza prossima al 100%.
+
+- **Traffic Engineering (TE):** Tecniche e algoritmi, in questo caso centralizzati, usati per ottimizzare i flussi di traffico garantendo massimo throughput, controllando priorità e percorsi (Tunnels) per Flow Group aggregati.
+
+- **OpenFlow e Paxos:** OpenFlow è il protocollo usato dai controller per comunicare con gli switch a basso costo. Paxos è l'algoritmo utilizzato nel livello di controllo per garantire la tolleranza ai guasti eleggendo un controller primario tra diverse repliche.
+
+---
+
+### Riferimenti su B4 e Altri Casi d'Uso Aziendali
+
+A completamento di quanto illustrato precedentemente sul caso di studio B4 di Google, è doveroso citare alcune fonti accademiche e tecniche fondamentali per l'approfondimento. Tra queste figurano gli studi di Sushant Jain e colleghi presentati ad ACM SIGCOMM 2013 ("B4: experience with a globally-deployed software defined wan") , e la ricerca successiva di Hong CYY et al. del 2018 ("B4 and after: managing hierarchy, partitioning, and asymmetry..."). Risultano rilevanti anche le lezioni apprese e documentate da Subhasree Mandal nel 2015 e i casi d'uso sulla migrazione descritti dalla Open Networking Foundation nel 2014. Oltre all'impiego nei grandi data center, le tecnologie SDN trovano ulteriori e cruciali casi d'uso nei servizi per le reti di trasporto e le reti aziendali, come dimostrato dalle implementazioni commerciali e dalle partnership tecnologiche portate avanti da aziende del calibro di Infinera, Telstra, Blue Planet (in collaborazione con Telefonica Germany) e TIM con le proprie offerte SDWAN.
+
+### Oltre OpenFlow: Verso un Data Plane Programmabile
+
+L'approccio iniziale del SDN si è basato fortemente su protocolli come OpenFlow. Tuttavia, sebbene OpenFlow sia nato come uno standard semplice per manipolare circa $12$ campi di intestazione (header fields), nel corso degli anni le sue specifiche sono cresciute a dismisura, arrivando a dover gestire circa $40$ campi differenti, aumentandone vertiginosamente la complessità tecnica. Questo incremento è stato dettato dall'esigenza del traffico dei moderni data center di supportare nuove forme di incapsulamento dei pacchetti, come VXLAN e NVGRE. Nonostante tali estensioni, i dispositivi che operano nel Data Plane presentano un limite strutturale intrinseco: mantengono funzioni fisse. Una vera e propria programmabilità della rete, invece, implica la capacità di specificare e modificare liberamente sia gli algoritmi del piano di controllo (Control Plane) sia quelli del piano dati (Data Plane). Raggiungendo questo traguardo, gli operatori di rete possono definire gli algoritmi in totale autonomia, senza dover coinvolgere i progettisti originali degli apparati hardware. Questa necessità ha spinto l'industria verso la recente introduzione di dispositivi con un Data Plane interamente programmabile, segnando un netto stacco concettuale rispetto al networking tradizionale.
+
+[INSERIRE IMMAGINE: Diagramma a blocchi che confronta l'architettura del Networking Tradizionale con il SDN a Data Plane con funzioni fisse e il SDN con Data Plane Programmabile, evidenziando la separazione e la penetrazione delle API]
+
+A supporto di questa evoluzione architetturale, è fondamentale fare riferimento allo studio condotto nel 2023 da Bhargavi Goswami e colleghi ("A survey on P4 challenges in software defined networks: P4 programming", pubblicato su IEEE Access), che analizza a fondo le sfide poste da questa transizione.
+
+### Il Linguaggio P4: Programmazione Indipendente dal Protocollo
+
+Per concretizzare l'idea di un piano dati flessibile, è stato sviluppato **P4** (acronimo di *Programming Protocol-Independent Packet Processors*). Si tratta di un linguaggio di programmazione "Domain-specific", ovvero ideato appositamente per i dispositivi di rete. P4 estende radicalmente il concetto di "match-action dataflow" introdotto da OpenFlow, permettendo al programmatore di specificare l'elaborazione dei protocolli nel Data Plane in modo totalmente flessibile e indipendente dai protocolli di rete sottostanti. La sua caratteristica principale risiede nel fatto che un programma P4 descrive nella sua interezza tutta l'elaborazione attesa per un pacchetto all'interno del piano dati. Attraverso il codice, vengono definiti tutti gli header dei pacchetti d'interesse per le operazioni di corrispondenza (match), offrendo ai progettisti di rete la libertà di specificare anche le intestazioni per protocolli personalizzati non standard. Inoltre, il programma elenca in modo esaustivo il set di tutte le possibili azioni supportate e definisce le tabelle e il relativo flusso di controllo logico (control flow) per governare il transito dei dati.
+
+L'utilizzo di P4 comporta enormi vantaggi ingegneristici. Consente di personalizzare l'elaborazione dei pacchetti senza richiedere gravose e costose modifiche all'hardware fisico sottostante, garantendo così una rapida implementazione (rapid deployment) e una veloce spinta innovativa per i protocolli di rete, unitamente a una migliore efficienza e scalabilità generale del sistema. Dal punto di vista delle applicazioni pratiche, questo linguaggio è cruciale per alimentare architetture SDN avanzate, per implementare telemetria e monitoraggio di rete estremamente precisi e per creare implementazioni su misura per la sicurezza informatica e i firewall. Storicamente, il progetto P4 è stato concepito nel 2013 grazie alla sinergia tra mondo accademico e industriale (includendo figure provenienti da Barefoot Networks, Intel, Stanford, Princeton, Google e Microsoft Research), portando alla presentazione del paper originale alla conferenza ACM SIGCOMM del 2014 a firma di Pat Bosshart e colleghi. Da allora, gli sforzi di standardizzazione, guidati dal *P4 Language Consortium*, hanno condotto alla definizione formale delle specifiche tecniche, oggi reperibili sulla piattaforma p4.org. L'articolo fondante evidenzia proprio come P4 funga da "proposta fantoccio" (strawman proposal) per indicare la via verso cui OpenFlow dovrebbe evolvere, superando il continuo ingigantirsi delle specifiche per la gestione di header sempre nuovi. I tre obiettivi cardine enunciati da Bosshart et al. sono: la riconfigurabilità sul campo da parte dei programmatori, la totale indipendenza dai protocolli standard e, infine, l'indipendenza dal "target", affinché il codice sia slegato dalle specifiche del silicio e dell'hardware sottostante.
+
+### Architettura e Flusso di Lavoro di un Target P4
+
+Programmando in P4, lo sviluppatore interagisce con un "Target", ovvero l'infrastruttura di implementazione fisica (hardware) o virtuale (software). Il Target è intrinsecamente caratterizzato da un Modello di Architettura (Architecture Model) e da un compilatore (Compiler) forniti tipicamente dal produttore (Vendor). Il programmatore umano (User) scrive il codice P4 per descrivere interamente la logica di forwarding e le funzionalità richieste; successivamente, questo codice sorgente viene processato dal compilatore.
+
+[INSERIRE IMMAGINE: Schema del processo di compilazione di un programma P4, che illustra come il sorgente e il modello architetturale producano un binario specifico per il target, e come il Control Plane si interfacci al Data Plane]
+
+Il processo di compilazione genera due elementi cruciali: da un lato produce una configurazione per il Data Plane (il binario specifico per quel target) che esegue materialmente la logica di inoltro, dall'altro lato crea una API che permette al piano di controllo di gestire lo stato degli oggetti nel Data Plane stesso. Da questo momento, il Control Plane può interagire in tempo reale con il Data Plane utilizzando specifiche di controllo predefinite, come ad esempio *P4Runtime*. Attraverso questi strumenti, il piano di controllo popola le tabelle logiche con le regole; non appena i parametri di un pacchetto corrispondono a una regola (match), viene selezionata l'azione da intraprendere usando i parametri stabiliti dalla regola stessa. Tra i vari Target fisici o software che possono ospitare un'infrastruttura P4 rientrano switch di rete dedicati, interfacce di rete intelligenti note come SmartNIC e persino Host server standard. L'intero ciclo stabilisce una catena esecutiva rigorosa che delinea l'elaborazione, l'analisi sintattica e la riscrittura del pacchetto di rete.
+
+### La Struttura di un Programma P4
+
+Scendendo nel dettaglio logico, un programma P4 definisce la "pipeline" di elaborazione dei pacchetti e si divide funzionalmente in tre componenti principali: il **Parser**, la **Match-Action Pipeline** e il **Deparser**.
+
+Il **Parser** si occupa di specificare, tramite una vera e propria macchina a stati finiti (state machine), quali parti dell'intestazione (header) debbano essere estratte al momento dell'arrivo del pacchetto, mappando i bit in header formalizzati e relativi metadati. Nella successiva **Match-Action Pipeline**, il programmatore definisce l'albero delle tabelle e la logica condizionale complessa che applicherà le azioni sui pacchetti analizzati. Infine, il **Deparser** esegue il compito inverso al Parser, stabilendo come dovrà apparire sul cavo di rete (on the wire) il pacchetto modificato e pronto all'uscita.
+
+Per comprendere a livello sintattico questa struttura, la trascrizione mostra un esempio essenziale di programmazione P4 applicata a un Parser. Il codice inizia definendo i formati tecnici per un header Ethernet (`header ethernet_t`) dichiarando campi come l'indirizzo di destinazione, l'indirizzo sorgente e il tipo di ethernet (`eth_type`). Successivamente, descrive approfonditamente un header IPv4 (`header ipv4_t`) elencando variabili quali versione, lunghezza totale (`totalLen`), Time to Live (`ttl`), protocollo, indirizzi sorgente e destinazione, per poi raggruppare queste definizioni in una singola struttura dati chiamata `headers_t`. Di seguito, la macchina a stati finiti gestisce fisicamente l'elaborazione del pacchetto ricevuto: partendo da uno stato iniziale (`state start`), la routine estrae per prima cosa l'intestazione Ethernet. Tramite un'istruzione condizionale (`transition select`), se il campo `eth_type` corrisponde al valore esadecimale per IPv4 (`0x0800`), lo stato avanza al nodo `parse_ipv4`. Giunto in questo nuovo stato, il programma estrae l'header IPv4 dal flusso e termina l'operazione di analisi accettando definitivamente il pacchetto processato (`transition accept`). A testimonianza del grande impatto tecnico ed educativo di questa sintassi, esistono numerose risorse di approfondimento, come ad esempio il MOOC dedicato alla Data Plane Programming erogato dall'Università di Karlstad e vari tutorial istituzionali direttamente offerti dalla comunità P4.org, senza dimenticare testi accademici avanzati come quelli prodotti dal professor Laurent Vanveber.
+
+### Service Function Chaining (SFC)
+
+Una delle applicazioni primarie rese efficienti dalle reti SDN programmabili è il **Service Function Chaining** (Concatenamento delle Funzioni di Servizio). Per definizione, l'SFC consente di definire, orchestrare e gestire i vari servizi di rete come una rigorosa e dinamica catena di funzioni. In questo contesto, una singola funzione di rete (Network Function) non è altro che una capacità specifica di elaborazione dei pacchetti fornita da un dispositivo di rete; alcuni esempi classici includono il Network Address Translation (NAT), i processi di firewalling, i sistemi di rilevamento delle intrusioni (IDS), i Domain Name Service (DNS), i bilanciatori di carico (load balancer) e i proxy per la cache dei contenuti, fino ai sistemi avanzati di protezione contro gli attacchi DDoS.
+
+Concatenare sequenzialmente queste funzioni determina l'esatto percorso di elaborazione a cui un determinato flusso di traffico verrà sottoposto. Le motivazioni che portano un operatore a definire tali percorsi vincolati sono molteplici, abbracciando ragioni strettamente legate alla sicurezza informatica, alle performance globali della rete, oppure alle necessità commerciali di garantire rigidi livelli di Qualità del Servizio (QoS) per determinati utenti o pacchetti aziendali.
+
+[INSERIRE IMMAGINE: Schema illustrativo del Service Function Chaining. La grafica deve mostrare l'interconnessione tra reti di accesso fisse e mobili (BNG e PGW) in entrata a una rete SDN, seguita da un "Service Classifier" che instrada dinamicamente i flussi attraverso moduli applicativi basati su piattaforme NFV, quali Firewall, Antivirus, ottimizzatori Video e filtri di Parental Control prima di instradare il traffico verso Internet.]
+
+In sostanza, il SDN svolge un compito orchestrale permettendo di definire tali catene di servizi in via puramente dinamica, sollevando i tecnici dall'obbligo di riconfigurare manualmente router o cablaggi hardware. Un particolare "classificatore di servizi" ispeziona i flussi e il controllore SDN interviene manipolando il traffico affinché questo venga fisicamente "guidato" (steered) in modo invisibile lungo tutti gli anelli previsti dalla specifica catena di sicurezza o ottimizzazione configurata su piattaforme NFV (Network Functions Virtualization), per poi sfociare liberamente sulla rete Internet. Maggiori informazioni sul Service Chaining nelle reti moderne sono descritte dalla community e dalle pubblicazioni tecniche del portale SDxCentral.
+
+### Sintesi e Conclusioni
+
+Ricapitolando i passi fondamentali di questo capitolo, si evidenzia come il routing tradizionale offra un controllo estremamente limitato. L'utilizzo statico dei pesi sui link di rete (link weights) e l'inoltro basato esclusivamente sugli indirizzi di destinazione risultano strumenti fin troppo rozzi per consentire un Traffic Engineering a grana fine o l'applicazione precisa di policy aziendali. Il vero paradigma di rottura del SDN risiede, di conseguenza, nella separazione netta tra il piano di controllo e il piano dati. Questa astrazione delega al controllore software il compito intelligente di calcolare il comportamento globale della rete, lasciando agli apparati switch il mero ruolo esecutore delle regole di inoltro imposte dall'alto.
+
+È di basilare importanza comprendere che il SDN non è un protocollo tecnico specifico, bensì una vera e propria astrazione architetturale; strumenti celebri come OpenFlow rappresentano soltanto una delle possibili opzioni di interfacciamento "southbound" dirette agli apparati fisici, e non l'identità del SDN in sé. In un ecosistema SDN maturo, il controllore (o Network Operating System, NOS) agisce come un cervello globale, fornendo un livello concettuale unitario all'infrastruttura sottostante. Grazie a questo sistema operativo, le singole applicazioni di rete operano manipolando una visione del tutto astratta della topologia, dello stato delle connessioni e delle stringenti regole di routing. Questa elevata astrazione abilita ottimizzazioni e processi di virtualizzazione operanti su scala planetaria. Esempi lampanti di questi progressi sono il TE ingegnerizzato ed estremamente centralizzato (come si è visto nella rete dorsale B4 di Google), ma anche le reti virtuali, lo slicing della banda e, in ultimo, il Service Function Chaining. In questo orizzonte, l'innovazione tecnologica apportata dal linguaggio P4 risulta inestimabile: essa estende in profondità la medesima duttilità software fino alle viscere del livello del Data Plane. Ciò trasla il concetto di programmazione oltre la banale installazione di semplici regole di instradamento in tabelle predefinite, spalancando le porte a una elaborazione dei pacchetti personalizzata, radicale, indipendente e, soprattutto, completamente programmabile da zero.
+
+---
+
+### Glossario e Concetti Chiave
+
+- **Data Plane Programmabile:** Una radicale architettura di rete in cui il comportamento a basso livello degli switch nell'elaborazione dei pacchetti non è stabilito dai produttori di hardware (tramite silicio non modificabile), ma viene definito liberamente dall'operatore tramite software dedicato.
+
+- **P4 (Programming Protocol-Independent Packet Processors):** Un linguaggio di programmazione specifico per dispositivi di rete. Svincola le istruzioni di inoltro da ogni protocollo predefinito e consente di definire l'intera pipeline logica di pacchetti e header personalizzati per apparati hardware e software.
+
+- **P4Runtime:** L'interfaccia/API di controllo specificata in sede standardizzata che consente al Control Plane remoto di interagire a runtime (durante l'esecuzione e senza interruzioni di servizio) per configurare lo stato e le tabelle negli elementi di rete precedentemente descritti dal codice P4.
+
+- **Service Function Chaining (SFC):** Una metodologia avanzata dell'infrastruttura SDN che manipola la traiettoria standard dei pacchetti, forzando un determinato flusso di rete a transitare attraverso una concatenazione prestabilita di funzioni virtualizzate di servizi logici (es. Firewall, NAT, IDS) per incrementare la sicurezza e ottimizzare il traffico.
+
+---

@@ -223,10 +223,6 @@ Per risolvere la prima problematica, ovvero il bootstrap, un nuovo nodo che desi
 
 <img src="assets/2026-03-28-11-00-47-image.png" title="" alt="" data-align="center">
 
-
-
-
-
 Da un punto di vista procedurale, lo scenario operativo in una rete P2P non strutturata si articola in una chiara sequenza di fasi. Il **Passo 0** consiste nel processo di join per unirsi alla rete, come appena descritto. Il **Passo 1** mira a determinare e tracciare attivamente "chi è attualmente presente sulla rete". Per fare ciò in assenza di un registro, il peer invia in broadcast un pacchetto di "ping" per annunciare formalmente la propria presenza globale; di rimando, gli altri peer che ricevono il segnale rispondono con un pacchetto di "pong", che contiene a sua volta informazioni utili sul peer che lo ha generato. In aggiunta, per diffondere la conoscenza, i nodi provvedono a inoltrare il "ping" originale a tutti gli altri peer a cui sono connessi. Giunti al **Passo 2**, prende luogo la ricerca vera e propria: attraverso la creazione e l'invio di un pacchetto "query", il peer richiede formalmente un determinato contenuto agli altri nodi circostanti (si pensi a una domanda del tipo: "Hai nei tuoi dischi un file che corrisponde esattamente alla stringa 'Back to Black'?"). I peer interpellati verificano i propri database locali alla ricerca di corrispondenze: se trovano il file richiesto inviano una risposta positiva, in caso contrario agiscono da ponti e inoltrano il pacchetto a tutti i peer a cui sono connessi. Per non saturare la rete all'infinito, questo rimpallo esplorativo continua unicamente per un numero di salti rigorosamente limitato da un parametro tecnico chiamato TTL (Time-To-Live). Al termine della ricerca, si giunge al **Passo 3**, corrispondente alla fase di download: in questo step, il trasferimento del contenuto binario avviene abbandonando l'overlay di ricerca e stabilendo connessioni dirette tra il nodo richiedente e quello offerente, prelevando il file tramite l'utilizzo del consolidato metodo GET del protocollo HTTP.
 
 ![](assets/2026-03-28-11-00-58-image.png)
@@ -730,15 +726,9 @@ Per cristallizzare questi concetti, analizziamo un esempio pratico e completo de
 
 ![](assets/2026-03-28-11-03-30-image.png)
 
-
-
-
-
 Una volta isolati questi nodi, che chiameremo $A$, $B$ e $C$, il nodo $P$ invia in parallelo e in modo asincrono la query tramite la RPC FIND_NODE(Q) a tutti i contatti selezionati.
 
 ![](assets/2026-03-28-11-03-41-image.png)
-
-
 
 A questo punto, la palla passa ai nodi interpellati: ogni nodo contattato ($A$, $B$ e $C$) analizza a sua volta la propria tabella di routing per individuare i $k$ nodi che ritiene essere ancora più prossimi alla chiave $Q$. Naturalmente, data la diversa prospettiva topologica, ogni nodo interpellato attingerà a un bucket diverso della propria tabella di routing.
 
@@ -749,8 +739,6 @@ Completata questa sotto-ricerca, si manifesta la natura del Routing Iterativo: o
 Con le nuove informazioni alla mano (che ipotizziamo abbiano svelato l'esistenza dei nodi $M$, $N$ e $O$), il nodo $P$ aggiorna doverosamente i propri k-bucket. Successivamente, seleziona nuovamente un sottoinsieme di $\alpha$ nodi dalle informazioni appena ricevute. Se questi nuovi nodi risultano effettivamente più vicini al target rispetto a quelli esplorati in precedenza, $P$ avvia un nuovo ciclo di look-up inviando loro delle nuove richieste FIND_NODE(Q). Qualora i nuovi nodi non garantissero un avvicinamento significativo, l'algoritmo non si arrende, ma sceglie ulteriori nodi alternativi tra quelli immagazzinati che non sono ancora stati contattati.
 
 ![](assets/2026-03-28-11-04-07-image.png)
-
-
 
 Questo imponente processo ricorsivo non prosegue all'infinito, ma è governato da una rigorosa condizione di terminazione: l'iterazione si conclude definitivamente quando un intero round di chiamate FIND_NODE fallisce nel restituire nodi che siano più vicini di quelli già individuati nel round precedente.
 
@@ -777,8 +765,6 @@ Giunti alla conclusione, tracciamo un bilancio analitico mettendo a confronto l'
 Tirando le somme, tra i punti di forza (Strengths) di Kademlia spiccano: un irrisorio sovraccarico dovuto ai messaggi di controllo (overhead), una straordinaria tolleranza fisiologica ai guasti e agli abbandoni dei nodi, l'intrinseca capacità di isolare e selezionare i percorsi a minor latenza per il routing delle query, e la presenza di limiti di performance dimostrabili matematicamente . Di contro, permangono alcune limitazioni intrinseche (Weaknesses): la distribuzione tipicamente non uniforme dei nodi nell'immenso spazio degli ID può generare tabelle di routing sbilanciate, degradando localmente l'efficienza del routing . Il bilanciamento del carico di memorizzazione tra i partecipanti (storage load) non è mai stato risolto in maniera definitiva e assoluta. Inoltre, essendo il paper originale in parte non specificato nei minimi dettagli, sono fiorite una pletora di implementazioni divergenti che rendono estremamente complesso fornire risultati analitici universali. A ciò si somma la natura strutturalmente non deterministica dei risultati del routing, sia in termini di tempi di risoluzione che di definizione precisa del vicinato (neighbourhood).
 
 Per i lettori che desiderassero approfondire visualmente la cinematica della rete, si raccomanda l'osservazione dell'animazione interattiva disponibile all'indirizzo *kelseyc18.github.io/kademlia_vis/basics/1/*.
-
-
 
 ![](assets/2026-03-28-11-04-28-image.png)
 
@@ -898,8 +884,6 @@ Gli analisti crittografici, pertanto, non ricorrono alla forza bruta pura, ma al
 
 ![](assets/2026-03-28-11-05-00-image.png)
 
-
-
 Pertanto, un hash a 56 bit (livello di sicurezza di 56 bit) può essere forzato con $2^{56}$ operazioni. Allo stato attuale, un ammontare di $2^{128}$ operazioni è assolutamente irrealizzabile, mentre $2^{80}$ operazioni iniziano a diventare teoricamente fattibili (con la consapevolezza che calcolare $2^{81}$ operazioni richiede il doppio del tempo rispetto a $2^{80}$). Per garantire un margine di sicurezza adeguato, oggi è richiesto un livello di sicurezza di almeno 80 bit. Analizzando gli algoritmi comuni: l'MD5 offre solo 64 bit di sicurezza ($128/2$), lo SHA-1 offre 80 bit ($160/2$), mentre lo **SHA-256**, l'algoritmo alla base della blockchain di Bitcoin, offre un solidissimo margine di 128 bit di sicurezza ($256/2$). Esistono versioni ancora più potenti come lo SHA-512 che spingono la sicurezza a 256 bit ($512/2$).
 
 Nel panorama reale, gli standard crittografici hanno un ciclo di vita utile di circa 10 anni (come illustrato dai grafici "rainbow chart" storici).
@@ -965,8 +949,6 @@ L'obiettivo dei miner (i nodi della rete) è trovare un segmento di input mancan
 
 ![](assets/2026-03-28-11-05-20-image.png)
 
-
-
 La difficoltà del puzzle viene modulata dinamicamente dal protocollo ridefinendo le dimensioni dell'insieme $S$: se $S$ è grande, trovare un hash che vi ricada all'interno sarà statisticamente meno difficile e richiederà meno potenza di calcolo. Nel caso specifico di Bitcoin, l'insieme $S$ è definito dal numero di "zeri iniziali" che il digest SHA-256 finale deve possedere (ad esempio, un hash valido deve iniziare obbligatoriamente con un certo numero di stringhe `000...`).
 
 ### Glossario / Concetti Chiave
@@ -989,15 +971,9 @@ Tali funzioni robuste trovano la loro massima espressione nelle Tabelle Hash Dis
 
 ![](assets/2026-03-28-11-05-36-image.png)
 
-
-
 Nel contesto delle criptovalute, Bitcoin impiega una "block chain", la quale è concettualmente una vera e propria catena di hash (hash chain) utilizzata per memorizzare il registro generale delle transazioni (ledger) all'interno di una rete Peer-to-Peer (P2P). Il concatenamento sequenziale degli hash garantisce la totale inviolabilità del registro, una proprietà definita come "tamper freeness" (a prova di manomissione).
 
 ![](assets/2026-03-28-11-05-50-image.png)
-
-
-
-
 
 ### La Rivoluzione della Crittografia Asimmetrica a Chiave Pubblica
 
@@ -1027,15 +1003,11 @@ Per capire come funziona matematicamente, partiamo da un esempio "ingenuo" (*nai
 
 ![](assets/2026-03-28-11-06-08-image.png)
 
-
-
 ### L'Ottimizzazione: Firmare l'Hash
 
 L'approccio appena visto funziona in teoria, ma ha un grave difetto pratico: crittografare messaggi lunghi richiede troppe risorse ed è un'operazione computazionalmente molto costosa. Per risolvere il problema, si introduce la funzione di hash. Invece di cifrare l'intero documento, il mittente applica una funzione di hash $H$ al messaggio esteso $m$, ottenendo un *digest* di dimensione fissa $H(m)$. A questo punto, il mittente firma (cioè crittografa) esclusivamente questo breve digest, generando l'output $K_B^-(H(m))$.
 
 ![](assets/2026-03-28-11-06-23-image.png)
-
-
 
 ### Il Problema dell'Autenticazione Debole e il "Pizza Prank"
 
@@ -1081,17 +1053,11 @@ Per chiudere l'argomento, è fondamentale capire bene la differenza tecnica tra 
 
 Un concetto cardine per garantire la sicurezza delle strutture dati distribuite è il **Puntatore Hash** (Hash Pointer). A differenza di un puntatore tradizionale, un puntatore hash è composto da due elementi inseparabili: un puntatore classico che indica dove l'informazione è memorizzata fisicamente o logicamente, unito a un hash crittografico di quella stessa informazione.
 
-
-
 ![](assets/2026-03-28-11-06-49-image.png)
 
 L'idea chiave alla base delle architetture blockchain è proprio quella di costruire intere strutture dati sfruttando questi puntatori hash. La **blockchain**, nella sua accezione più tecnica, non è altro che una lista concatenata in cui i nodi sono uniti tramite puntatori hash. Per calcolare il puntatore hash di un blocco, è necessario eseguire la funzione di hash sull'intero blocco, il che include inevitabilmente anche il puntatore hash che questo blocco possiede verso il suo predecessore. Questo meccanismo a cascata crea un log evidente alle manomissioni (tamper-evident log), che rappresenta la struttura dati di base su cui si fondono criptovalute come Bitcoin ed Ethereum.
 
 ![](assets/2026-03-28-11-07-19-image.png)
-
-
-
-
 
 Se un ipotetico avversario tentasse di manomettere i dati contenuti nel blocco $k$-esimo della catena, l'hash memorizzato all'interno del blocco successivo ($k+1$) non corrisponderebbe più ai nuovi dati. La robustezza del sistema è garantita dalla resistenza alle collisioni intrinseca alle funzioni di hash: è computazionalmente infattibile per un malintenzionato modificare i dati in modo tale che il loro nuovo hash sia identico a quello calcolato prima della manomissione. Nei sistemi basati su **Proof of Work** (PoW), il blocco contiene anche la prova crittografica che il calcolo del PoW è stato eseguito con successo. Di conseguenza, se anche un solo bit di dati viene alterato, il Proof of Work deve essere rieseguito non solo per quel blocco, ma per tutti i blocchi successivi ad esso.
 
@@ -1105,8 +1071,6 @@ Spostandoci verso l'ottimizzazione delle query, incontriamo il **Problema dell'A
 
 ![](assets/2026-03-28-11-07-57-image.png)
 
-
-
 Tuttavia, quando le risorse sono limitate, è necessario virare verso una soluzione approssimata. Il problema si trasforma quindi nella scelta di una rappresentazione degli elementi dell'insieme $S$ che permetta di calcolare il risultato della query in modo efficiente, riducendo drasticamente lo spazio di memoria richiesto. In questo scenario, la funzione $f(k)$ garantisce un risultato "falso" certo se $k \notin S$, ma restituisce un ambiguo "forse $k \in S$" in caso di esito positivo. I risultati vengono quindi approssimati per risparmiare spazio, introducendo la possibilità di ottenere **falsi positivi**. Si delinea così un chiaro compromesso (trade-off) tra lo spazio di memoria richiesto e la probabilità matematica di riscontrare falsi positivi.
 
 ### Costruzione e Funzionamento dei Filtri di Bloom
@@ -1114,8 +1078,6 @@ Tuttavia, quando le risorse sono limitate, è necessario virare verso una soluzi
 Il **Filtro di Bloom** è la struttura dati probabilistica ideata per risolvere questa specifica problematica. A livello strutturale, viene istanziato a partire da un vettore $B$ (o $S$) costituito da $m$ bit, tutti inizializzati a zero. Per mappare gli $n$ elementi dell'insieme, si definiscono $k$ funzioni di hash indipendenti ($h_{1}, ..., h_{k}$). A livello dimensionale, si assume che il numero di bit $m$ sia di gran lunga superiore al numero di elementi $n$ (generalmente $m > n \cdot k$). Ogni funzione di hash $h_{i}$ esegue una mappatura dall'insieme $S$ a un intervallo $[1..m]$, restituendo un valore distribuito in modo uniforme.
 
 ![](assets/2026-03-28-11-08-13-image.png)
-
-
 
 Per inserire un elemento $x \in S$ nel Filtro di Bloom, si applicano tutte le $k$ funzioni di hash all'elemento. Se una funzione restituisce una determinata posizione (ad esempio $f(x)=A$), il bit in quella posizione nel vettore viene impostato a 1 (ossia, si imposta $S[A]=1$). Formalmente, per ogni elemento inserito, il vettore $B$ viene aggiornato in modo tale che $B[h_{j}(x)]=1, \forall j=1,2,...k$. Poiché lo spazio è condiviso, è del tutto normale che un singolo bit del vettore funga da target per più di un elemento.
 
@@ -1158,8 +1120,6 @@ Questa probabilità dipende da due variabili cruciali: il rapporto $m/n$ (ovvero
 Riprendendo il concetto di probabilità dei falsi positivi, è cruciale analizzare il comportamento del filtro al variare dei parametri architetturali. Fissato il rapporto $m/n$ (ovvero il numero di bit disponibili per ogni elemento), la probabilità di falsi positivi segue un andamento non lineare rispetto all'aumentare di $k$ (il numero di funzioni di hash). Inizialmente, all'aumentare di $k$, il tasso di falsi positivi diminuisce, ma superata una certa soglia, ricomincia a salire.
 
 ![](assets/2026-03-28-11-08-26-image.png)
-
-
 
 Ad esempio, se imponiamo $m/n=2$, concedendo quindi pochissimi bit per ogni elemento, non è possibile sfruttare "troppe" funzioni di hash. L'eccesso di funzioni finirebbe per saturare rapidamente il filtro riempiendolo di 1, causando l'impennata dei falsi positivi. Al contrario, con un rapporto più generoso come $m/n=10$, l'impiego di un numero maggiore di funzioni di hash abbassa costantemente il tasso di falsi positivi senza mai farlo risalire.
 
@@ -1621,8 +1581,6 @@ Ma da dove provengono fisicamente gli input? In Bitcoin, le transazioni non sono
 
 ![](assets/2026-03-28-11-11-21-image.png)
 
-
-
 Il concetto di "saldo" di un conto corrente in Bitcoin non esiste a livello di protocollo. Il saldo visualizzato da un utente nel proprio wallet non è altro che la somma matematica di tutti i suoi UTXO sparsi per la rete. Quando un UTXO viene referenziato come input in una nuova transazione, esso viene considerato "speso" e non può essere riutilizzato. Inoltre, gli UTXO devono essere consumati per intero. Se Alice possiede un UTXO da 0.8 BTC e vuole pagare a Bob 0.5 BTC, la sua transazione consumerà l'intero input di 0.8 BTC e genererà due output: uno da 0.5 BTC diretto a Bob, e un secondo output (che chiamiamo "change" o resto) di 0.3 BTC meno le commissioni, che tornerà a un indirizzo di proprietà di Alice.
 
 A seconda di come vengono gestiti input e output, le transazioni assumono diverse forme. La **Common Transaction** (transazione comune) è la più diffusa: presenta un solo input e due output (il pagamento al destinatario e il resto che torna al mittente).
@@ -1949,8 +1907,6 @@ Analizziamo ora un esempio pratico. Supponiamo che al Tempo $t$, le transazioni 
 
 ![](assets/2026-03-28-11-12-39-image.png)
 
-
-
 ### Perché diventare un Miner? La Coinbase Transaction e gli Incentivi
 
 Mantenere hardware costoso e consumare enormi quantità di energia deve avere una giustificazione economica. Come anticipato, vi sono due meccanismi di incentivo che spingono i miner ad essere onesti e a partecipare alla rete:
@@ -2087,8 +2043,6 @@ Nonostante la natura deterministica della crittografia, il sistema è soggetto a
 
 ![](assets/2026-03-28-11-14-23-image.png)
 
-
-
 È fondamentale sottolineare che entrambi i rami sono assolutamente legittimi, in quanto creati da miner onesti che hanno seguito alla lettera le regole del protocollo. Tuttavia, questa duplicazione crea due istanze parallele della blockchain, portando alcune transazioni ad apparire in un blocco ma non nell'altro. Diventa quindi imperativo per il sistema riconciliare queste due versioni per stabilire in modo univoco quali bitcoin siano stati realmente spesi. Questo fenomeno è radicalmente diverso da un attacco di *double spending* orchestrato da un miner disonesto.
 
 A livello di propagazione di rete, ogni nodo riceverà il blocco A o il blocco C per primo, a seconda della sua vicinanza topologica ai rispettivi miner. Il nodo aggiungerà il blocco ricevuto per primo alla sua copia locale della blockchain e, se è a sua volta un miner, inizierà immediatamente a fare mining costruendo su di esso. Se successivamente dovesse ricevere anche il secondo blocco concorrente, riconoscerà la creazione di un fork e archivierà temporaneamente questo blocco secondario in una cache locale.
@@ -2171,8 +2125,6 @@ In sintesi, Bob spende tutti i suoi bitcoin sul ramo "onesto" della blockchain p
 
 ![](assets/2026-03-28-11-14-51-image.png)
 
-
-
 L'obiettivo di Bob è creare una catena più lunga di quella pubblica. Non appena ci riesce, la trasmette improvvisamente al resto della rete. A causa della regola della catena più lunga (longest chain rule), questa versione manipolata verrà inesorabilmente accettata da tutti gli altri minatori, che abbandoneranno il loro lavoro precedente per allinearsi alla nuova catena predominante. Affinché questa strategia abbia successo, il minatore malintenzionato ha bisogno di una potenza di calcolo superiore a quella di tutto il resto della rete combinato, detenendo idealmente il **51% dell'hashing power**. Solo così può sperare di aggiungere blocchi alla sua versione della blockchain più velocemente degli altri e costruire una catena più lunga.
 
 Se questo attacco, noto come **Attacco del 51%**, ha successo, la vecchia catena viene abbandonata e tutte le transazioni in essa contenute perdono validità. Il risultato è drammatico per il venditore: Bob ha già ricevuto la sua barca a vela, ma è rientrato in possesso dei suoi bitcoin ed è libero di spenderli nuovamente.
@@ -2184,8 +2136,6 @@ In condizioni normali, per Bob è estremamente difficile rendere il suo fork pi�
 ### Concentrazione dell'Hashing Power: Il Caso GHash.IO
 
 La teoria dell'Attacco del 51% si è scontrata con la realtà il 18 Giugno 2014, quando la distribuzione dell'hashing power ha mostrato segnali di pericolosa centralizzazione. In quel periodo, la mining pool GHash.IO deteneva il 38.24% della potenza totale. Le altre porzioni erano divise tra attori sconosciuti (16.52%), F2Pool (13.34%), BTC Guild (11.61%), Eligius (7.04%), KnCMiner (5.01%), Slush (3.67%), Polmine (1.84%), BitMinter (1.49%), EclipseMC (0.60%), AntPool (0.50%), Triplemining.com (0.05%), DigitalBTC (0.05%) e SockThing (0.05%).
-
-
 
 GHash.IO arrivò pericolosamente vicino a superare la soglia del 50%, scatenando il panico generale, ma di fatto non si verificò alcun attacco. La spiegazione risiede nella teoria economica: anche se un minatore (o una pool) ottiene oltre il 50% del potere di mining, non significa necessariamente che avvierà un attacco distruttivo. Mantenere una potenza simile ha costi enormi, ed è di gran lunga più redditizio continuare a minare blocchi onestamente, incassando le ricompense, piuttosto che minare la fiducia nel sistema per annullare una singola transazione.
 
@@ -2296,8 +2246,6 @@ La **Seconda Generazione (GPU Mining)** è esplosa nell'ottobre del 2010 con il 
 La **Terza Generazione (FPGA Mining)** ha visto l'introduzione dei Field Programmable Gate Area (FPGA). Si tratta di circuiti integrati programmabili tramite linguaggi di descrizione hardware come il Verilog, permettendo di riconfigurare la scheda "sul campo" per ottimizzarla specificamente per Bitcoin. Le FPGA garantivano prestazioni superiori alle GPU, in particolare grazie all'eccellente gestione delle operazioni a livello di singolo bit (bitwise operations), e presentavano sistemi di raffreddamento più efficienti. Tuttavia, i costi d'acquisto erano sensibilmente più alti e il vantaggio in termini di rapporto prestazioni/costo rispetto alle schede video risultava solo marginale. Con un sistema FPGA, il tempo medio di attesa per la scoperta di un blocco scendeva a circa 25 anni.
 
 Infine, la **Quarta Generazione (ASIC Mining)**, iniziata nel 2013, ha segnato il definitivo passaggio all'hardware specializzato. Gli ASIC (Application Specific Integrated Circuits) sono chip progettati, ingegnerizzati e costruiti per svolgere un unico, singolare compito: minare Bitcoin eseguendo l'algoritmo SHA-256 nel modo più rapido ed efficiente possibile. Questa nicchia di mercato è stata inizialmente dominata da pochi grandi produttori che sfornavano chip a ritmi serrati, sebbene i primissimi modelli non fossero sempre affidabili. Un esempio emblematico dell'epoca è stato il *TerraMiner 4*, un dispositivo dal costo di circa 3.500 dollari USA in grado di sprigionare una sbalorditiva potenza di 2 TeraHash al secondo.
-
-
 
 ---
 
@@ -2459,8 +2407,6 @@ All'interno di questa struttura, N rappresenta il numero totale di chiavi pubbli
 
 Per soddisfare questo *locking script*, l'utente deve fornire un *unlocking script* (script di sblocco) che contenga una qualsiasi combinazione valida del numero richiesto di firme. La sintassi del cosiddetto ScriptSig è semplicemente l'elenco delle firme. 
 
-
-
 <img src="assets/2026-03-28-12-06-24-image.png" title="" alt="" data-align="center">
 
 Riprendendo l'esempio della condizione 2-di-3 precedente, lo script di blocco può essere soddisfatto con uno script di sblocco contenente una combinazione qualsiasi di due firme derivanti dalle chiavi private corrispondenti alle tre chiavi pubbliche elencate. Un esempio valido sarebbe presentare la firma di A e la firma di C, codificate come `<Signature A> <Signature C>`. In sintesi, un output di transazione protetto da uno script P2MS che include le chiavi pubbliche di tre persone diverse richiederà che solo due di queste persone forniscano le rispettive firme nell'input della nuova transazione per spendere i bitcoin lì memorizzati.
@@ -2598,8 +2544,6 @@ Dopo il 2013, è stata adottata una soluzione di compromesso con l'introduzione 
 ### Proof of Burn
 
 Uno script *proof-of-burn* non può mai essere riscattato. L'invio di monete verso un "burn address" (un indirizzo privo di chiave privata) le distrugge per sempre. Poiché non esiste alcun modo possibile per spenderle, è matematicamente dimostrabile (provable) che quei bitcoin sono stati distrutti.
-
-
 
 Ma perché qualcuno dovrebbe distruggere il proprio denaro? Le applicazioni principali sono due:
 
@@ -2785,8 +2729,6 @@ Per visualizzare in modo intuitivo il funzionamento del Lightning Network, si pu
 
 Per tradurre l'analogia del barista in termini tecnici, nel Lightning Network il cliente non consegna una carta di credito, ma deposita i propri fondi (ad esempio, un deposito di 50.000 Satoshi o 50K) in un indirizzo crittografico specifico chiamato **payment channel** (canale di pagamento). A questo punto, i singoli pagamenti non vengono registrati immediatamente sulla blockchain come transazioni standard. Al contrario, essi vengono annotati in "registri privati" (private ledgers) gestiti direttamente dalle due parti coinvolte, in questo caso il cliente e il barista. Questo approccio è paragonabile ai pagamenti a rate o ai conti aperti che tradizionalmente si tenevano con il droghiere di fiducia.
 
-
-
 Quando il cliente ordina la prima consumazione, crea una transazione (ad esempio di 5.000 Satoshi) dal canale di pagamento verso il barista. Proprio come il barista dell'analogia non striscia subito la carta di credito, anche in questo caso il ricevente non trasmette la transazione alla blockchain, consapevole che il cliente potrebbe ordinare un altro drink. Questa scelta porta a due vantaggi immediati: non si spreca tempo per attendere la conferma del blocco (che richiederebbe decine di minuti) e non si spendono soldi per le commissioni di transazione della rete principale.
 
 Ogni volta che il cliente consuma una nuova birra, genera e firma una nuova transazione che aggiorna il saldo totale (ad esempio, passando a 15.000 Satoshi e poi a 10.000 Satoshi). Fondamentalmente, ogni nuova transazione sostituisce la precedente, mantenendo aggiornato il bilancio senza mai alterare il registro globale. Il barista non corre alcun rischio finanziario: possedendo l'ultima transazione firmata validamente dal cliente (Bob), ha la garanzia matematica di poterla inviare e registrare sulla blockchain in qualsiasi momento lo desideri. Solo quando le consumazioni sono terminate, le parti creano una transazione finale (nota come "2nd Layer Transaction") che distribuisce i saldi definitivi. Questa è l'unica transazione che viene effettivamente trasmessa alla rete Bitcoin. Oltre all'efficienza, questo metodo aumenta notevolmente la privacy, poiché la blockchain manterrà traccia esclusivamente della transazione di apertura e di quella di chiusura del canale.
@@ -2877,8 +2819,6 @@ Il potenziale del Lightning Network si esprime appieno quando si considera la ne
 
 La soluzione consiste nel routing. Alice, ad esempio, potrebbe avere già un canale aperto con il barista della caffetteria locale. A sua volta, il barista ha un canale aperto con la pizzeria. Alice può quindi sfruttare questi canali già esistenti per raggiungere la sua destinazione.
 
-
-
 Tuttavia, emerge un problema di fiducia: Alice non si fida ciecamente del barista e non può semplicemente inviargli il denaro sperando che egli lo inoltri alla pizzeria. Per superare questo ostacolo "trust", Alice crea uno speciale script Bitcoin che detta una regola inequivocabile: "paga il barista solamente se egli ha pagato la pizzeria".
 
 ### Pagamenti Multi-Hop e Contratti HTLC
@@ -2927,15 +2867,11 @@ Questo meccanismo di sicurezza è implementato riducendo progressivamente il par
 
 Il modello di pagamento basato su HTLC si fonda sulla promessa: "Ti pagherò in cambio della pre-immagine dell'hash; se non rispondi, riavrò i miei soldi dopo un certo ritardo". All'atto pratico, questo si concretizza in una richiesta di pagamento (Payment Request) che contiene l'importo, l'hash e il ritardo temporale.
 
-
-
 Un esempio pratico di fattura generata riporta l'ordine identificato dal codice `#CS6198295DE0E31C5B55CF1330EX675` per un totale di `0.000036 BTC`. I metadati associati a questa richiesta includono una descrizione dei beni acquistati ("1 Espresso Coin Panna, 1 Scala Chip Frappuccino"), l'hash di riferimento $H$ (`c2f7adaac99b5609b7df702ab9cf2b096b806e1a3c040994dde427811cfb071f`), l'identificativo del nodo (`035b55e3e08538afeef6ff9804e3830293eec1c4a6a9570f1e96a478dad1c86fed`), l'importo preciso di `3600000 MilliSatoshis` e un Timestamp specifico (`1514890568`). L'utente può quindi procedere al pagamento scansionando la fattura e cliccando su "OPEN WITH YOUR WALLET".
 
 ### Il Routing e il Ruolo dei Fornitori di Liquidità
 
 La struttura del Lightning Network si presenta come un grafo complesso e densamente interconnesso. La regola aurea di questa topologia è che è possibile pagare chiunque, a patto di riuscire a trovare una rotta valida per raggiungerlo. Tuttavia, per far viaggiare il denaro, non è sufficiente individuare un percorso qualsiasi tra due punti: è imperativo che tale rotta disponga di fondi sufficienti al suo interno per sostenere l'importo del pagamento.
-
-
 
 Nel processo di instradamento, i pagamenti vengono inoltrati utilizzando i contratti HTLC, ma con una dinamica peculiare: ogni nodo intermediario impegna i *propri* fondi, piuttosto che limitarsi a passare i fondi appena ricevuti. Un nodo di routing deve quindi fungere da fornitore di liquidità (liquidity provider), disponendo di una cosiddetta **outbound liquidity** (liquidità in uscita). Questo avviene perché il nodo blocca il proprio bilancio in un contratto HTLC (una promessa di pagamento condizionata alla rivelazione del segreto) prima ancora di venire pagato dal nodo precedente. Ancora una volta, gli HTLC garantiscono l'atomicità: o ogni salto viene completato con successo (Success) e tutti vengono pagati, oppure l'operazione fallisce e tutti i fondi tornano al sicuro ai legittimi proprietari (Refund).
 

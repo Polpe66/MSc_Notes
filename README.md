@@ -15,4 +15,5 @@ The notes are divided into folders based on the specific course or exam.
 * Managed and synchronized via **Linux terminal**.
 
 ---
+
 *Disclaimer: These are personal notes taken during lectures and personal study sessions. They are continuously updated and revised.*
