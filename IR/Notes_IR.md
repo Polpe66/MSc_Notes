@@ -1334,4 +1334,1102 @@ I dati dimostrano in modo inequivocabile che MaxScore e WAND dominano rispetto a
 
 ---
 
-# Slide 5:
+# Slide 5:# Compressione di Dati nei Motori di Ricerca Moderni
+
+Nei moderni sistemi di Information Retrieval, le dimensioni delle collezioni di documenti richiedono soluzioni architetturali e algoritmiche avanzate. In questo capitolo esploreremo i fondamenti della compressione dei dati, partendo dalla struttura generale di un motore di ricerca fino ad arrivare ai dettagli matematici dei primi codificatori di interi basati sulla rappresentazione binaria.
+
+### L'Architettura e l'Elaborazione delle Query
+
+L'architettura di un motore di ricerca moderno prevede una netta separazione tra le operazioni eseguite offline e quelle online. Durante la fase offline, il sistema si occupa dell'indicizzazione della collezione di documenti per generare l'**Inverted Index** (indice invertito). Parallelamente, le feature dei documenti vengono elaborate ed estratte in un repository dedicato, mentre i dati di addestramento nutrono un modello di **Learning-to-rank**.
+
+Nella fase online, il flusso parte dalla query dell'utente, che viene prima espansa e poi passata al sistema di processamento delle query. I risultati parziali interrogati sull'indice invertito passano al blocco di recupero e calcolo delle feature, per essere infine ordinati dalla funzione di ranking appresa e restituiti sotto forma di risultati di ricerca finali. L'infrastruttura sottostante a questo ecosistema è formata da immense server farm che contengono e processano l'indice e i dati di training.
+
+[INSERIRE IMMAGINE: Diagramma dell'architettura di un motore di ricerca, divisa in blocchi logici online e offline, mostrando il flusso dalla query dell'utente fino alla Learned Ranking Function e ai database sottostanti]
+
+### La Necessità dello Sharding
+
+Per gestire moli di dati così imponenti e garantire un'elevata reattività alle query, i motori di ricerca si affidano a una tecnica chiamata **Sharding**. Lo sharding permette di distribuire i dati frammentati su molteplici nodi fisici anziché mantenerli su un unico server centrale. L'adozione di questa tecnica è spinta da tre necessità fondamentali:
+
+In primo luogo, garantisce la **scalabilità**: man mano che la collezione di documenti cresce, una singola macchina non è più in grado di gestire il carico. Lo sharding permette al motore di scalare orizzontalmente tramite la semplice aggiunta di nuovi nodi. In secondo luogo, migliora nettamente le **performance**. Distribuendo il carico su più nodi, si alleggerisce il lavoro di ogni singolo server, risultando in una maggiore velocità di esecuzione delle query e prestazioni complessive superiori. Infine, aumenta la **tolleranza ai guasti** (Fault Tolerance). Utilizzando copie di sicurezza chiamate **repliche**, i dati restano sempre disponibili attraverso altri nodi anche qualora un server dovesse subire un guasto.
+
+Di conseguenza, se l'indice invertito dovesse allargarsi, si dovranno incrementare gli **shard** (frammenti di dati). Se ad aumentare è invece il traffico di interrogazioni da parte degli utenti, sarà necessario aumentare il numero delle **repliche**. In ambedue gli scenari, la scalabilità viene raggiunta aumentando le macchine fisiche a disposizione.
+
+[INSERIRE IMMAGINE: Struttura di rete dello Sharding: una query viene ricevuta da un broker che smista la richiesta a varie repliche parallele, le quali contengono i diversi shard ($s_1, \dots, s_k$) all'interno dei server indice]
+
+### Il Modello Base della Compressione e lo Space-Time Tradeoff
+
+La compressione dei dati si fonda su un modello concettuale basilare: una stringa di bit in ingresso, definita $B$, viene elaborata da un algoritmo **Compressore** che la riduce, restituendo una stringa compressa in uscita denominata $C(B)$. L'operazione opposta è ovviamente affidata a un **Decompressore**. In base alle necessità, questa tecnologia può essere *lossy* (ammettendo una certa perdita di informazioni) o *lossless* (senza perdita di dettagli). Il metro di valutazione primario dell'algoritmo è il **rateo di compressione**, calcolato tramite la formula $CR = \frac{|B|}{|C(B)|}$. Se il valore ottenuto è $CR = r$, significa che lo spazio occupato dall'output compresso $|C(B)|$ è $r$ volte inferiore rispetto alla dimensione dell'input originale $|B|$. Applicazioni storiche e comuni di questi principi includono utility da riga di comando come *gzip* e *bzip2*.
+
+Questi algoritmi sono strettamente legati a un compromesso architetturale, noto come **Space-Time Tradeoff**. Il rateo di compressione finale dipende infatti dalla velocità desiderata per le operazioni di compressione e decompressione, le quali impattano sul consumo energetico e sulla potenza di calcolo richiesta alla CPU. Spesso occorre bilanciare lo spazio di archiviazione risparmiato dalla struttura dati compressa e l'efficienza delle operazioni che vi devono essere eseguite sopra. Non a caso, tool come *gzip* offrono 9 livelli di compressione distinti, dove il livello 1 è estremamente rapido ma offre risultati di compressione peggiori, mentre il livello 9 restituisce la miglior compressione al costo di tempistiche di calcolo più dilatate. Nel panorama attuale dell'Information Retrieval, questo tradeoff assume un'importanza capitale: non è più tollerabile l'ingenuo paradigma del "decomprimi prima di calcolare". L'obiettivo finale dei sistemi moderni è quello di poter effettuare operazioni di computazione operando direttamente sui dati già compressi.
+
+### Codifica di Interi e l'Ottimizzazione dei D-Gaps
+
+Scendendo nello specifico dell'indicizzazione, ci troviamo davanti al problema dei codificatori di interi: dato un intero $x > 0$, è necessario progettare un codice capace di rappresentare quel numero usando meno bit possibili. La stringa di bit risultante in uscita è definita **codeword** di $x$, indicata con $C(x)$. Elaborando un'intera sequenza $S$ di $n$ interi, la codifica finale avviene concatenando linearmente i singoli codeword: $C(x_1) \cdot\cdot\cdot C(x_n)$. I codici che si analizzano inizialmente sono definiti **statici**, poiché assegnano immancabilmente la stessa codeword a un determinato intero a prescindere dalla specifica sequenza processata.
+
+Nel contesto delle Posting List (che memorizzano ad esempio gli ID dei documenti in cui appare il termine "information" disposti in ordine crescente), si sfrutta una particolare tecnica denominata **d-gaps** per pre-trattare i dati. Anziché salvare numeri via via più grandi, i d-gaps permettono di salvare semplicemente la differenza numerica tra la cella attuale e la cella precedente. Di conseguenza, una lista come $[1, 5, 8, 11]$ viene ridotta agli scarti $[1, 4, 3, 3]$, mantenendo valori molto più piccoli e per natura più facili da comprimere.
+
+### La Rappresentazione Binaria e il Fallimento dell'Ambiguità (Epic Fail)
+
+Un primo approccio alla scrittura in bit dei d-gaps potrebbe essere l'utilizzo di una stringa binaria di lunghezza fissa. Sappiamo che $k$ bit sono in grado di rappresentare efficacemente qualsiasi intero nell'intervallo $0 \le x < 2^k$. Definendo $bin(x)$ come la pura rappresentazione binaria di $x$, il numero di bit necessari per formarla è pari a $\lceil log_{2}(x+1)\rceil$ bit. Avendo stabilito di lavorare con interi strettamente positivi ($x > 0$), la codeword basilare viene indicata come $B(x) = bin(x-1)$. Questo definisce formalmente un limite matematico inferiore: la grandezza di un codeword generico $C(x)$ deve sempre sottostare alla disequazione $|C(x)| > \lceil log_{2}(x)\rceil = |bin(x-1)| [cite_start]= |B(x)|$.
+
+Possiamo osservare la tabella delle associazioni elementari per i primi numeri:
+
+| **Valore X** | **Codeword B(x)** |
+| ------------ | ----------------- |
+| 1            | 0                 |
+| 2            | 1                 |
+| 3            | 10                |
+| 4            | 11                |
+| 5            | 100               |
+| 6            | 101               |
+| 7            | 110               |
+| 8            | 111               |
+
+Tuttavia, provando a concatenare linearmente le codifiche risultanti dai valori d-gaps di una lista testuale, emerge un errore architetturale fatale definito come un vero e proprio "Epic Fail". Poiché i codeword binari hanno lunghezze disuguali e nessuna indicazione interna di troncamento, la sequenza diviene un agglomerato privo di spaziature logiche, come la stringa `0111010111011101001`.
+
+[INSERIRE IMMAGINE: Grafo ad albero rovesciato che mostra un esempio di decodifica ambigua in cui la stringa binaria può generare sia la corretta sequenza [1, 4, 3...] che un'errata sequenza alternativa [1, 8, 1...]]
+
+Al momento della decompressione, l'algoritmo non è più in grado di ripristinare in modo certo la lista d'origine e genererà risultati contraddittori e ambigui. La natura di questa ambiguità è data dal fatto che determinati codeword fungono accidentalmente da prefisso per codeword più lunghe appartenenti ad altri valori. Per risolvere questo difetto strutturale e operare in totale sicurezza, i motori di ricerca si affidano esclusivamente a codici univocamente decodificabili in cui vige la proprietà **Prefix-free**: in questi sistemi non esistono mai situazioni in cui un codeword sia l'esatto inizio (prefisso) di un codeword più lungo.
+
+---
+
+### Glossario e Concetti Chiave
+
+- **Sharding:** Una tecnica basilare dei moderni motori di ricerca volta a frammentare e distribuire i dati attraverso molti nodi fisici, essenziale per scalabilità orizzontale, alte performance e tolleranza ai guasti.
+
+- **Rateo di Compressione (CR):** Indicatore fondamentale dell'efficacia di un compressore, derivato dalla proporzione matematica tra la dimensione in bit in input ($|B|$) e la sua compressione in output ($|C(B)|$).
+
+- **D-Gaps:** Un accorgimento pratico usato sulle liste di elementi crescenti (come le Posting List) che non codifica il numero in sé, bensì l'intervallo o la differenza rispetto all'elemento antecedente, abbassando il valore assoluto degli interi.
+
+- **Codice Ambiguo:** Un paradigma di compressione malformato dove, in assenza di un rigido formato prefix-free, diviene impossibile stabilire una separazione netta e deterministica delle sequenze decodificabili.
+
+---
+
+# Codifiche Prefix-Free e Compressione di Liste
+
+In questa sezione approfondiremo i criteri per rendere i codici binari decodificabili in modo univoco e analizzeremo diverse tecniche di compressione per interi singoli e per intere liste, valutandone l'efficienza rispetto ai limiti teorici.
+
+### Decodificabilità Univoca e Codici Prefix-Free
+
+Il problema principale riscontrato con la codifica binaria semplice è l'ambiguità: un codice può risultare un prefisso di un altro, rendendo impossibile distinguere i singoli numeri in una sequenza continua di bit. Per risolvere questo limite, ci concentriamo sui **codici prefix-free** (o codici a prefisso), definiti come codici in cui nessuna codeword è il prefisso di un'altra. Questa proprietà garantisce che, durante la lettura del flusso di bit, non appena viene riconosciuta una sequenza corrispondente a un simbolo, essa possa essere decodificata immediatamente senza incertezze. L'obiettivo fondamentale è dunque progettare codici decodificabili il cui ingombro in termini di spazio sia il più vicino possibile alla rappresentazione binaria teorica $|B(x)|$.
+
+### Il Codice Unario
+
+La tecnica più semplice per garantire la proprietà prefix-free è il **codice unario**. L'idea alla base è quella di utilizzare il bit $1$ per rappresentare i dati e il bit $0$ come delimitatore di fine numero. Formalmente, un intero $x > 0$ viene rappresentato come una sequenza di $x-1$ volte il bit $1$, seguita da uno $0$, indicata come $U(x) = 1^{x-1}0$. Di conseguenza, la lunghezza del codice è pari al valore stesso dell'intero ($|U(x)| = x$). Sebbene sia molto inefficiente per numeri grandi, il codice unario rappresenta un elemento costruttivo essenziale per codifiche più complesse ed è estremamente efficace per piccoli interi.
+
+### Codifiche di Elias: Gamma e Delta
+
+Per migliorare l'efficienza su interi più grandi, si utilizzano le codifiche di Elias, che rendono la rappresentazione binaria $bin(x)$ decodificabile anteponendo informazioni sulla sua lunghezza. La **codifica Elias Gamma** ($\gamma$) rappresenta la lunghezza della stringa binaria di $x$ utilizzando il codice unario, seguita dalla rappresentazione binaria di $x$ privata del bit più significativo (che è sempre $1$ per $x > 0$ e quindi ridondante). Ad esempio, per codificare il numero $6$, la cui rappresentazione binaria è $110$ (lunghezza $3$), scriveremo il $3$ in unario ($110$) e aggiungeremo i restanti bit del binario ($10$), ottenendo $11010$.
+
+La **codifica Elias Delta** ($\delta$) segue un principio simile ma cerca di comprimere ulteriormente l'informazione sulla lunghezza. Invece di usare il codice unario, la lunghezza $|bin(x)|$ viene a sua volta codificata utilizzando Elias Gamma. Anche in questo caso, si aggiunge poi la parte finale di $bin(x)$ senza il bit più significativo. Questa struttura gerarchica rende la codifica Delta più vantaggiosa della Gamma per interi molto elevati.
+
+### Variable Byte Code
+
+Un approccio differente è quello del **Variable Byte (VB) code**, che privilegia la velocità di esecuzione e la semplicità di implementazione allineando le codeword ai byte anziché ai singoli bit. In questo sistema, ogni byte è diviso in due parti: $7$ bit sono dedicati alla rappresentazione dei dati dell'intero $x$, mentre l'ultimo bit (chiamato bit di controllo o di continuazione) segnala se la sequenza continua nel byte successivo o se il numero termina lì. Se l'intero richiede più di $7$ bit, viene distribuito su più byte; il bit di controllo sarà impostato a $1$ per tutti i byte tranne l'ultimo, che avrà lo $0$ come terminatore. Sebbene questo possa comportare un leggero spreco di spazio rispetto a codifiche bit-aligned, la velocità di accesso ai dati è notevolmente superiore.
+
+### Compressione di Liste e Limite Inferiore Combinatorio
+
+Quando passiamo dalla codifica di singoli interi a quella di intere liste strettamente crescenti $L = [x_1, \dots, x_n]$ (dove $x_n \le U$, con $U$ dimensione dell'universo), possiamo sfruttare le regolarità dell'intera sequenza per ottimizzare lo spazio. Una pratica comune è trasformare la lista in una sequenza di **d-gaps**, ovvero le differenze tra elementi consecutivi, rendendo i valori mediamente molto più piccoli e quindi più comprimibili.
+
+Esiste un limite teorico alla compressione di queste liste, noto come **Limite Inferiore Combinatorio**. Poiché esistono $\binom{U}{n}$ modi diversi di scegliere $n$ interi distinti in un universo di dimensione $U$, il numero minimo di bit necessari per rappresentare una lista qualsiasi è dato da $\lceil \log_2 \binom{U}{n} \rceil$. Utilizzando l'approssimazione di Stirling, questo valore è circa $n \log_2(U/n) + 1.44n$ bit.
+
+### Regolarità e Distribuzione dei Gap
+
+L'efficienza reale di un compressore dipende da quanto riesce a superare il limite inferiore sfruttando le regolarità dei dati. Una sequenza che presenta valori molto raggruppati (**clustered**) è molto più comprimibile di una sequenza con distribuzione casuale, anche se hanno la stessa lunghezza $n$ e lo stesso universo $U$.
+
+Analizzando collezioni reali come Gov2 o ClueWeb09, si osserva che la distribuzione dei gap non è uniforme: una percentuale altissima di gap ha dimensione $1$ (circa il $65\%$ in alcuni casi), e la frequenza diminuisce drasticamente all'aumentare della dimensione del gap. I moderni algoritmi di compressione sono progettati specificamente per sfruttare questa alta frequenza di gap piccoli per abbattere drasticamente l'occupazione di memoria.
+
+---
+
+### Glossario e Concetti Chiave
+
+- **Codice Prefix-Free**: Codice in cui nessuna parola di codice è il prefisso di un'altra, eliminando le ambiguità durante la decodifica.
+
+- **Elias Gamma/Delta**: Metodi di codifica universale che comprimono interi positivi concatenando un'informazione sulla lunghezza alla rappresentazione binaria del numero.
+
+- **Variable Byte (VB)**: Codifica allineata ai byte che utilizza un bit di controllo per gestire interi di lunghezza variabile, ottimizzando la velocità di calcolo.
+
+- **D-gaps**: Tecnica che consiste nel codificare la differenza tra interi consecutivi in una lista ordinata, riducendo la magnitudo dei valori da processare.
+
+- **Limite Combinatorio**: Il numero minimo teorico di bit necessari per codificare una lista di $n$ elementi in un universo $U$.
+
+---
+
+### Impacchettamento con Simple9 e Simple16
+
+Un'importante strategia di ottimizzazione consiste nell'impacchettare il maggior numero possibile di interi all'interno di una singola "word" di memoria da 32 bit. Il numero esatto di gap o interi che possono trovare spazio in questa word dipende dalla grandezza binaria dei numeri stessi. Per comunicare al decompressore come è stata strutturata la word, viene utilizzato un "selector code" (codice selettore) di 4 bit all'inizio del blocco. Il formato **Simple9** prevede 9 diverse configurazioni per l'organizzazione dei 32 bit, mentre il formato **Simple16** ne mette a disposizione ben 16.
+
+Ad esempio, se il selettore è impostato su `0000`, significa che la word conterrà 28 interi codificati con 1 solo bit ciascuno, senza sprecare alcuno spazio. Al contrario, un selettore `1000` allocherà l'intero spazio rimanente di 28 bit a un singolo intero.
+
+| **Selettore a 4-bit** | **Numero di interi** | **Bit per intero** | **Bit sprecati** |
+| --------------------- | -------------------- | ------------------ | ---------------- |
+| 0000                  | 28                   | 1                  | 0                |
+| 0001                  | 14                   | 2                  | 0                |
+| 0010                  | 9                    | 3                  | 1                |
+| 0011                  | 7                    | 4                  | 0                |
+| 0100                  | 5                    | 5                  | 3                |
+| 0101                  | 4                    | 7                  | 0                |
+| 0110                  | 3                    | 9                  | 1                |
+| 0111                  | 2                    | 14                 | 0                |
+| 1000                  | 1                    | 28                 | 0                |
+|                       |                      |                    |                  |
+
+### Patched Frame of Reference (PFor)
+
+Quando si analizzano blocchi di gap, la presenza di un singolo valore numerico anomalo può vanificare la compressione. Se in un blocco di numeri piccoli si presenta un valore come 8247, la larghezza binaria di tutti i numeri nel blocco dovrà essere forzata a $\lceil \log_2 8247 \rceil = 14$ bit, sprecando memoria per interi che normalmente ne richiederebbero solo uno. La tecnica **Patched Frame of Reference (PFor)** aggira l'ostacolo definendo un valore di base $b$ e un parametro $k > 0$ calcolati in modo tale che la stragrande maggioranza degli interi (ad esempio il 90%) ricada comodamente nel range $[b, b+2^k-1)$. Ogni intero appartenente a questo intervallo viene codificato semplicemente sottraendo la base, registrando il delta $x-b$ in esattamente $k$ bit, un metodo noto come PForDelta. Tutti i valori eccezionali che superano la soglia ($x \ge b+2^k-1$) ricevono una codeword speciale di eccezione pari a $2^k-1$ e vengono spostati e codificati all'interno di una lista separata.
+
+### Codifica Binaria Interpolativa (Binary Interpolative Coding)
+
+Questa tecnica spicca per la sua abilità di dedurre dinamicamente i bit necessari per il prossimo elemento basandosi sulla conoscenza degli elementi già codificati. Immaginando di dover comprimere una porzione di sequenza delimitata in basso da $l \le L[1]$ e in alto da $h \ge L[n]$, l'algoritmo seleziona l'elemento esattamente a metà, ovvero $L[m]$ con $m = \lceil n/2 \rceil$. Sapendo con certezza che $l \le L[m] \le h$, è possibile codificare lo scarto $L[m]-l$ impiegando esclusivamente $\lceil \log_2(h-l) \rceil$ bit.
+
+Il processo viene quindi reiterato ricorsivamente per le due metà rimanenti della sequenza, aggiornando intelligentemente i limiti per restringere il campo: la porzione inferiore $L[1..m-1]$ riceverà i nuovi limiti $(l, L[m]-1)$, mentre quella superiore $L[m+1..n]$ userà $(L[m]+1, h)$. L'aspetto fondamentale che rende l'Interpolative Coding estremamente potente per sequenze ravvicinate ("clustered") è che, qualora la lunghezza di un intervallo di analisi $r$ risulti uguale alla differenza $h-l$, il sistema rileva un blocco ininterrotto di interi consecutivi, permettendo di omettere del tutto la scrittura di bit per la loro codifica.
+
+[INSERIRE IMMAGINE: Grafo ad albero rovesciato che mostra l'esempio di Binary Interpolative Coding sulla sequenza L=[3,4,7,13,14,15,21,25,36,38,54,62]. Mostra la divisione ricorsiva basata su n, m, l, h e i casi in fondo in cui non è necessaria alcuna codifica]
+
+### Interrogazioni Rapide: Rank e Select
+
+Per esplorare istantaneamente le sequenze di dati compressi si ricorre a operatori specializzati chiamati **Rank** e **Select**, eseguiti direttamente su vettori di bit $B$. La funzione $Rank_0(j)$ conta matematicamente il numero di zeri che compaiono dal primo bit fino alla posizione $j$, così come $Rank_1(j)$ restituisce il conteggio degli uni in quello stesso intervallo $B[0,j]$. Specularmente, le interrogazioni $Select_0(j)$ e $Select_1(j)$ calcolano in modo esatto la coordinata o la posizione in cui risiede il j-esimo zero o il j-esimo uno all'interno del vettore.
+
+Da un punto di vista dell'ottimizzazione, il pregio di queste interrogazioni è il tempo di esecuzione istantaneo e costante pari a $O(1)$. A livello di archiviazione, queste strutture dati domandano un sovrapprezzo spaziale contenuto a $n + o(n)$ bit per il Rank e a $cn + o(n)$ bit per il Select. Per mantenere tempi di query così reattivi, il sistema fa affidamento su array ausiliari (indicati come $B'$ e $B''$) popolati con un quantitativo di metadati pari a $O(n/\log n)$. In questi indici, i valori pre-calcolati sono fissati a scatti di $\log n$ bit, tracciando delle scorciatoie matematiche che scongiurano la scansione lineare e accelerano le operazioni.
+
+[INSERIRE IMMAGINE: Schema concettuale delle interrogazioni Rank e Select. Alla base troviamo l'array B in bit, sovrastato da blocchi di memoria B' e B'' che immagazzinano contatori di scarto intervallati ogni log n salti, evidenziando il tempo O(1)]
+
+### La Rappresentazione Elias-Fano
+
+La struttura **Elias-Fano** rappresenta un'evoluzione architetturale volta a gestire una sequenza $S$ composta da $n$ interi positivi, crescenti e strettamente limitati fino a un tetto massimo definito $U$ (dove, come specificato, $U = (\max n \in S) + 1$). Questa rappresentazione vanta performance teoriche di massimo livello: lo spazio totale occupato in bit si assesta sull'equazione $n \log(U/n) + 2n$. Anche i tempi di ispezione brillano: l'esecuzione della query strutturale $Access(i)$ costa un tempo elementare $O(1)$, mentre la ricerca avanzata $NextGEQ(x)$ impiega appena un tempo algoritmico $O(\log(U/n))$.
+
+La creazione dell'indice prevede di scrivere in verticale (dal basso verso l'alto) la rappresentazione binaria totale. L'innovazione si fonda nel partizionare i $\log U$ bit che descrivono i dati in due tronconi netti. La parte più bassa è formata dai bit espliciti di lunghezza $\log(U/n)$, mentre la porzione alta conta esattamente $\log n$ bit. I bit superiori si interfacciano con un sistema di raggruppamento (bucket), fissando il numero di bucket massimi possibili alla formula $2^{\log n} = n$.
+
+Per rendere fruibile l'indice viene prodotto l'array di navigazione strutturale $H$. Questo traccia quanti elementi gravitano in un bucket scrivendo semplicemente le loro cardinalità mediante il codice unario. Praticamente l'array pone un bit `1` come contatore per ogni singolo intero che vive nella sequenza originaria $S$, e al massimo un bit `0` per tracciare la conclusione di ciascun bucket in memoria. Da questo intreccio deriva l'incremento di soli $2n$ bit. Nel momento in cui giungono richieste $NextGEQ$, il sistema è capace di navigare a colpo sicuro nei raggruppamenti decomprimendo non tutto il database, ma unicamente la ristretta manciata di interi confinati in quello specifico bucket.
+
+[INSERIRE IMMAGINE: Costruzione della struttura Elias-Fano con l'esempio S=[2, 3, 5, 7, 11, 13, 14, 24]. Si distinguono due aree principali sovrapposte che tagliano verticalmente il codice binario in segmenti log(n) per i bucket in verde, log(U/n) trasparente, e la serie finale dell'array unario H in basso]
+
+---
+
+### Glossario / Concetti Chiave
+
+- **Simple9/Simple16**: Metodologie dirette di impacchettamento che stivano un numero variabile di interi all'interno di una singola word da 32 bit, guidate da un selettore iniziale e basate sulla magnitudo dei dati.
+
+- **Patched Frame of Reference (PFor)**: Algoritmo ideato per tollerare valori numerici eccezionali ricalcolando gli elementi piccoli come delta ($x-b$) rispetto a una base e deviando gli elementi troppo grandi in una memoria separata.
+
+- **Binary Interpolative Coding**: Codifica che applica un approccio a divisione ricorsiva ($l$ e $h$), determinando i bit necessari dal contesto circostante. Eccelle nello smaltire le sequenze continue azzerando l'ingombro.
+
+- **Rank e Select**: Operazioni fondamentali su vettori di bit eseguibili in tempo $O(1)$. Permettono di quantificare (Rank) o posizionare (Select) rapidamente porzioni pre-calcolate all'interno del flusso dei dati compressi.
+
+- **Elias-Fano Representation**: Modello di memorizzazione che splitta i bit di elementi crescenti appoggiandosi ai bucket. Permette operazioni complesse come il $NextGEQ$ sfruttando interrogazioni su un array di controllo formattato in codice unario.
+
+---
+
+# Slide 6: Learning to Rank
+
+Questo capitolo introduce il concetto di **Learning to Rank** nell'ambito dell'Information Retrieval, esplorando l'architettura generale di un motore di ricerca, le diverse tipologie di funzioni di ranking e introducendo i fondamenti del Machine Learning necessari per apprendere tali funzioni dai dati.
+
+### Architettura Generale e Flusso di Dati
+
+Il processo di Learning to Rank si inserisce all'interno di un'architettura di ricerca complessa, strutturata su due macro-fasi parallele: una fase **Offline** e una fase **Online**.
+
+Nella fase offline, si parte da una **Document Collection** che viene sottoposta a una procedura di **Indexing** per generare l'**Inverted Index**, fondamentale per il recupero rapido delle informazioni. Parallelamente, la stessa collezione di documenti viene analizzata da un **Feature Processor**, il cui scopo è estrarre caratteristiche utili e salvarle in un **Document Features Repository**. Sempre offline, un set di **Training Data** viene utilizzato in un processo di **Training** per generare e istruire il vero e proprio **Learning-to-rank Model**.
+
+Nella fase online, ovvero quando il sistema è in esecuzione per l'utente, il flusso inizia con l'inserimento di una **Query**. Questa viene inizialmente trasformata in una **Expanded Query** per migliorarne l'efficacia. Il passo successivo è il **Query Processing**, che interroga direttamente l'**Inverted Index** precedentemente costruito. Una volta individuati i documenti candidati, il sistema esegue una **Feature Lookup and Computation**, attingendo le caratteristiche necessarie dal **Document Features Repository**. Infine, queste feature vengono passate alla **Learned Ranking Function** (guidata dal modello addestrato) per calcolare il punteggio finale e produrre la pagina dei risultati mostrata a schermo.
+
+[INSERIRE IMMAGINE: Diagramma di flusso dell'architettura di un motore di ricerca. Mostra le componenti "Online" (Query -> Expanded Query -> Query Processing -> Feature Lookup -> Learned Ranking Function) e "Offline" (Inverted Index, Document Features Repository, Learning-to-rank Model addestrato sui Training Data).]
+
+### Decomposizione delle Funzioni di Ranking e Modelli Bag-of-Words
+
+Per comprendere a fondo come operano le **General ranking functions**, possiamo utilizzare una decomposizione basata sulle rappresentazioni (una schematizzazione adattata dal lavoro di Guo et al., pubblicato nel 2020 su *Information Processing & Management*). In questo modello teorico, abbiamo una **Query q** che viene elaborata in una **Query representation** $\phi$, e un **Document d** che genera una **Document representation** $\psi$. Inoltre, l'interazione diretta tra i due produce una **Query-document representation $\eta$**. Queste tre rappresentazioni alimentano insieme una **Aggregation function f**, la quale calcola e restituisce il **Relevance score $s(q,d)$**.
+
+Questo schema si semplifica drasticamente quando si analizzano le **BOW ranking functions**, ovvero le classiche funzioni basate sui modelli Bag-of-Words. In queste architetture, query e documenti sono rappresentati unicamente come vettori sparsi (**sparse BOW vectors**), trattati essenzialmente come multi-insiemi di parole. Di conseguenza, **non ci sono query-document features**; la componente relativa alla **Query-document representation $\eta$** viene completamente scartata dal processo di calcolo. Esempi classici di questa specifica funzione di aggregazione $f$ sono il **cosine** similarity e l'algoritmo **BM25**. Queste rappresentazioni sparse sono fisicamente archiviate negli inverted index, che costituiscono la vera e propria spina dorsale (**backbone**) dei motori di ricerca web commerciali (**commercial Web search engine**).
+
+[INSERIRE IMMAGINE: Diagramma della decomposizione basata sulle rappresentazioni per i modelli BOW. La casella centrale "Query-document representation" è sbarrata da una grande X rossa, a indicare l'assenza di feature combinate.]
+
+### Estensione del Framework e Integrazione di Nuovi Segnali
+
+Constatato che finora query e documenti sono stati considerati come meri multi-insiemi di parole, è naturale chiedersi se esistano altre istanze applicabili al nostro framework generale per superare questo limite. La risposta è affermativa: esiste infatti una grande quantità di altri potenziali segnali da poter utilizzare.
+
+Quali potrebbero essere queste idee aggiuntive?. Lato documento, si può sfruttare il fatto che esso può avere dei campi strutturati, può essere suddiviso in zone o, ancora, può essere arricchito con dati testuali esterni, come ad esempio il testo dei link in ingresso (**anchors**). Si rivelano preziose anche informazioni aggiuntive di natura strutturale e comportamentale, come i link in entrata (**In-Links**), i link in uscita (**Out-Links**), il valore di **PageRank**, il numero di **clicks** ricevuti o i **social links**. Lato query, invece, si possono integrare segnali quali il numero di termini inseriti (**# terms**), la popolarità della ricerca nei log del motore (**popularity in query logs**) o le informazioni estratte dal profilo dell'utente (**user profile info**). Reintroducendo tutti questi dati nel modello, il framework torna a sfruttare a pieno tutte le sue componenti, reintegrando attivamente la **Query-document representation $\eta$** nel calcolo della funzione di aggregazione.
+
+[INSERIRE IMMAGINE: Diagramma del General framework completo. Nessuna componente è sbarrata; Query representation, Document representation e Query-document representation contribuiscono congiuntamente all'Aggregation function f.]
+
+### L'Apprendimento della Funzione tramite Machine Learning
+
+L'inclusione di tutti questi segnali porta a un interrogativo critico: **possiamo imparare f?**. Imparare questa complessa funzione di aggregazione significa affidarsi alle tecniche di **Machine Learning**.
+
+Secondo la definizione di Wikipedia, il Machine learning è un campo dell'informatica che utilizza tecniche statistiche per consentire ai sistemi informatici di apprendere. Questo si traduce nella capacità di migliorare progressivamente le prestazioni su un compito specifico attingendo dai dati, senza dover programmare il sistema in modo esplicito. Questo approccio metodologico implica necessariamente due precondizioni fondamentali: la disponibilità e l'esistenza di dati (**Existence of data**), e la definizione formale di un problema di ottimizzazione (**Optimization problem**), che richiede di stabilire un task specifico e una metrica di misurazione (**task? measure?**).
+
+A seconda che al sistema venga fornito o meno un "segnale" di apprendimento o un "feedback", le attività di Machine Learning si dividono in due ampie categorie:
+
+- **Supervised learning**: In questo scenario, al computer vengono presentati degli input di esempio accompagnati dai rispettivi output desiderati, forniti da una sorta di "insegnante". L'obiettivo dell'algoritmo è imparare una regola generale capace di mappare correttamente i nuovi input verso i giusti output. Per il contesto dell'Information Retrieval e del ranking, ci troviamo di fronte a problemi di classificazione o regressione (**Classification / Regression problems**).
+
+- **Unsupervised learning**: Al contrario dell'apprendimento supervisionato, in questo caso non vengono fornite etichette all'algoritmo, lasciando al sistema il compito di trovare autonomamente una struttura intrinseca all'interno dei dati di input.
+
+### Glossario e Concetti Chiave
+
+- **Learning to Rank**: L'applicazione di modelli addestrati (Machine Learning) per ottimizzare la funzione di aggregazione al fine di ordinare i documenti in base alla loro rilevanza rispetto a una determinata query.
+
+- **Bag-of-Words (BOW)**: Approccio classico in cui query e documenti sono gestiti come semplici insiemi sparsi di parole (es. tramite algoritmi come BM25), escludendo l'uso di feature relazionali o comportamentali complesse.
+
+- **Machine Learning**: Disciplina informatica che sfrutta la statistica per permettere ai calcolatori di apprendere e migliorare in specifiche attività tramite l'osservazione dei dati, senza programmazione esplicita.
+
+- **Supervised Learning**: Modalità di apprendimento automatico in cui il modello viene istruito fornendogli esempi chiari di coppie input-output (es. problemi di classificazione e regressione) per fargli dedurre una regola di mappatura generale.
+
+---
+
+### Terminologia di Base e Fasi dell'Apprendimento
+
+Un tipico task di apprendimento supervisionato mappa gli input verso gli output desiderati. Un esempio classico, seppur distante dai motori di ricerca, è fornire al sistema immagini per fargli imparare a distinguere tra un cane e un gatto.
+
+[INSERIRE IMMAGINE: Esempio visivo di classificazione supervisionata con le foto di un gatto e di un cucciolo di cane associati alle rispettive etichette testuali "cat" e "dog"].
+
+All'interno di un dataset, ogni singolo elemento da analizzare viene definito **osservazione** o **istanza** (**observation** o **instance**). Queste istanze sono descritte e caratterizzate da un insieme di **feature**, ovvero proprietà specifiche misurabili. Nell'apprendimento supervisionato, ogni istanza è accompagnata da un'etichetta, definita **label**, che rappresenta la "soluzione" o il valore da prevedere. Sfruttando lo spazio di queste feature e la supervisione delle label, i problemi di Machine Learning si dividono in due rami principali: i task di **Regression** (regressione), dove l'obiettivo è prevedere una specifica quantità numerica reale, e i task di **Classification** (classificazione), in cui si assegnano etichette discrete a istanze di dati la cui categoria non è conosciuta in anticipo.
+
+Tutte queste attività di apprendimento (sia supervisionate che non) si strutturano in due fasi temporali e logiche ben distinte. La prima è la **training phase** (fase di addestramento), che avviene tipicamente offline. In questo momento il modello viene costruito, o per usare il gergo tecnico, si esegue il "fit a model on a given set of data". La seconda è la **testing phase** (fase di test), generalmente eseguita online direttamente per l'utente , in cui il modello precedentemente addestrato viene impiegato per effettuare le previsioni vere e proprie, ovvero "to predict class/label of a given set of data".
+
+### Il Ciclo di Apprendimento: Un Parallelo con i Puzzle
+
+Per comprendere intuitivamente questo processo di calibrazione degli algoritmi, possiamo fare un parallelismo con i classici giochi di enigmistica per bambini.
+
+[RIFERIMENTO VISIVO DEL PROFESSORE: La copertina di un libro di puzzle e giochi logici per bambini, affiancata da piccoli labirinti e bilance, usata come metafora per spiegare l'allenamento della mente rispetto a quello di una rete neurale].
+
+Per ogni puzzle, abbiamo a disposizione il problema stesso e, in fondo al libro, la sua soluzione corretta. Di fronte alla sfida, il nostro cervello produce inizialmente un tentativo di soluzione e, in un secondo momento, lo confrontiamo con quella esatta. Osservando le differenze tra la nostra risposta e quella reale, riusciamo a sintonizzare il nostro pensiero e ad apprendere la logica corretta. Ripetendo questa operazione ("ad libitum") per molti giochi, diventiamo sempre più bravi.
+
+Traducendo questa semplice metafora nel framework formale del Machine Learning, un'istanza di addestramento derivante dall'ambiente (**Environment**) viene presentata al sistema di apprendimento (**Learning system**). L'algoritmo produce quindi in uscita una previsione sul momento, ovvero un **Actual output**. Contemporaneamente, una sorta di "Teacher" (Insegnante) fornisce l'output desiderato. La differenza matematica tra la previsione appena calcolata e l'etichetta reale dell'istanza viene elaborata da un sommatore (**Adder**) e prende il nome di **loss** o **error** (errore). L'importanza vitale della loss sta nel fatto che viene "restituita" all'algoritmo e utilizzata per aggiornare i parametri interni del suo modello. Questo meccanismo ciclico viene ripetuto per tutte le istanze che compongono il dataset di addestramento. Quando l'intero dataset viene processato, diciamo di aver completato un ciclo; e poiché il processo intero viene ripetuto svariate volte per ottimizzare l'algoritmo, misuriamo questo scorrere del tempo in **learning iterations** o **training epochs** (epoche di addestramento).
+
+[INSERIRE IMMAGINE: Diagramma a blocchi del framework generale di apprendimento supervisionato. Mostra il flusso partendo dall'Environment verso il Learning system (che produce l'Actual output) e verso il Teacher (che fornisce il Desired output). Entrambi gli output convergono in un nodo Adder circolare, che calcola l'Error (Loss) e lo ritrasmette retroattivamente al Learning system per guidarne l'aggiornamento].
+
+### Il Task del Learning to Rank (LtR)
+
+Cosa succede quando applichiamo queste dinamiche al recupero delle informazioni? L'obiettivo del **Learning to Rank (LtR)** è produrre e ottimizzare le liste ordinate dei risultati. Per fare ciò, la fase di addestramento necessita di un training set di grandi dimensioni, composto da interrogazioni degli utenti affiancate all'ordinamento ideale dei documenti rispetto ad esse.
+
+[RIFERIMENTO VISIVO DEL PROFESSORE: Un esempio di query "qa" seguita da una sequenza di coppie documento-rilevanza, come d4 valutato ya0, e d2 valutato ya1, per mostrare come i dati in ingresso indichino al sistema quali documenti posizionare in cima].
+
+Invece di processare singole parole, il sistema gestisce l'interazione tra la query "q" e un documento "d" rappresentandola come uno specifico **Feature vector** (ad esempio denotato come $<q,d> = <f0, f1...>$), che funge da input per il modello. Questo modello matematico funziona operativamente come una scatola nera (**Black Box**) che riceve query e vari documenti, restituendo infine una singola **ranked list**. Per guidare questa "scatola nera" durante il training, si usano etichette numeriche "y" che indicano il grado di pertinenza reale; un esempio tipico sfrutta una scala a cinque valori, che va da 0 (documento del tutto irrilevante) fino a 4 (documento perfettamente rilevante). È cruciale evidenziare una dinamica controintuitiva ma fondamentale del Learning to Rank: benché i modelli di intelligenza artificiale addestrati agiscano tecnicamente come regressori che assegnano un punteggio numerico a ogni singolo candidato, lo scopo ultimo e misurabile del sistema resta esclusivamente quello di indovinare l'ordinamento generale della lista, non di replicare precisamente quelle specifiche etichette numeriche.
+
+### Le Feature nei Sistemi di Ranking Moderni
+
+Il successo di un sistema basato su feature vector dipende da quanti e quali segnali si riescono a raccogliere. Già molto tempo fa (in un articolo del New York Times datato 3 giugno 2008), l'ingegnere Amit Singhal rivelò che Google stava utilizzando oltre 200 diverse feature all'interno del suo motore. Questa grande famiglia di parametri comprende indicatori fisici e strutturali, come il numero di link in uscita presenti sulla pagina, il numero totale di immagini, la lunghezza del documento testuale o la lunghezza dell'URL. Si valutano anche dettagli microscopici ma utili per l'anti-spam, come la presenza del carattere tilde ('~') all'interno dell'indirizzo Web , oltre a indicatori di freschezza del contenuto come la data dell'ultima modifica (Page edit recency) e misurazioni globali di autorità come il PageRank. Ad alimentare questi modelli si aggiungono fattori di match testuale (come il punteggio BM25, la comparsa in grassetto o a colori della parola cercata e la sua frequenza logaritmica nei link diretti alla pagina) e importantissimi fattori comportamentali, quali il conteggio dei click generali, i click in corrispondenza della query specifica e il tempo speso dall'utente a leggere il risultato (url dwell time).
+
+Tutte queste innumerevoli feature vengono categorizzate concettualmente dal framework in tre grandi macrogruppi. Il primo è formato dalle **query-only features**: si tratta di caratteristiche che assumono lo stesso valore per ogni documento analizzato in quella sessione, essendo legate esclusivamente alla tipologia o alla lunghezza della query dell'utente. Il secondo raggruppamento è quello delle **query-independent features**, che raggruppa le caratteristiche intrinseche al documento il cui valore rimane costante a prescindere da chi o cosa stia cercando in quel momento. Ne sono classici esempi il PageRank della pagina e la lunghezza del suo URL. Infine, le più dinamiche sono le **query-dependent features**: sono quelle metriche generate in tempo reale dall'interazione tra la richiesta e il documento, come il punteggio BM25, la frequenza della query in grassetto e le statistiche dei click passati per quella specifica correlazione query-URL.
+
+[INSERIRE IMMAGINE: Ripresa del diagramma ad albero relativo alla scomposizione di una funzione di ranking, ora arricchito con le definizioni dei tre tipi di feature. Evidenzia che la Query representation riceve le query-only features, la Document representation assimila le query-independent features e la Query-document representation centrale elabora le query-dependent features].
+
+### Glossario e Concetti Chiave
+
+- **Feature Vector**: La rappresentazione matematica (un vettore di caratteristiche e attributi numerici) dell'interazione tra una data query e un documento, passata in ingresso al sistema di Machine Learning.
+
+- **Observation / Instance**: Un singolo esempio o "caso di studio" fornito all'algoritmo all'interno del dataset di addestramento.
+
+- **Loss / Error**: La differenza calcolata tra la previsione generata attualmente dal modello e il risultato corretto atteso, indispensabile per aggiornare iterativamente il sistema.
+
+- **Training Epoch**: Un giro completo di elaborazione e calibrazione degli errori applicato sull'intero dataset di addestramento a disposizione.
+
+- **Query-dependent feature**: Una metrica di ranking che assume valore solo intersecando i dati della pagina analizzata con lo specifico termine ricercato dall'utente (es. BM25).
+
+---
+
+### La Pipeline del Learning to Rank e i Vincoli di Sistema
+
+Dal punto di vista operativo, l'integrazione di un modello di Learning to Rank all'interno di un motore di ricerca avviene comunemente attraverso una pipeline strutturata in due fasi principali, definita **First step** e **Second step**. Inizialmente, la query dell'utente viene processata da un **Base Ranker**, il quale interroga il **Document Index** per estrarre rapidamente un sottoinsieme iniziale di **N docs** (N documenti candidati). Successivamente, questo primo bacino di risultati passa al **Top Ranker**, che sfrutta il **Learning to Rank Algorithm** e i dati provenienti dal repository delle **Features** per riordinare e selezionare un numero più ristretto di **K docs**, i quali andranno a comporre la **Results Page(s)** finale mostrata all'utente.
+
+Questa architettura a due stadi è dettata da stringenti vincoli infrastrutturali. Le considerazioni sul budget, inteso in termini di tempo e risorse di calcolo, sono estremamente importanti per i motori di ricerca commerciali (**commercial WSEs**). Il costo computazionale dei modelli LtR, essendo sensibilmente più elevato rispetto a funzioni semplici, deve essere rigorosamente inserito nel budget di tempo disponibile per elaborare il flusso di query in entrata (**incoming stream**). Questo fattore impatta direttamente sul **throughput** (la capacità di smaltimento) del sistema, motivo per cui la comunità accademica dell'Information Retrieval ha iniziato solo di recente a studiare ottimizzazioni a basso livello per ridurre i tempi di esecuzione di specifiche famiglie di ranker LtR.
+
+[INSERIRE IMMAGINE: Diagramma della "Learning to Rank pipeline". Mostra il First step con il Base Ranker e il Document Index che estraggono "N docs", seguiti dal Second step con il Top Ranker, le Features e l'algoritmo LtR che raffinano la lista in "K docs" per la pagina dei risultati]
+
+### Un Esempio Pratico: Classificazione per l'Ad Hoc IR
+
+Per tradurre questi concetti in pratica, consideriamo l'utilizzo di una tecnica di classificazione per il recupero di informazioni (**ad hoc IR**). Il punto di partenza consiste nel raccogliere un corpus di addestramento formato da triple **(q, d, r)**, dove le prime due variabili rappresentano le coppie query-documento, convertite in vettori di feature $x=<q,d>=<f_0, f_1, ...>$, e l'ultima variabile $r$ rappresenta la rilevanza. Sebbene la rilevanza possa assumere un formato multi-classe (tipicamente con 3-7 valori), in questo esempio semplificato la considereremo binaria, ossia rilevante o non rilevante.
+
+Ipotizziamo di valutare le coppie query-documento basandoci esclusivamente su due feature chiave, definendo il vettore $x=(\alpha,\omega)$. In questa configurazione, il parametro **$\alpha$** rappresenta il **cosine similarity** (il punteggio basato sulla somiglianza del coseno), mentre **$\omega$** indica la minima ampiezza della finestra di query (**min query window sz**). Quest'ultima è definita come la porzione di testo più breve nel documento che include tutte le parole cercate, indipendentemente dal loro ordine, ed è un fattore di ponderazione essenziale per misurare la prossimità dei termini (**term proximity**). Il nostro obiettivo è quindi istruire un modello di Machine Learning per prevedere la classe di rilevanza $r$ per ogni data coppia.
+
+La tabella seguente illustra un esempio di questo set di dati:
+
+| **example** | **docID** | **query**              | **cosine score α** | **term proximity ω** | **judgment** |
+| ----------- | --------- | ---------------------- | ------------------ | -------------------- | ------------ |
+| $\Phi_1$    | 37        | linux operating system | 0.032              | 3                    | relevant     |
+| $\Phi_2$    | 37        | penguin logo           | 0.02               | 4                    | nonrelevant  |
+| $\Phi_3$    | 238       | operating system       | 0.043              | 2                    | relevant     |
+| $\Phi_4$    | 238       | runtime environment    | 0.004              | 2                    | nonrelevant  |
+| $\Phi_5$    | 1741      | kernel layer           | 0.022              | 3                    | relevant     |
+| $\Phi_6$    | 2094      | device driver          | 0.03               | 2                    | relevant     |
+| $\Phi_7$    | 3191      | device driver          | 0.027              | 5                    | nonrelevant  |
+
+Per discriminare i documenti, possiamo definire una **funzione di punteggio lineare** espressa dall'equazione $Score(d,q) = a\alpha + b\omega$. Trattandosi di un problema simile alla text classification, il classificatore lineare dovrà determinare in autonomia i pesi dei parametri $a$ e $b$, oltre a una soglia limite **$\Theta$**. Il sistema deciderà quindi di etichettare la coppia come rilevante se il risultato dell'equazione supera tale soglia ($Score(d,q) > \Theta$) o come irrilevante in caso contrario ($Score(d,q) \le \Theta$).
+
+[INSERIRE IMMAGINE: Grafico cartesiano che mostra una "Decision surface" definita dalla retta dell'equazione lineare. L'asse X rappresenta la "Term proximity", l'asse Y il "cosine score". I punti "R" (rilevanti) e "N" (non rilevanti) sono separati linearmente da questa soglia decisionale]
+
+### Le Tre Famiglie di Approcci al Learning to Rank
+
+Nel panorama del Learning to Rank, gli algoritmi si dividono in tre grandi approcci metodologici, distinti in base al modo in cui viene calcolata la funzione di costo (loss):
+
+1. **Approcci Pointwise**: Come nell'esempio lineare precedente, ogni singola coppia query-documento viene valutata a sé stante e le viene assegnato un punteggio. L'obiettivo del modello è predirre esattamente tale punteggio numerico, configurando il task come un puro problema di regressione o di classificazione multiclasse. Il grande limite di questi modelli è che ignorano totalmente la posizione finale che il documento assumerà all'interno della lista dei risultati.
+
+2. **Approcci Pairwise**: In questa variante, l'unità di misura non è il singolo documento, ma una coppia di risultati. Al sistema vengono fornite delle preferenze espresse a coppie, indicando ad esempio che per una data query $q$, il documento $d_1$ è migliore del documento $d_2$. L'obiettivo del modello (spesso inquadrato come una classificazione binaria) è assegnare punteggi che preservino e rispettino questa gerarchia di preferenze. Un noto algoritmo pairwise è **RankNet**, che utilizza una funzione di perdita derivabile. Tuttavia, anche questo metodo non valuta l'effettiva rilevanza del documento all'interno della sua specifica posizione finale nella lista.
+
+3. **Approcci Listwise**: Rappresentano la metodologia più olistica, in cui al sistema viene fornito il ranking ideale (perfetto) dell'intera lista dei risultati per ogni query. Lo scopo ultimo è massimizzare la qualità globale dell'elenco generato valutandolo nella sua interezza durante la fase di addestramento. Di conseguenza, l'obiettivo è ottimizzare direttamente le metriche di valutazione come l'**NDCG@K**. Purtroppo, l'impiego di queste logiche scontra con una forte barriera matematica: solitamente, non è possibile applicarvi in maniera diretta le tecniche di ottimizzazione standard basate sulle derivate, come lo **(Stochastic) Gradient Descent**.
+
+### Il Modello Probabilistico BM25 e la Gestione dei Documenti
+
+Spostandoci dai concetti puramente strutturali ai modelli matematici veri e propri, è fondamentale analizzare **Okapi BM25**, dove l'acronimo sta per "Best Matching" e Okapi è il nome del primo sistema IR ad aver implementato questa metrica. Il BM25 rappresenta lo stato dell'arte (**SOTA**) e si dimostra decisamente superiore al coseno puro per le rappresentazioni Bag-of-Words (**BOW**). Si tratta di una funzione probabilistica che si basa sull'ipotesi di indipendenza dei termini per approssimare la reale probabilità che un documento sia pertinente all'intento di ricerca.
+
+La formula generale del BM25 è espressa come:
+
+$$BM25(d,q) = \sum_{t} IDF_t \tau(F_t)$$
+
+Questa equazione pondera attentamente sia la frequenza del termine che la lunghezza fisica del testo analizzato. La prima variabile, $IDF_t = log(N/n_t)$, rappresenta la frequenza inversa del documento (**inverse document frequency**) e diminuisce l'importanza dei termini troppo comuni. Il core della formula risiede tuttavia nella componente legata alla frequenza $F_t$:
+
+$$F_t = \frac{f_{t,d}}{1 - b + b \cdot l_d / L}$$
+
+In questo frangente, $f_{t,d}$ è la frequenza grezza del termine $t$ nel documento $d$, mentre al denominatore avviene un processo di **Pivoted length normalization** (normalizzazione imperniata sulla lunghezza). Qui, $l_d$ indica la lunghezza specifica del documento in esame e $L$ denota la lunghezza media dei documenti nell'intera collezione (**average doc length**, o **avdl**). Il parametro **$b$** ha lo scopo di stabilire quanta importanza dare alla penalizzazione della lunghezza. Questo perché i testi più lunghi contengono statisticamente più parole e avrebbero naturalmente un vantaggio ingiusto nel combinarsi con qualsiasi query. Se impostiamo $b > 0$, il denominatore agisce penalizzando i documenti che superano la media ($> avdl$) e premiando quelli più concisi ($< avdl$).
+
+[INSERIRE IMMAGINE: Grafico cartesiano della "Pivoted length normalization" per il calcolo del BM25. Sull'asse X c'è la lunghezza del documento $|d|$, sull'asse Y il valore del normalizzatore. Mostra tre rette per b=0, b>0 e b>>0, illustrando come i valori inferiori alla lunghezza media (avdl) ricevano un "Reward", e quelli superiori una "Penalization"]
+
+Per mitigare ulteriormente l'impatto esplosivo di frequenze molto elevate per un singolo termine, il risultato $F_t$ non viene utilizzato puro, ma processato da una **funzione di saturazione** $\tau(F_t) = \frac{F_t}{k + F_t}$. Questa dinamica introduce una non-linearità fondamentale nel contributo della frequenza. Qualora non si volesse passare per un processo di ottimizzazione personalizzato, il BM25 prevede due iperparametri di default solitamente molto stabili: $k$ impostato tra 1.2 e 2, e $b = 0.75$.
+
+[INSERIRE IMMAGINE: Grafico delle curve della funzione di saturazione per il BM25. Le linee curve mostrano come il valore y aumenti rapidamente per bassi valori della frequenza x, ma tenda ad appiattirsi (saturare) asintoticamente man mano che x diventa molto grande, dimostrando l'effetto dell'iperparametro k]
+
+### L'Estensione ai Campi Strutturati: Il Modello BM25F
+
+I documenti complessi moderni (come articoli accademici o intere pagine web) raramente sono blocchi testuali monolitici; si presentano come artefatti ricchi di **campi strutturati** o multi-field (es. titolo, abstract, riassunto, autori per un paper; titolo, url, corpo della pagina, ancore per un sito web).
+
+Per gestire questo grado di strutturazione, la formula originale è stata estesa nel modello **BM25F**, rappresentato come:
+
+$$BM25F(d,q) = \sum_{t} IDF_t \tau(F_t)$$
+
+$$F_t = \sum_{s} \frac{w_s \cdot f_{t,s}}{1 - b_s + b_s \cdot l_s / L_s}$$
+
+In questa variante, le frequenze vengono calcolate a livello del singolo segmento semantico. La variabile $f_{t,s}$ rappresenta la frequenza del termine nel campo specifico $s$, valutata in relazione alla lunghezza di tale campo $l_s$ e alla media globale delle lunghezze per la stessa tipologia di campo $L_s$. Rispetto al modello di base, viene introdotto un nuovo moltiplicatore cruciale: **$w_s$**, che assegna un peso variabile e definisce l'importanza relativa del campo $s$ rispetto agli altri. Questa estensione genera un'esplosione dei parametri da configurare. Mentre il BM25 classico possedeva solo 2 parametri liberi ($b$ e $k$), il BM25F richiede di gestire ben **$2S + 1$** parametri (dove $S$ indica il numero totale dei campi analizzati), ossia i pesi $w_s$, le penalizzazioni $b_s$ per ogni campo, più la costante di saturazione globale $k$. Questa mole di variabili rende impossibile una calibrazione manuale e costringe ad affidarsi proprio alle metodologie del **Learning to Rank** per individuare la combinazione ottimale.
+
+### Sfide nell'Ottimizzazione Listwise e Tecniche Adottate
+
+Considerando l'applicazione di algoritmi Machine Learning al tuning del BM25F, per prima cosa definiamo un dataset dove ogni query è associata a candidati annotati manualmente con etichette di rilevanza progressiva (da 0 a 4 stelle). Lo spazio delle ipotesi sarà composto da tutte le infinite e possibili variazioni delle funzioni BM25F. L'obiettivo valutativo è massimizzare una metrica listwise complessa, ad esempio la **Normalized Discounted Cumulative Gain (NDCG@10)**, la cui formula del gain cumulativo è:
+
+$$DCG_p = \sum_{i=1}^{p} \frac{2^{rel_i} - 1}{log(1+i)}$$
+
+Questa equazione scala l'importanza del documento in modo esponenziale rispetto alla sua etichetta di partenza: un documento con relevance 0 porta un incremento di 0 punti, mentre uno con punteggio massimo (4) inietta ben 17 punti di scarto ($2^4 - 1$).
+
+Posti l'obiettivo di apprendere un modello $h$ (ovvero un modello BM25F governato dal set di parametri $\Theta$) per ordinare un set di documenti ($D = \{d_1, d_2, ...\}$), incontriamo un grave ostacolo teorico per gli approcci Listwise puri. metriche come l'NDCG dipendono intrinsecamente dalle posizioni finali occupate dai risultati e non dai semplici punteggi numerici calcolati. In altre parole, l'operazione di ordinamento globale (**sort $\{h(d_1), h(d_2), ...\}$**) gioca un ruolo centrale. Purtroppo, l'operazione di ordinamento (sort) non costituisce una funzione continua né derivabile. Non potendo calcolare un gradiente dell'ordinamento, l'ottimizzazione tramite Gradient Descent diviene strutturalmente inapplicabile in modo diretto (un problema ampiamente analizzato da M. Taylor e H. Zaragoza nell'articolo *Optimisation Methods for Ranking Functions with Multiple Parameters*, CIKM-06).
+
+Per bypassare questa difficoltà, l'Information Retrieval adotta vie traverse:
+
+- Si minimizza una **loss pairwise proxy** (come il costo generato dall'algoritmo RankNet), pur sapendo che ottimizzare gli incroci documentali a coppie non equivale alla perfezione listwise.
+
+- Si fa ricorso a soluzioni molto più efficaci, come il **Lambda-MART**, un algoritmo strutturato attorno a una funzione di costo modificata che riesce ad approssimare pseudo-gradienti utili per ottimizzare le metriche NDGC in via indiretta. Il MART, conosciuto anche come **Gradient Boosted Regression Tree (GBRT)**, utilizza insiemi di alberi di regressione, e librerie specializzate come **LightGBM** permettono di sfruttare oggi agilmente questa tecnologia.
+
+[INSERIRE IMMAGINE: Grafico che illustra l'andamento discorde tra l'ottimizzazione Pairwise e il guadagno metrico reale durante le epoche di training. Viene confrontata la curva blu, che mostra la costante diminuzione della loss Pairwise (fino a convergere), e la curva rossa estremamente instabile dell'NDCG@5, che non subisce reali benefici dopo una prima fase iniziale, a dimostrazione dello scollamento tra le due misure].
+
+Questa problematica evidenzia infatti il più grande difetto dell'approccio Pairwise puro applicato all'Information Retrieval. Questo metodo si impegna a minimizzare il volume totale delle coppie classificate scorrettamente nel sistema. Tuttavia, nel mondo reale e per ottimizzare correttamente l'NDCG, l'ordinamento accurato dei primi risultati mostrati (**top result pairs**) assume un'importanza enormemente superiore rispetto alla perfezione dell'ordine nelle posizioni periferiche o basse dell'elenco. Per tale motivo, quantificare genericamente le violazioni delle coppie di documenti senza pesarle posizionalmente non produrrà mai un indicatore affidabile per massimizzare le valutazioni NDCG destinate agli utenti.
+
+### Glossario e Concetti Chiave
+
+- **Term Proximity**: La metrica che valuta la vicinanza strutturale tra i vari termini della ricerca all'interno del corpo testuale della pagina, definendone la densità contestuale.
+
+- **BM25 / BM25F**: Funzioni matematiche probabilistiche all'avanguardia basate sull'indipendenza dei termini; la versione F è specializzata nel gestire documenti segmentati in molteplici campi (title, abstract, test, ecc.), richiedendo un elevato numero di parametri da sintonizzare.
+
+- **Pivoted Length Normalization**: Una specifica tecnica all'interno degli algoritmi di penalizzazione che sfavorisce proporzionalmente i documenti testuali eccessivamente lunghi per evitare che i loro ampi vocabolari "acchiappino" ingiustamente un punteggio elevato.
+
+- **DCG / NDCG**: Sigla di (Normalized) Discounted Cumulative Gain, è una complessa metrica di valutazione Listwise che sfrutta potenze matematiche per premiare smisuratamente un documento eccellente posto nelle primissime posizioni della classifica, svalutando proporzionalmente i documenti utili se relegati in fondo alla pagina.
+
+- **Lambda-MART / GBRT**: Sofisticati algoritmi di Machine Learning basati su alberi decisionali che riescono ad approssimare la massimizzazione dell'NDCG aggirando matematicamente il problema della non-derivabilità della funzione di ordinamento (sort).
+
+---
+
+# Slide 7: Il Paradigma del Learning to Rank
+
+Questo capitolo illustra l'applicazione delle tecniche di Machine Learning all'Information Retrieval (IR), concentrandosi in particolare sull'uso di feature elaborate manualmente e sulle sfide computazionali e matematiche insite nel processo di ordinamento dei documenti.
+
+### Machine Learning per l'IR e Computazione Online
+
+L'architettura tipica di un sistema di Learning to Rank che opera in una fase di online computation prevede l'estrazione di un **vettore di feature** elaborato manualmente. In questo processo, un documento $d$ composto da $m$ token e una query $q$ formata da $n$ token vengono passati a un estrattore di feature (Feature Extractor). L'input per l'addestramento è dunque costituito da questo vettore di feature, che modella la rilevanza della coppia query-documento, unito alle rispettive etichette (labels). Queste informazioni vengono poi fornite a un **Modello di Ranking**, il quale si occupa di calcolare un punteggio finale di rilevanza, indicato tipicamente come $S_{q,d}$. L'approccio che ad oggi rappresenta lo stato dell'arte si basa su una foresta composta da migliaia di alberi di regressione. Sebbene questa soluzione garantisca una qualità altissima dei risultati, il suo utilizzo in produzione risulta computazionalmente molto dispendioso.
+
+[INSERIRE IMMAGINE: Diagramma di flusso del processo di online computation, illustrante come un documento e una query entrino in un feature extractor per produrre un feature vector, il quale passa al ranking model per restituire uno score di rilevanza].
+
+### La Complessità del Ranking e la Proxy Loss
+
+Il task di addestrare un modello di ranking si rivela un'operazione estremamente complessa. L'obiettivo principale è imparare l'ordinamento (il ranking) stesso e non la singola etichetta del documento, lavorando su dataset enormi caratterizzati da centinaia di feature differenti. Il problema matematico fondamentale è che le tradizionali misure di qualità del ranking basate sul grado di posizionamento, come NDCG, ERR e MAP, dipendono intrinsecamente dall'ordine in cui i documenti sono stati ordinati. Di conseguenza, queste funzioni non presentano derivate agevoli e impediscono l'applicazione diretta di algoritmi classici come la discesa del gradiente (gradient descent). Osservando i documenti (es. $d_0$, $d_1$, $d_2$, $d_3$), il gradiente di queste metriche rispetto ai parametri del modello risulta essere o pari a 0, se le variazioni dei pesi non hanno alterato l'ordinamento, oppure indefinito a causa delle repentine discontinuità della funzione. La soluzione adottata nell'IR moderno è l'introduzione di una **Proxy Loss function**. Questa funzione vicaria deve essere differenziabile e, allo stesso tempo, mostrare un comportamento il più possibile fedele alla funzione di costo originale, permettendo così al modello di apprendere con successo i parametri ottimali.
+
+[INSERIRE IMMAGINE: Due grafici a confronto. Il primo mostra l'andamento a gradini della metrica NDCG@k in relazione al document score, evidenziando le discontinuità; il secondo mostra la Proxy Quality Function, caratterizzata da una curva differenziabile e smussata rispetto agli stessi punteggi documentali].
+
+### Algoritmi Point-Wise e Alberi di Decisione
+
+Il primo gruppo di algoritmi analizzabili è quello **Point-Wise**. In questa famiglia di modelli, ogni documento viene valutato in modo strettamente indipendente dagli altri. Durante la fase di addestramento, per una singola istanza formata dal documento $d_i$ e dalla sua etichetta $y_i$, non viene utilizzata alcuna informazione relativa agli altri candidati associati alla medesima query. L'algoritmo ottimizza pertanto una funzione di costo differente rispetto alle metriche list-wise e lo fa sfruttando vari approcci, tra cui la Regressione, la Classificazione Multi-Classe o la Regressione Ordinale.
+
+All'interno degli algoritmi basati sulla regressione, assumono grande importanza i **Gradient Boosting Regression Trees (GBRT)**. In questo specifico modello di addestramento, la Loss Function impiegata è orientata alla minimizzazione della Somma degli Errori Quadratici (SSE). Prima di approfondire i GBRT, è essenziale comprendere la struttura di un Albero di Decisione e, di conseguenza, di un Albero di Regressione. In un tipico albero di decisione, usato ad esempio per la classificazione animale, lo spazio viene diviso tramite domande binarie (l'animale è più grande o più piccolo di 1 metro?, ha le corna?, ha due gambe?, le corna sono più lunghe di 10 cm?, indossa un collare?, ha le ali?, ha la coda?) fino a giungere a una classificazione precisa. Analogamente, un albero di regressione esegue un partizionamento dello spazio dei predittori. Basandosi su variabili, ad esempio $x1$ e $x2$, applica soglie di split sequenziali (come $x2 < 3.1$ o $x1 \geq 6.6$) per instradare i campioni verso le foglie. A differenza della classificazione, ogni nodo foglia restituisce un valore continuo $y$ (come $y=0.75$, $y=2.2$, fino a $y=6.3$), che rappresenta la predizione del punteggio.
+
+[INSERIRE IMMAGINE: Esempio di un albero di regressione corredato dal grafico cartesiano (assi x1 e x2) che mostra il corrispondente partizionamento dello spazio in regioni rettangolari associate ai vari valori predittivi y].
+
+### Gradient Boosting Regression Trees (GBRT)
+
+I GBRT si fondano sul concetto di foreste di alberi, includendo anche algoritmi come Lambda MART, Random Forest e Oblivious Trees. Queste architetture costituiscono un "ensemble" di *weak learners*, dove ciascun albero contribuisce fornendo un punteggio parziale. Al momento dello scoring vero e proprio, un vantaggio cruciale è che tutti gli alberi ($T_1, T_2, \dots, T_n$) possono processare la coppia (q, d) ed essere valutati in modo indipendente, producendo dei punteggi parziali ($S_1, S_2, \dots, S_n$). Il punteggio documentale finale viene poi calcolato aggregando tali contributi parziali mediante la formula: $s(d) = \sum_{i=1}^n w_i s_i$.
+
+L'addestramento dei GBRT avviene tramite un algoritmo strettamente iterativo in cui il modello finale è espresso come $F(d) = \sum_i f_i(d)$. Ciascun termine $f_i$ rappresenta uno dei *weak learners* ed è concepito matematicamente come un passo nella direzione ottimale di minimizzazione dell'errore, comportandosi come uno step di massima pendenza (steepest descent) calcolato tramite line-search. In formule, questo passo si traduce nella discesa lungo il gradiente negativo: $f_i(d) = -\rho_i g_i(d)$. Data una funzione di perdita $L = SSE/2$ , il gradiente $-g_i(d)$ viene formalizzato tramite la derivata $-[\frac{\partial L(y,f(d))}{\partial f(d)}]_{f=\sum_{j<i}f_j}$. Calcolando esplicitamente la derivata, $-\frac{\partial[\frac{1}{2}SSE(y,f(d))]}{\partial f(d)} = -\frac{\partial[\frac{1}{2}\sum(y-f(d))^2]}{\partial f(d)}$, si ottiene la pseudo-risposta $y - f(d)$, che rappresenta banalmente il residuo, ovvero l'errore commesso dalle predizioni accumulate finora rispetto all'etichetta reale. L'algoritmo procede approssimando questo gradiente $g_i$ per mezzo di un nuovo albero di regressione $t_i$. Geometricamente, ciò significa che ogni nuovo albero (da $t_1$ a $t_3$) colma iterativamente la distanza tra il punteggio predetto $F(d)$ e l'obiettivo $y$.
+
+[INSERIRE IMMAGINE: Grafico che illustra l'algoritmo iterativo dei GBRT, dove l'errore complessivo $y - F(d)$ viene progressivamente ridotto sommando l'output sequenziale di diversi alberi di regressione $t_1$, $t_2$ e $t_3$].
+
+### Algoritmi Pair-Wise e il Modello RankNet
+
+Passando al secondo approccio principale, negli algoritmi **Pair-wise** l'unità fondamentale di analisi cessa di essere il singolo documento e diventa la coppia. **RankNet** rappresenta una delle soluzioni Pair-wise più affermate e opera stimando la probabilità che, all'interno di un'istanza formativa, un documento $d_i$ sia superiore in rilevanza rispetto a un documento $d_j$. Definita la differenza dei punteggi predetta dal modello per i due documenti come $o_{ij} = F(d_i) - F(d_j)$ , questa probabilità viene calcolata tramite la funzione logistica $P_{ij} = \frac{e^{o_{ij}}}{1 + e^{o_{ij}}}$. Assumendo che $T_{ij}$ indichi la probabilità reale derivata dalle etichette, RankNet sfrutta una funzione di Cross Entropy Loss definita come $C_{ij} = -T_{ij} \log P_{ij} - (1-T_{ij}) \log(1-P_{ij})$. L'algoritmo filtra il dataset analizzando solamente le coppie dove sussiste una chiara preferenza, ovvero dove l'etichetta di $d_i$ è maggiore di quella di $d_j$ ($y_i > y_j$). In questo scenario, la loss si semplifica notevolmente diventando $C_{ij} = \log(1 + e^{-o_{ij}})$. Da questa equazione si evince il comportamento del modello: se i documenti sono correttamente ordinati, con una predizione marcatamente forte ($o_{ij} \to +\infty$), il costo di errore tende naturalmente a zero ($C_{ij} \to 0$). Al contrario, se la rete si sbaglia e inverte l'ordine corretto restituendo una forte discrepanza negativa ($o_{ij} \to -\infty$), il costo esplode verso infinito ($C_{ij} \to +\infty$). Poiché questa loss function si mantiene strettamente differenziabile, viene sfruttata efficacemente per addestrare Reti Neurali Artificiali (ANN) per mezzo del noto algoritmo di back-propagation.
+
+Altri approcci inclusi nella famiglia Pair-wise comprendono algoritmi come Ranking-SVM e RankBoost. I dati sperimentali confermano che RankNet ottiene performance generali migliori rispetto a questi due competitor per quanto riguarda l'accuratezza del ranking. Esiste, tuttavia, un limite architetturale rilevante da tenere in considerazione: l'andamento della funzione di costo in RankNet non risulta essere adeguatamente correlato con i miglioramenti qualitativi reali che si possono misurare tramite NDCG@5 (o altre metriche orientate all'ordine puro) all'aumentare delle epoche di addestramento.
+
+[INSERIRE IMMAGINE: Grafici riassuntivi delle performance. A sinistra, l'istogramma che paragona RankNet, RankSVM e RankBoost mostrando la superiorità del primo (Figure 1). A destra, il grafico a dispersione (Figure 4) che illustra la debole correlazione tra la minimizzazione della Pairwise loss e il valore della metrica NDCG@5 all'aumentare delle epoche].
+
+---
+
+### Glossario e Concetti Chiave
+
+1. **Proxy Loss Function**: Una funzione differenziabile impiegata durante la fase di addestramento per ovviare alla discontinuità intrinseca delle metriche di ordinamento reali (come NDCG).
+
+2. **Gradient Boosting Regression Trees (GBRT)**: Un potente modello *ensemble* che sfrutta una foresta di alberi di regressione, i quali apprendono iterativamente calcolando passi di *steepest descent* lungo la direzione dell'errore (o gradiente negativo).
+
+3. **Point-Wise vs. Pair-Wise**: Due filosofie di addestramento distinte. L'approccio point-wise ottimizza uno scarto (es. SSE) considerando ciascun documento indipendentemente dagli altri, mentre l'approccio pair-wise (come RankNet) ottimizza le stime di probabilità del corretto posizionamento relativo confrontando le coppie di documenti.
+
+---
+
+### Algoritmi List-wise e LambdaMART
+
+Evoluzionando le filosofie precedenti, gli algoritmi **List-wise**, di cui **LambdaMART** è il massimo esponente, ottimizzano in modo diretto le metriche di valutazione focalizzandosi sull'intera lista dei documenti. Ricordando che i Gradient Boosting Regression Trees (GBRT) hanno la necessità intrinseca di calcolare un gradiente $g_i$ per ciascun documento $d_i$ sottoposto ad analisi , LambdaMART comincia col calcolare la stima di questo gradiente paragonando il documento in esame con un diverso $d_j$, ponendo come condizione essenziale che l'etichetta di rilevanza $y_i$ sia superiore a $y_j$. Questo scarto è descritto dal coefficiente $\lambda_{ij}$, che viene modellato come il prodotto algebrico tra la derivata del costo negativo ricavata da RankNet e il differenziale di qualità (ossia il valore assoluto della variazione $|\Delta NDCG|$) ottenuto nel simulare un ipotetico scambio di posizione tra $d_i$ e $d_j$. La formula completa si esprime quindi come $\lambda_{ij} = \frac{1}{1+e^{o_{ij}}} |\Delta NDCG| [cite_start]= -\lambda_{ji}$. L'analisi di una specifica istanza di training, definita dalla query e dai rispettivi documenti ($d_2, d_3, \dots, d_{|q|}$), rivela un comportamento elegante. Se i due documenti sono già ordinati correttamente in partenza (condizione in cui $o_{ij} \to +\infty$), il gradiente sfuma fisiologicamente verso lo zero ($\lambda_{ij} \to 0$). Viceversa, in caso di cattivo posizionamento ($o_{ij} \to -\infty$), il gradiente si innalza fino a raggiungere il pieno valore dell'errore metrico di ranking $|\Delta NDCG|$. Attraverso questo semplice meccanismo matematico, si obbliga la rete a dare un'importanza molto superiore ai documenti che si posizionano in alto (i top documents), in quanto notoriamente più rilevanti per la soddisfazione dell'utente finale. Al termine di questi step, l'algoritmo GBRT con Lambda Gradients calcola la stima del gradiente finale $g_i$ confrontando $d_i$ con tutti gli altri candidati associati alla query; il calcolo avviene addizionando i pesi delle coppie correttamente disposte e sottraendo invece i valori associati a quelle fallite, applicando la semplice espressione $g_i = \lambda_i = \sum_{y_i>y_j} \lambda_{ij} - \sum_{y_i<y_j} \lambda_{ij}$.
+
+[INSERIRE IMMAGINE: Diagramma che mostra graficamente la foresta sequenziale di alberi di decisione, utilizzata dall'architettura List-wise].
+
+### Risultati Sperimentali ed Evoluzione dei Modelli List-wise
+
+Per valutare la bontà pratica di questi approcci, si osservano tipicamente le prestazioni espresse in termini di metrica NDCG@10 eseguite su vari set di dati (Dataset LtR) aperti al pubblico. Come si evince confrontando la tabella sottostante, il passaggio da approcci classici come RankingSVM a GBRT e LambdaMART ha prodotto valori fortemente eterogenei a seconda del dataset interrogato (quali MSN10K, Y!S1, Y!S2 e Istella-S). Il mercato accademico e industriale non si è comunque fermato, elaborando ulteriori alternative competitive che includono ListNet, ListMLE, Approximate Rank, SVM AP e RankGP.
+
+| **Algorithm**                                                 | **MSN10K** | **Y!S1** | **Y!S2** | **Istella-S** |
+| ------------------------------------------------------------- | ---------- | -------- | -------- | ------------- |
+| RankingSVM                                                    | 0.7306     | 0.4012   | 0.7238   | N/A           |
+| GBRT                                                          | 0.7555     | 0.7620   | 0.4602   | 0.7313        |
+| LambdaMART                                                    | 0.4618     | 0.7529   | 0.7531   | 0.7537        |
+| *(Metriche espresse in NDCG@10 per i vari dataset indicati)*. |            |          |          |               |
+
+Esaminando storicamente lo sviluppo del Machine Learning in ambito di ricerca testuale, emerge una timeline ricca, nata nei periodi antecedenti al 2005 e proseguita verso approcci concorrenti Pointwise, Pairwise (come RankBoost e RankNet) e Listwise (tra cui AdaRank e ListNet). Gli approcci moderni per massimizzare le misure IR includono oggi varianti come DirectRank, Lambda Mart, BLMart, SSLambdaMART, CoList, LogisticRank e Lambda Loss. Simultaneamente, il Deep Learning sta innovando pesantemente il *matching* tra documento e query, proponendo architetture Conv.DNN, DSSM, meccanismi basati sul Dual-Embedding, nonché tecniche legate alla Weak Supervision e al Neural Click Model. Da citare infine lo spostamento d'attenzione verso sistemi di On-line learning interattivo, regolati da approcci probabilistici come Multi-armed bandits, Dueling bandits e K-armed dueling bandits.
+
+### L'Egemonia Pratica dei GBRT e le Tecniche di Distillazione
+
+L'adozione quasi universale dei GBRT nel panorama industriale deriva da una lunga striscia di successi ottenuti nei più disparati Data Challenge su scala mondiale. L'evidenza principale risale al famoso Yahoo! LtR Challenge, vinto da un team la cui architettura mescolava 12 differenti modelli di ranking; di questi, 8 erano proprio costituiti da modelli Lambda-MART istanziati con grandezze fino a ben 3.000 alberi decisionali l'uno. Questa forte predominanza è stata riconfermata in uno studio statistico del 2015 sulle competizioni Kaggle, indicando che la stragrande maggioranza delle soluzioni trionfanti si appoggiava pesantemente ai GBRT a discapito delle reti deep learning, e che le top-10 squadre arrivate alla KDDCup dello stesso anno utilizzassero tutte algoritmi della famiglia GBRT. Di conseguenza, giganti tecnologici e team indipendenti hanno pubblicato formidabili e ottimizzate piattaforme open-source: XGBoost, la soluzione LightGBM presentata da Microsoft e CatBoost promossa da Yandex. Tali soluzioni sono divenute lo standard in quanto pluggable, potendo essere collegate in modo nativo su sistemi leader come Apache Lucene e Solr.
+
+Eppure, persiste un dubbio architetturale: se le Reti Neurali Profonde (DNN) tendono ad essere intrinsecamente più veloci nell'eseguire passaggi in inferenza rispetto alle lunghe foreste di regressione, com'è possibile combinare le velocità delle prime con l'affidabilità delle seconde?. La soluzione proposta dalla letteratura è una metodologia definita **Ranking Distillation**. Il principio razionale si basa sull'accettazione fiduciaria dell'accuratezza altissima di LambdaMART, allo scopo però di addestrare una DNN che ne imiti semplicemente l'output a *run time*. In sintesi, un'architettura a rete neurale artificiale (ANN) viene costretta ad approssimare pedissequamente gli output prodotti in partenza da un algoritmo LambdaMART, ignorando totalmente i *training labels* originali utilizzati in precedenza. Ai fini addestrativi, lo spazio campionario del dataset subisce un arricchimento focalizzato attorno a zone di chiara discontinuità matematica, ovvero gli *split points* degli alberi da imitare. Sono stati eseguiti test su modelli neurali *Fully Connected*, in particolare varianti a 4 strati (con dimensioni $2000 \times 500 \times 500 \times 100$) e versioni più leggere a soli 2 strati ($500 \times 100$). I test in termini di metrica di precisione media MAP dimostrano i seguenti valori:
+
+| **Method**                                                                                               | **# Layers** | **MAP (MSN30k)** | **MAP (GOV2)** |
+| -------------------------------------------------------------------------------------------------------- | ------------ | ---------------- | -------------- |
+| Regression Forest                                                                                        | -            | 0.6004           | 0.2995         |
+| $N_{approx}$                                                                                             | 4            | 0.5950           | 0.2995         |
+| $N_{approx}$                                                                                             | 2            | 0.5955           | 0.3007         |
+| $N_{relevance}$                                                                                          | 4            | 0.5639*          | 0.2531         |
+| *(Le reti neurali approssimanti N_{approx} competono molto bene contro la regression forest originale)*. |              |                  |                |
+
+Un'indagine aggiuntiva sui tempi ha confermato questo guadagno di velocità, riscontrando differenze tra codice C++ autogenerato contenente ramificazioni continue di selettori condizionali ("If-Then-Else") contro esecuzioni lineari su TensorFlow (CPU) o inferenze basate su GPU con Pytorch. In PyTorch GPU, le esecuzioni arrivano a impiegare solamente 0.323 - 0.335 unità temporali (su 20.000 alberi con 64 foglie limitate).
+
+### Il Collo di Bottiglia nel Single-Stage Ranking
+
+Sebbene i modelli matematici siano complessi, la vera sfida pratica sopraggiunge al momento del calcolo. Immaginare un ecosistema a stadio singolo, definito **Single-Stage Ranking**, significa concettualizzare un passaggio unico e diretto: una richiesta utente (Query + Matching Docs) che viene somministrata istantaneamente al Ranker intero, il quale produce a stretto giro l'ordine dei risultati definitivi. Questa logica richiede che l'algoritmo addestrato venga calcolato rigorosamente per ciascun documento nel sistema, e allo stesso tempo obbliga a estrarre massivamente tutti i vettori e le relative feature associate. Un simile approccio su scala produttiva risulta del tutto irrealizzabile per ragioni di efficienza e latenza.
+
+[INSERIRE IMMAGINE: Illustrazione semplificata della struttura "Single-Stage Ranking", formata da tre soli blocchi: input query, processo nel Ranker singolo e output Results].
+
+Questo vicolo cieco introduce le tre maggiori compromissioni o trade-off tra efficienza computazionale ed efficacia applicativa (efficacy) nel Learning to Rank. Il primissimo attrito è dato dal **Feature Computation Trade-off**, che costringe i tecnici a valutare accuratamente un delicato bilanciamento di costo tra impiegare *feature* lente, onerose ed eccezionalmente discriminanti in opposizione all'adozione esclusiva di estrazioni computazionalmente molto blande ma con scarso o nullo potere di differenziazione informativa.
+
+### Il Design del Multi-Stage Ranking
+
+Al fine di superare queste muraglie prestazionali, l'industria impiega le logiche architetturali di un ordinamento basato su segmentazione nota come **Multi-Stage Ranking**. Al cuore del sistema risiede un furbo trucco ingegneristico chiamato *Pipelined Ranking Architecture* per estrarre la selezione dei documenti top-k. Questa intelaiatura si realizza frequentemente impostando un design di livello primario a doppio step noto come **Two-Stage Ranking**. Iniziando dallo *STAGE 1*, un Ranker di base supportato da rapidi ed essenziali indici invertiti prenderà in consegna le elaborazioni dei match producendo una prima risposta improntata al puro Recall (Recall-oriented Ranking) al costo di calcolo più tenue possibile. Questo passaggio screma immediatamente il calderone producendo una prima manciata costituita dai soli "N candidati migliori", dove chiaramente la grandezza $N$ è immensamente maggiore dell'obiettivo finale $k$ ($N \gg k$). Soltanto su questo bacino ridotto saranno calcolate e consumate estrazioni complesse, alimentando il fatidico *STAGE 2* (Top Ranker guidato da potenti procedure automatizzate di apprendimento) dove il sistema agirà per estrema Precisione per fornire solo i migliori K docs e i risultati alla view dell'utente (Result Pages). Questo espediente assicura il rinvio di carichi troppo sbilanciati alle sole frazioni realmente candidate al punteggio vincente.
+
+[INSERIRE IMMAGINE: Flowchart del "Pipelined Ranking Architecture" dove i documenti passano dal First Stage (orientato ad alta Recall tramite un Inverted Index) a un selettivo Second Stage (basato su moduli Learning to Rank guidati a ottimizzare la Precision dei dati risultanti)].
+
+Ma sorge inevitabilmente un problema, come stabilire questa fetta intermedia, questa "K" candidabile?. Qui prende forma il secondo compromesso per progettisti denominato **Number of Matching Candidates Trade-off**. Prevedere una vasca generosa e spropositata di candidati promuoverà sì risultati altamente qualitativi ma incrementerà vertiginosamente i costi, mentre una scrematura esigua o aggressiva abbasserà decisamente l'overhead del sistema producendo all'opposto esiti deludenti e insoddisfacenti (low-quality results). Tra gli esempi canonici, dataset come Gov2 propongono di filtrare a soli 1000 documenti e l'analisi Clue Web09-B tende in genere su stime dai 1000 ai 2000 matching. Esistono poi implementazioni su estesa scala corporativa dove le scremature richiedono bacini operativi da centinaia e migliaia di candidati sparsi orizzontalmente in elaborazioni parallele presso flotte di svariate centinaia di *machines* contemporanee.
+
+Andando oltre la dicotomia del doppio passo, si fa impiego di pipeline **Multi-Stage Ranking a 3 stadi** (STAGE 1, 2, 3), inserendo una fase preposta al *Contextual Ranking* sui migliori e strettissimi 30 risultati. L'intento della contestualità (che per definizione inerisce lo specifico set visualizzato) risiede nell'usare per il ranking variabili strettamente connesse con misure statistiche trasversali in output (medie ponderate, varianza, distribuzioni dei feature sets) in tandem con modelli basati sull'estrazione dei topic dominanti (topic model similarity). Si tenga nota che affinché l'esperienza visiva non crolli a latenze sgradevoli, il *First* e il *Second Stage* devono tipicamente essere interamente gestiti al momento esecutivo o distribuito sul medesimo snodo di interazione per l'utenza finale (serving node). Un design scalabile solleva svariate domande cruciali su *quali modelli applicare, su quante feature poggiare ogni segmento di condotto, ed in quanti documenti quantificarli via via*. L'osservazione su circa 200 configurazioni possibili ha attestato le massime performance settando condotti a 3 traguardi in cui le finestre di imbuto calavano dai primordiali passaggi per sfumare da 2500 candidati iniziali passando a 700 docs nel tratto conclusivo. Queste complesse dinamiche rendono oramai l'adeguamento stesso del dimensionamento $k$ del primo step o la ricerca del *processing pipeline* più funzionale, parte attiva in appositi cicli predittivi inseriti fin dentro ai passaggi di pre-calcolo del *training time*.
+
+In sintesi un'architettura completa bilancia fluidamente tutti gli step integrando il terzo ed ultimo trade-off, denominato **Model Complexity Trade-off**. In una pipeline intelligente come il Multi-Stage Ranking, i progettisti sfumano dai classificatori semplicissimi ed eccezionalmente lesti per il recupero grezzo e a bassa pretesa quantitativa (impiegando Coordinate Ascent, Ridge Regression, o implementazioni di RankBoost e SVM-Rank ) salendo gradatamente ai colossi analitici densi (come Inizializzazioni GBRT pure, i classici GBRT o alberi Random Forest ) preposti alle decisioni chirurgiche. Con tali parametri in testa, in base a un progressivo stadio $i$, un modulo generico STAGE $i-1$ (Cheap Ranker) fornirà basi rapide per lo STAGE $i$ (Accurate Ranker implementato via ListNet o modelli medi come Oblivious Lambda-Mart), destinando solamente all'apice finale dello STAGE $i+1$ (Very Accurate Ranker) la rifinitura suprema di pochi mirati elementi in uscita.
+
+---
+
+### Glossario e Concetti Chiave
+
+1. **LambdaMART**: Modello List-wise all'avanguardia che corregge i gradienti (tramite Lambda Gradients) sulla base di uno scambio virtuale tra due documenti unito allo scostamento in valore assoluto della metrica NDCG generata ($|\Delta NDCG|$).
+
+2. **Ranking Distillation**: Pratica in cui una più svelta e duttile architettura deep (Reti Neurali) viene educata ad approssimare pedissequamente gli score ottimali creati dai colossi di regression forest (come LambdaMART), aggirando il collo di inferenza computazionale proprio per via del guadagno hardware della rete su GPU.
+
+3. **Pipelined / Multi-Stage Ranking**: Paradigma ad imbuto in cui una query massiva incontra strati crescenti e consequenziali di filtri e Ranker di affinazione a Precisione incrementale. Passaggi a imbuto restringono o allargano dinamicamente lo spazio di interazione, separando brutalmente i calcoli faticosi da documenti scarsamente promettenti limitandone le esecuzioni sulle frange top.
+
+4. **Trade-offs Operativi**: L'essenziale trilogia di bilanciamento affrontata per evitare le stagnazioni tipiche da Single-Stage. I bilanciamenti richiedono di armonizzare in modo dinamico i pesi e i profitti per **Costo delle Features Calcolate** , la **Taglia del Set dei Candidati** in corsa (Number of Candidates) , sfumando la **Complessità Matematica Inerente ai Modelli** da scaglioni economici (Cheap) ad algoritmi raffinatissimi (Very Accurate).
+
+---
+
+# Slide 8: Appunti di Information Retrieval: Trade-off tra Efficienza ed Efficacia
+
+Questa sezione esplora il delicato equilibrio tra l'accuratezza dei risultati di ricerca e i costi computazionali associati, concentrandosi in particolare sull'ottimizzazione dei modelli di apprendimento basati su alberi decisionali.
+
+### Il Calcolo Online della Rilevanza
+
+Il processo base per calcolare la rilevanza di un documento per una data query si articola in una serie di passaggi sequenziali. Inizialmente, un estrattore di feature elabora i token del documento (di lunghezza $m$) e della query (di lunghezza $n$) per produrre un vettore di feature estratte manualmente. Questo vettore, che modella la rilevanza della specifica coppia query-documento, viene poi fornito in input al modello di ranking (Ranking Model) insieme alle relative etichette (labels), il quale infine emette un punteggio di rilevanza finale $s_{q,d}$. Attualmente, l'approccio *state-of-the-art* si basa su foreste composte da migliaia di alberi di regressione: sebbene garantiscano un'alta qualità dei risultati, il loro impiego risulta computazionalmente molto oneroso.
+
+[INSERIRE IMMAGINE: Diagramma di flusso dell'Online Computation, che illustra il percorso dal documento e la query attraverso il Feature Extractor e il Ranking Model fino allo score di rilevanza.]
+
+### Efficienza nel Machine Learning per l'IR
+
+I modelli basati sul *machine learning* pensati per un ranking orientato alla precisione si fondano prevalentemente su ensemble di alberi, noti come **Tree forests** (ad esempio GBRT, LambdaMART, Random Forest e Oblivious Trees). Questi sistemi operano unendo l'output di un insieme di *weak learners*, dove ciascun albero contribuisce al punteggio totale con un punteggio parziale. La formula che definisce il punteggio complessivo $s(d)$ di un documento è data dalla somma dei punteggi parziali di ogni albero $T_i$: $s(d)=\sum_{i=1}^{n}s_{i}$. Il costo computazionale deriva dal fatto che, al momento dello *scoring*, ogni albero deve essere elaborato in modo del tutto indipendente. Per dare un'idea dell'onere, supponendo di avere 1.000 documenti per singola query e un modello con 3.000 alberi con una profondità di 10 nodi, il sistema deve eseguire 30.000 test per ogni documento ($3.000 \times 10$), traducendosi nell'impressionante cifra di 30 milioni di test per singola query.
+
+### Anatomia di un Albero di Decisione
+
+Strutturalmente, questi modelli ad albero valutano la rilevanza attraverso due componenti principali. I nodi interni rappresentano delle condizioni booleane specifiche sulle feature $f$, applicando una certa soglia (threshold). Le foglie (nodi terminali), invece, contengono la vera e propria predizione del valore di rilevanza. Come anticipato, il punteggio finale di rilevanza assegnato a una coppia query-documento equivale alla somma di tutte le singole predizioni generate dagli alberi del modello. I pesi e i tagli di questi nodi (come si evince dall'addestramento, ad esempio su feature come $F_1, F_2, F_3, F_4, F_6, F_8$) determinano come gli alberi vengono adattati (fitted) ai dati.
+
+### Architettura a Cascata dei Motori di Ricerca
+
+Per gestire l'immensa mole di dati, i moderni motori di ricerca suddividono il lavoro in due stadi principali mediante un'architettura a cascata. Il **Primo Stadio (Stage 1)** si basa su un approccio orientato alla *recall* (Recall-oriented Ranking). Ricevendo la query dell'utente, un Base Ranker accede a un Inverted Index per recuperare rapidamente un ampio set iniziale di $N$ documenti pertinenti (Matching Docs). Successivamente, il **Secondo Stadio (Stage 2)** prende in carico i top-N documenti e applica un approccio più sofisticato orientato alla *precisione* (Precision-oriented Ranking). In questa fase interviene il Top Ranker, che sfruttando funzionalità avanzate (Features) e algoritmi di Learning to Rank (LtR), seleziona un sottoinsieme estremamente ristretto di $K$ documenti finali, costituendo la pagina dei risultati mostrata all'utente.
+
+### Linee di Ricerca sul Trade-off Efficienza/Efficacia
+
+L'efficienza nei sistemi LtR viene affrontata secondo tre principali filoni di ricerca. Il primo riguarda l'ottimizzazione dell'efficienza direttamente all'interno del processo di apprendimento (*learning process*). Il secondo esplora il calcolo approssimato dei punteggi e l'utilizzo di strutture a cascata efficienti. Infine, il terzo si focalizza sull'attraversamento veloce e ottimizzato dei modelli tree-based già costruiti. Ognuno di questi approcci genera impatti significativamente diversi sull'architettura complessiva di ranking, influenzando sia l'addestramento (Training Data e Learning to Rank Technique) sia l'applicazione finale del modello sui campioni (K docs).
+
+### Ottimizzare l'Efficienza durante l'Apprendimento: Il Modello MEET
+
+Nel 2010, Wang, Lin e Metzler hanno proposto un metodo rivoluzionario per imparare a fare ranking in modo efficiente. La loro soluzione introduce una nuova funzione di costo che ottimizza direttamente una metrica specifica per il trade-off, chiamata **Efficiency-Effectiveness Tradeoff Metric (EET)**. La formula matematica alla base dell'EET per una determinata query è strutturata come segue:
+
+$$EET(Q)=\frac{(1+\beta^{2})\cdot(\gamma(Q)(\sigma(Q))}{(\beta^{2}\cdot)\gamma(Q)+\gamma(Q)}\Rightarrow MEET(R)=\frac{1}{N}\sum EET(Q)$$
+
+Il lavoro si concentra su funzioni di ranking lineari basate su feature e introduce nuove metriche di valutazione dell'efficienza con andamenti a decadimento costante, a gradino (step function), e a decadimento esponenziale. Addestrando i modelli con questa tecnica, gli autori hanno dimostrato una drastica e significativa diminuzione dei tempi medi di esecuzione delle query.
+
+[INSERIRE IMMAGINE: Grafico del modello di Wang et al., che mostra le curve della metrica di Efficienza rispetto al Tempo di Ranking (ms) per le diverse funzioni di decadimento.]
+
+### Cost-sensitive Tree Induction per GBRT (AL13)
+
+Asadi e Lin, nel 2013, si sono spinti oltre presentando delle tecniche specifiche per addestrare foreste GBRT garantendo ottime prestazioni in fase di esecuzione (runtime). Il principio cardine è semplice: creare alberi più bilanciati, superficiali (shallow) e compatti velocizza intrinsecamente le predizioni. Questo risultato è raggiunto tramite la **Cost-sensitive Tree Induction**, una procedura che minimizza congiuntamente la perdita di efficacia e il costo della valutazione. Le strategie previste sono due:
+
+1. Modificare direttamente il criterio di divisione (*splitting*) dei nodi durante la creazione dell'albero: viene consentita una divisione con guadagno massimo solo se questa non aumenta la profondità complessiva della struttura. In alternativa, l'algoritmo cerca un nodo più vicino alla radice che, se diviso, produrrebbe un guadagno superiore al guadagno massimo scontato.
+
+2. Effettuare il **pruning** (potatura) contestualmente al boosting, concentrandosi primariamente sulla profondità e sulla densità dell'albero. Ciò avviene collassando forzatamente i nodi terminali finché il numero di nodi interni non restituisce un albero perfettamente bilanciato. Eventuali cali nell'efficacia del modello vengono poi compensati tramite l'aggiunta di stadi successivi.
+
+Esperimenti condotti sul dataset MSLR-WEB10K indicano che la strategia basata sul pruning è la più performante, raggiungendo una diminuzione del 40% della latenza di predizione a fronte di una riduzione solo trascurabile del punteggio finale NDCG.
+
+### CLEAVER: Ottimizzazione Post-Apprendimento
+
+Un approccio alternativo all'efficienza è il post-processing, esplorato da Lucchese et al. nel 2016 con la metodologia **CLEAVER**. A differenza dei metodi di addestramento sensibili ai costi, CLEAVER interviene su un ensemble di alberi già addestrato applicando una combinazione di pruning e riponderazione dei pesi (re-weighting) tramite una strategia avida di ricerca lineare (*greedy line search*). Il framework offre svariate strategie di potatura, tra cui la rimozione casuale (random), degli ultimi alberi (last), il salto (skip), l'eliminazione dei pesi bassi (low weights), e la rimozione basata sulla perdita di score (score loss) o sulla perdita di qualità (quality loss). Sperimentato sulle architetture MART e LambdaMART tramite i dataset MSLR-Web30K e Istella-S LETOR, il risultato più significativo riguarda la strategia basata sulla *quality loss*, la quale permette di preservare esattamente la medesima efficacia del modello originario eliminando un numero di alberi tale da conservarne solo fino al 20% del volume iniziale.
+
+---
+
+### Concetti Chiave
+
+- **Tree Forests (GBRT/LambdaMART)**: Ensemble complessi di alberi decisionali utilizzati per il ranking orientato alla precisione. Offrono un'eccellente efficacia ma presentano onerosi colli di bottiglia computazionali al momento dell'esecuzione.
+
+- **Architettura a Cascata**: Modello di sistema di ricerca diviso in due fasi sequenziali. Una prima fase estrae un ampio numero di documenti orientandosi alla *recall*, seguita da una seconda fase che utilizza algoritmi più complessi orientati alla *precisione*.
+
+- **Cost-sensitive Tree Induction**: Tecnica in cui l'addestramento dei modelli tiene conto contemporaneamente degli errori di previsione e dei costi computazionali per forzare la generazione di alberi compatti e superficiali.
+
+- **Pruning (Potatura)**: Metodologia di riduzione della grandezza di un modello (applicabile in fase di learning o in fase di post-processing, come nel caso di CLEAVER) utile a scartare le porzioni di alberi superflue per abbattere drasticamente la latenza di calcolo mantenendo stabile la metrica NDCG.
+
+---
+
+### X-CLEAVER: Potatura Integrata nell'Addestramento
+
+Sulla scia dell'ottimizzazione degli ensemble, nel 2018 Lucchese, Nardini, Orlando, Perego, Silvestri e Trani hanno presentato **X-CLEAVER** sulla rivista ACM TIST. Questo framework fa un passo avanti rispetto al suo predecessore introducendo il *pruning* e la riponderazione dei pesi direttamente durante la fase di apprendimento basata sul *gradient boosting*. Il processo si articola in due passaggi chiave: in primo luogo, gli alberi identificati come ridondanti vengono rimossi dall'ensemble in costruzione; successivamente, i pesi degli alberi superstiti subiscono un'operazione di *fine-tuning* mirata a ottimizzare direttamente una specifica metrica di qualità del ranking, come l'NDCG.
+
+Il sistema riutilizza le medesime strategie di potatura del precedente metodo CLEAVER, ma l'impatto architetturale è radicalmente diverso. Gli esperimenti, condotti su dataset pubblici di riferimento come MSN30K-1 e Istella-S, hanno evidenziato che eseguire il pruning e il re-weighting *durante* l'apprendimento risulta nettamente più efficace rispetto all'applicazione di un singolo step di ottimizzazione *post-learning*. Di conseguenza, X-CLEAVER permette di addestrare foreste ancora più compatte garantendo al contempo nessuna perdita in termini di prestazioni globali.
+
+[INSERIRE IMMAGINE: Grafico delle performance di testing di X-CLEAVER, che confronta la metrica NDCG@10 rispetto alle dimensioni dell'ensemble tra il modello X-CLEAVER e un modello $\lambda$-MART tradizionale.]
+
+### DART: Il Dropout incontra i Regression Trees
+
+Nel 2015, i ricercatori Rashmi e Gilad-Bachrach hanno introdotto l'algoritmo **DART** (pubblicato in PMLR), importando la fortunata tecnica dei *dropouts*, tipica delle reti neurali, nel contesto del Multiple Additive Regression Trees (MART). L'obiettivo primario di questa soluzione è combattere la tendenza dei modelli a sviluppare una **sovra-specializzazione** (*over-specialization*). Sebbene in passato si utilizzasse la tecnica dello *shrinkage* per mitigare questo problema, essa forniva un aiuto senza tuttavia costituire una soluzione definitiva.
+
+DART differisce dal tradizionale MART per due meccanismi fondamentali. In primo luogo, durante la fase in cui il modello sta imparando a costruire un nuovo albero, un sottoinsieme casuale dell'intera struttura viene "silenziato" (*muted*). In secondo luogo, viene applicato uno step di normalizzazione nel momento in cui il nuovo albero viene aggiunto al sistema, così da prevenire il fenomeno dell'**overshooting**. Valutato sul dataset MSLR-Web10K focalizzandosi sulla metrica NDCG@3, DART ha fatto registrare notevoli miglioramenti prestazionali rispetto allo standard LambdaMART.
+
+[INSERIRE IMMAGINE: Grafico della predizione media rispetto all'indice dell'albero, che illustra visivamente il comportamento di DART rispetto a un modello MART standard con e senza shrinkage.]
+
+### X-DART: Fusione tra Dropout e Pruning
+
+Partendo dal successo di DART, Lucchese, Nardini, Orlando, Perego e Trani hanno proposto **X-DART** alla conferenza ACM SIGIR del 2017. Questa evoluzione fonde elegantemente le logiche del dropout con le pratiche di pruning durante l'addestramento. In maniera analoga a DART, anche in X-DART determinati alberi vengono temporaneamente silenziati, ma la peculiarità risiede nel fatto che questo set di nodi viene successivamente rimosso del tutto dopo la fase di *fitting*, qualora ritenuto non necessario.
+
+Questo approccio comporta due importanti vantaggi architetturali. Il primo è che X-DART genera modelli ancora più compatti di DART stesso. Il secondo vantaggio, derivante direttamente dalle ridotte dimensioni del modello, consiste in una minore propensione all'overfitting, il che sblocca il potenziale per raggiungere livelli di efficacia nettamente superiori. Per gestire il processo di rimozione, X-DART prevede tre diverse strategie di potatura: **Ratio**, **Fixed** e **Adaptive**. Le sperimentazioni sui dataset MSLR-Web30K e Istella-S hanno confermato che la variante X-DART (adaptive) fornisce miglioramenti statisticamente significativi rispetto al DART originale, riuscendo a impiegare fino al 20% di alberi in meno. Ancora più impressionante è la capacità del modello di eguagliare la medesima efficacia di DART utilizzando un monte alberi decurtato fino al 40%.
+
+[INSERIRE IMMAGINE: Grafico che analizza l'andamento dell'NDCG@10 al variare della dimensione dell'ensemble, mettendo a confronto l'efficacia dei modelli DART rispetto alle diverse strategie di pruning (Ratio, Fixed, Adaptive) del modello X-DART.]
+
+### Calcolo Approssimato dello Score e Cascate Efficienti
+
+Oltre all'ottimizzazione degli alberi stessi, un filone di ricerca parallelo mira al calcolo approssimato dei punteggi mediante l'utilizzo di strutture a cascata molto rapide. Nel 2010, alla conferenza ACM WSDM, Cambazoglu e il suo team (Zaragoza, Chapelle, Chen, Liao, Zheng, Degenhardt) hanno formalizzato il concetto di ottimizzazione tramite "uscite anticipate" (**early exits**) per i sistemi di ranking basati sul machine learning additivo.
+
+La logica dietro a questa strategia del "cortocircuito" in fase di calcolo (*short-circuiting*) si basa su considerazioni empiriche relative all'Information Retrieval. Per ogni singola query sottomessa, esiste solitamente solo una manciata di documenti realmente molto rilevanti, annegati in una moltitudine di risultati totalmente irrilevanti; inoltre, è noto che la stragrande maggioranza degli utenti non si spinge mai oltre la consultazione delle primissime pagine dei risultati. Di conseguenza, è superfluo processare tutti i documenti attraverso l'intero modello matematico. Per risolvere questa inefficienza, Cambazoglu et al. hanno introdotto ensemble additivi capaci di abortire il calcolo preventivamente. Questa interruzione intelligente è governata da quattro specifiche tecniche di soglia: soglie basate sul punteggio (**Score**), sulla capacità (**Capacity**), sul rango (**Rank**) o sulla prossimità (**Proximity**). Implementate all'interno di una piattaforma di machine learning all'avanguardia dotata di alberi GBRT , le ottimizzazioni tramite *early exit* hanno permesso al sistema di operare fino a quattro volte più velocemente rispetto all'algoritmo standard, il tutto senza riscontrare alcuna perdita qualitativa nei risultati proposti all'utente finale.
+
+[INSERIRE IMMAGINE: Diagramma concettuale dell'Early Exit che illustra il percorso di un documento $d_i$ attraverso l'esecuzione sequenziale delle funzioni dell'ensemble ($f_1, f_2, f_3, f_4$), mostrando la possibilità di un'uscita anticipata dal calcolo contrassegnata come $e_2$.]
+
+---
+
+### Concetti Chiave
+
+- **X-CLEAVER**: Evoluzione algoritmica che esegue il pruning e la calibrazione dei pesi direttamente *durante* l'addestramento tramite gradient boosting, creando fin dall'inizio modelli compatti e ad alta efficienza senza dover ricorrere a rielaborazioni successive.
+
+- **DART e X-DART**: Tecniche all'avanguardia che silenziano casualmente parti degli alberi durante il training (dropout) per evitare l'eccessivo adattamento ai dati di addestramento (over-specialization/overfitting). X-DART si distingue per rimuovere permanentemente questi alberi "muti", riducendo enormemente la complessità del modello finale.
+
+- **Early Exits (Uscite Anticipate)**: Strategia computazionale applicata agli ensemble additivi che blocca l'elaborazione del punteggio di rilevanza per quei documenti che mostrano precocemente un basso potenziale. Questo "cortocircuito" matematico previene lo spreco di risorse per risultati palesemente inutili, abbattendo drasticamente i tempi di latenza complessivi.
+
+---
+
+# Slide 9:# Addestramento e Inferenza Efficienti di Ensemble di Alberi di Decisione
+
+In questo capitolo affronteremo il tema dell'addestramento e dell'inferenza efficienti per i modelli basati su **ensemble di alberi di decisione** (Ensembles of Decision Trees). Questo argomento, delineato dal professor Rossano Venturini dell'Università di Pisa, risulta fondamentale per comprendere a fondo le moderne architetture di Information Retrieval (IR) e i complessi sistemi di ranking.
+
+### L'Architettura di Base e il Query Processing
+
+Per inquadrare l'impiego pratico degli alberi di decisione, è essenziale prima osservare l'architettura generale di un motore di ricerca. L'intero processo si divide tipicamente in due grandi fasi: una fase **Offline** e una fase **Online**.
+
+Durante la fase Offline, il sistema analizza una **Document Collection**. Questa passa attraverso una procedura di **Indexing** per arrivare alla costruzione del vero e proprio **Inverted Index**. Parallelamente, interviene un **Feature Processor** che ha il compito di estrarre le caratteristiche salienti, archiviandole all'interno di un **Document Features Repository**. Questi dati appena immagazzinati, combinati con i **Training Data**, vengono utilizzati nel processo di **Training** per generare un **Learning-to-rank Model**.
+
+Nella fase Online, che si attiva nel momento in cui l'utente effettua una ricerca, una **Query** iniziale viene elaborata e trasformata in una **Expanded Query**. Questa query espansa viene inviata al blocco di **Query Processing**, il quale interroga direttamente l'Inverted Index. A questo punto, subentra la fase di **Feature Lookup and Computation**, che ha il compito di recuperare dal repository le caratteristiche specifiche associate ai documenti estratti. Infine, i documenti vengono ordinati da una **Learned Ranking Function**, la quale si basa sul modello di ranking precedentemente addestrato, restituendo così all'utente i risultati finali ordinati per rilevanza.
+
+[INSERIRE IMMAGINE: Diagramma di flusso dell'architettura di un motore di ricerca, che illustra le fasi online e offline, i flussi dall'elaborazione della query alla feature computation, fino alla Learned Ranking Function e ai dati di training]
+
+### La Gradient Boosting Machine (GBM)
+
+Il motore matematico dietro molti di questi modelli di ranking è la **Gradient Boosting Machine (GBM)**. In termini generali, gli algoritmi di apprendimento **Boosting** operano addestrando i dati tramite molteplici **weak learners**. Un "weak learner" può essere inteso come un qualsiasi metodo di classificazione sotto-potenziato (under-power). La potenza del boosting risiede nel fatto che ogni nuovo learner apprende dagli errori commessi da quelli che lo hanno preceduto.
+
+Nel caso specifico della GBM, il ruolo di weak learners viene ricoperto proprio dagli **alberi di decisione**. L'obiettivo finale di questa tecnica è imparare una complessa funzione $F(x)$, definita come la somma di $M$ weak learners. Questo concetto è riassunto dalla formula $F(x)=\sum_{i=0}^{M}F_{i}(x)$. La versatilità della GBM è notevole: può essere utilizzata efficacemente sia per compiti di regressione che per la classificazione, trovando un'applicazione perfetta anche nel Learning-to-Rank (LtR). Storicamente, questo approccio è stato originariamente proposto da Breiman nel 1997 e successivamente aggiornato e perfezionato da Friedman nel 1999. Oggigiorno, implementazioni altamente ottimizzate di questa teoria costituiscono il nucleo di librerie estremamente diffuse come **XGBoost** e **LightGBM**.
+
+### Learning-to-Rank con Ensemble di Alberi di Regressione
+
+Quando applichiamo i principi appena visti al Learning-to-Rank, il modello che ne deriva è descrivibile visivamente come una "foresta" di alberi di regressione. In questo ensemble, ogni singolo albero di decisione contribuisce fornendo un punteggio parziale. Di conseguenza, lo score finale attribuito a un determinato documento sarà dato dalla semplice somma matematica di tutti questi punteggi parziali.
+
+Tuttavia, c'è un rovescio della medaglia dal punto di vista dell'efficienza: al momento del calcolo del punteggio (scoring time), il sistema è costretto a elaborare e attraversare tutti gli alberi presenti per ogni singolo documento. Per comprendere la scala del problema, analizziamo qualche numero: un modello tipico include un quantitativo di alberi di decisione $M$ che varia da $1K$ a $20K$ (da 1.000 a 20.000 alberi). Ognuno di questi alberi presenta dalle 16 alle 512 foglie, e l'intero sistema coinvolge un bacino di feature compreso tra 100 e 2000. In questo schema logico, alberi multipli (come $T_1$, $T_2$, fino a $T_n$) ricevono in input la coppia composta dalla query e dal documento $(q, d)$. Ciascun albero emette in uscita un sotto-punteggio ($s_1$, $s_2$, fino a $s_n$). Il punteggio globale del documento si calcola, come detto, tramite la sommatoria $s(d)=\sum_{i=1}^{n}s_{i}$.
+
+[INSERIRE IMMAGINE: Schema concettuale che mostra diverse strutture ad albero indipendenti che processano la stessa coppia (q, d) e i cui output parziali confluiscono in una somma finale per ottenere il punteggio s(d)]
+
+Per concretizzare la valutazione di uno di questi alberi di decisione, consideriamo un esempio pratico. Supponiamo di trovarci di fronte al seguente set di feature estratte per la coppia Query-Documento:
+
+| **F1​** | **F2​** | **F3​** | **F4​** | **F5​** | **F6​** | **F7​** | **F8​** |
+| ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- |
+| 13.3    | 0.12    | -1.2    | 43.9    | 11      | -0.4    | 7.98    | 2.55    |
+
+L'attraversamento inizia dalla radice, la quale imposta una condizione sulla feature $F_4$ (ad esempio, se il valore è $\le 50.1$). Poiché $F_4 = 43.9$, la condizione è soddisfatta e l'algoritmo si sposta verso il nodo successivo, che analizza la feature $F_1$ (soglia a $10.1$). Avendo $F_1 = 13.3$, la condizione non è superata e si imbocca il ramo alternativo fino ad arrivare alla feature $F_3$ (soglia a $-1.0$). Essendo $F_3 = -1.2$, si segue l'ultimo ramo che conduce alla foglia di uscita ("Exit leaf"). In questo esempio, la foglia di uscita ha un valore assegnato di $2.0$, pertanto il sistema incrementerà il punteggio totale applicando la regola $Score += 2.0$.
+
+[INSERIRE IMMAGINE: Struttura di un albero di decisione con percorsi ramificati basati su soglie (es. 50.1:F4, 10.1:F1). Il percorso valutato nell'esempio precedente è contrassegnato con frecce rosse fino ad arrivare al nodo foglia con valore 2.0]
+
+### Dettagli di Addestramento della Gradient Boosting Machine
+
+Garantire un addestramento efficiente per questi ensemble richiede basi matematiche rigorose. L'algoritmo riceve in input un set di dati descritto come $\{(x_{i},y_{i})\}_{i=1}^{n}$, dove $x_{i}$ rappresenta il vettore delle feature e $y_{i}$ rappresenta il valore target. Deve essere definita inoltre una **funzione di perdita differenziabile** $L(y_{i},F(x_{i}))$. Se l'obiettivo è la regressione, si impiega generalmente l'Errore Quadratico Medio o **MSE (Mean Squared Error)**, formalizzato come $L(y_{i},F(x_{i}))=\frac{1}{2}(y_{i}-F(x_{i}))^{2}$. Al contrario, se ci si trova di fronte a un problema di classificazione, la scelta ricade sull'entropia incrociata (Cross entropy).
+
+Il primo passo pratico consiste nello stabilire una predizione iniziale. Per minimizzare l'MSE fin dall'inizio, il sistema assegna come stima approssimativa di partenza la media aritmetica di tutti i valori target disponibili, espressa come $F_{0}(x_{i})=\frac{1}{n}\sum_{i=1}^{n}y_{i}$. Avendo stabilito questa baseline, inizia un ciclo iterativo che si ripete per $m \in [1,M]$, con $M$ pari al numero di weak learners che vogliamo costruire.
+
+In ogni iterazione, l'obiettivo è elaborare i cosiddetti **pseudo-residui** (che corrispondono al gradiente, cioè le derivate parziali della funzione di perdita).
+
+[RIFERIMENTO VISIVO DEL PROFESSORE: Viene mostrato un grafico cartesiano che traccia il valore predetto $F_m(x_i)$ contro la curva convessa della funzione di perdita $L(y_i, F(x_i))$. Il gradiente corrisponde alla pendenza della tangente alla curva, che indica la direzione per minimizzare l'errore]
+
+Il gradiente rappresenta la derivata della funzione di perdita calcolata rispetto alla predizione corrente. Lo scopo è "spostare" questa predizione in una direzione tale da far decrescere la funzione di perdita.
+In termini formali, lo pseudo-residuo per ogni punto $i$ da $1$ a $n$ si ricava così: $r_{i,m}=-[\frac{\partial L(y_{i},F(x_{i}))}{\partial F(x_{i})}]F(x)=F_{m-1}(x)$. Se si applica la logica dell'MSE, l'equazione si semplifica notevolmente in $r_{i,m}=y_{i}-F_{i}(x_{m})$.
+
+Una volta quantificati i pseudo-residui, si adatta un nuovo albero di regressione proprio su questi scarti, andando a creare un numero di regioni terminali (le foglie) pari a $k_{m}$. Per ciascuna di queste regioni $j$, si prende il punto dati $x_{i}$ che cade al suo interno e si procede calcolando il valore di $\gamma$ ottimale che vada a minimizzare l'errore secondo questa formula: $\gamma_{j,m}=argmin_{\gamma}\sum_{x_{i}}L(y_{i},F_{m-1}(x_{i})+\gamma)$. Nel contesto dell'MSE, questo valore matematico risulta essere nient'altro che la media dei valori target presenti in quella specifica regione terminale.
+
+Il passo conclusivo dell'iterazione consiste nell'aggiornare l'intero modello sommando il nuovo componente individuato: $F_{m}(x)=F_{m-1}(x)+\alpha\gamma_{j,m}$. In questa espressione, $j$ fa riferimento alla regione che contiene il punto $x$, mentre $\alpha$ agisce come tasso di apprendimento (learning rate). Ripetendo questi step, al termine del ciclo l'algoritmo restituirà in output il modello definitivo $F_{M}$. Man mano che avvengono i "node split" (le divisioni dei nodi), l'accuratezza migliora, portando a una progressiva diminuzione della somma dei residui originari.
+
+[INSERIRE IMMAGINE: Grafici a dispersione (scatterplot) sovrapposti che dimostrano visivamente come, partendo da una linea piatta che rappresenta la media $F_0$, ogni split dei nodi riduca l'ampiezza dei residui, ovvero la distanza dei punti blu dalla linea di approssimazione rossa]
+
+### Concetti Chiave
+
+1. **Inverted Index**: Struttura dati primaria elaborata offline che permette al motore di ricerca di recuperare documenti rapidamente al momento dell'invio di una query online.
+
+2. **Weak Learners**: In ambito Boosting, si definiscono così i classificatori semplici (come un singolo albero di decisione non profondo) che, lavorando in sinergia, riescono a formare un modello di elaborazione molto potente.
+
+3. **Gradient Boosting Machine (GBM)**: Sofisticata tecnica di apprendimento che ottimizza modelli di predizione in modo iterativo, dove ogni albero successivo si focalizza nel correggere gli errori (pseudo-residui) commessi nella fase precedente.
+
+4. **Learning-to-Rank (LtR)**: L'applicazione degli algoritmi di ensemble (come la somma dei vari sotto-punteggi di una foresta di alberi) per determinare un punteggio totale capace di stabilire l'ordine di rilevanza per un insieme di documenti.
+
+5. **Pseudo-residui e Gradiente**: I pseudo-residui indicano il delta di errore per ciascun punto dati, corrispondente al gradiente della funzione di perdita. Muovere le previsioni lungo questo gradiente consente di minimizzare l'errore del modello.
+
+---
+
+### L'Evoluzione con XGBoost
+
+**XGBoost** è stato proposto da **Tianqi Chen** e **Carlos Guestrin** nel 2014. Questo algoritmo ha ottenuto un'enorme risonanza a metà degli anni 2010, affermandosi come la scelta prediletta da numerosi team vincitori nelle competizioni di machine learning. L'obiettivo principale di XGBoost è migliorare le implementazioni di GBM esistenti per permettere loro di scalare efficacemente in base alla quantità di dati di addestramento.
+
+Le innovazioni introdotte da XGBoost per ottimizzare le performance includono:
+
+- L'adozione di **approcci approssimati** per individuare il punto di split ottimale, superando i limiti della scansione esaustiva.
+
+- L'utilizzo dell'**elaborazione parallela** per velocizzare la ricerca dei punti di divisione. È importante notare che non è possibile parallelizzare la creazione dei diversi alberi di decisione, poiché ognuno dipende dal precedente.
+
+- Un sistema di accesso ai dati **cache-aware**, che ottimizza il modo in cui le informazioni vengono lette dalla memoria.
+
+- L'integrazione di tecniche di **regolarizzazione** e **pruning** (potatura) che vengono applicate direttamente durante la fase di branching (ramificazione) dell'albero.
+
+### L'Algoritmo Exact Greedy per la Ricerca dello Split
+
+Per comprendere il funzionamento interno di un albero, analizziamo l'**Exact Greedy Algorithm**. Questo algoritmo ha il compito di trovare la divisione dei dati che massimizza il guadagno informativo, esaminando ogni possibile punto di split per ogni feature.
+
+[INSERIRE IMMAGINE: Grafico a dispersione che mostra i punti dati su un piano cartesiano definiti dalle variabili Time e Project, con una linea rossa che indica una possibile divisione]
+
+Per illustrare il processo, consideriamo un esempio pratico basato su sei studenti, di cui analizziamo le variabili **Time** (tempo) e **Project** (progetto) per predirne un valore target **y**:
+
+| **Studente** | **Time** | **Project** | **y** | **r0​** |
+| ------------ | -------- | ----------- | ----- | ------- |
+| 2            | 10       | 1           | 18    | -6      |
+| 1            | 20       | 2           | 30    | 6       |
+| 6            | 30       | 1           | 21    | -3      |
+| 4            | 30       | 2           | 25    | 1       |
+| 3            | 40       | 4           | 30    | 6       |
+| 5            | 50       | 3           | 20    | -4      |
+|              |          |             |       |         |
+
+Il calcolo inizia definendo la predizione iniziale $F_0$, che corrisponde alla media dei valori target $y$, ovvero $F_0 = 24$. Da questo valore si ricavano i residui iniziali $r_0$, ottenuti sottraendo la media ai valori reali (ad esempio, per lo studente 2: $18 - 24 = -6$). Il punteggio della radice, denominato **score_root**, viene inizialmente impostato a 0, poiché la somma dei residui iniziali è nulla.
+
+L'algoritmo procede quindi a valutare i possibili candidati per lo split. Una delle condizioni testate è, ad esempio, **Time <= 15**.
+
+[RIFERIMENTO VISIVO DEL PROFESSORE: Nelle slide dalla 13 alla 20, viene mostrato graficamente come l'algoritmo "Exact Greedy" scansiona sequenzialmente tutti i possibili valori delle feature. Una linea rossa si muove lungo gli assi del grafico "Time" e "Project" per testare ogni possibile divisione e calcolarne il relativo punteggio]
+
+Durante questa scansione sistematica, per ogni divisione ipotizzata vengono calcolati due valori: lo **score_left** e lo **score_right**. Nel caso dello split su **Time <= 15**, lo studente 2 (residuo -6) viene isolato nel ramo sinistro, generando uno $score_{left} = 36$, mentre gli altri cinque studenti finiscono nel ramo destro, producendo uno $score_{right} = 6$. Questo metodo garantisce di trovare il punto di divisione matematicamente ottimale, ma risulta estremamente oneroso dal punto di vista computazionale perché costringe il sistema a enumerare ogni singola possibilità.
+
+### Concetti Chiave
+
+1. **XGBoost**: Algoritmo evoluto basato sul Gradient Boosting che introduce parallelismo e ottimizzazioni di memoria per gestire dataset massivi.
+
+2. **Exact Greedy Algorithm**: Metodo di ricerca che scansiona ogni valore di ogni feature per individuare lo split migliore.
+
+3. **Pseudo-residui ($r_0$)**: La differenza tra il valore target reale e la stima attuale, utilizzati come obiettivo per l'addestramento del prossimo albero nell'ensemble.
+
+4. **Score (Root/Left/Right)**: Metriche numeriche utilizzate per valutare la qualità di una divisione dei dati all'interno di un nodo dell'albero.
+
+---
+
+### Calcolo del Guadagno e Costruzione dell'Albero
+
+Proseguendo con l'esempio pratico basato sui dati degli studenti (variabili **Time** e **Project** rispetto al target **y**), l'algoritmo valuta un nuovo possibile punto di divisione. Nello specifico, il sistema testa la condizione **Project <= 1**.
+
+Per comodità, richiamiamo la tabella dei dati analizzati:
+
+| **Studente** | **Time** | **Project** | **y** | **r0​** |
+| ------------ | -------- | ----------- | ----- | ------- |
+| 2            | 10       | 1           | 18    | -6      |
+| 1            | 20       | 2           | 30    | 6       |
+| 6            | 30       | 1           | 21    | -3      |
+| 4            | 30       | 2           | 25    | 1       |
+| 3            | 40       | 4           | 30    | 6       |
+| 5            | 50       | 3           | 20    | -4      |
+
+Applicando la regola **Project <= 1**, i dati vengono divisi in due rami. Il ramo sinistro ("y", yes) accoglie gli studenti 2 e 6, i cui residui sono rispettivamente -6 e -3. Il ramo destro ("n", no) riceve i restanti studenti con residui 6, 1, 6 e -4.
+
+[INSERIRE IMMAGINE: Albero di decisione parziale che mostra lo split sulla condizione "Project <= 1". Il ramo sinistro "y" porta a un nodo foglia con i valori -6 e -3, mentre il ramo destro "n" porta a un nodo con i valori 6, 1, 6 e -4.]
+
+A questo punto, l'algoritmo calcola il punteggio per ciascun ramo. Il punteggio del nodo sinistro si ottiene quadrando la somma dei residui e dividendo per il numero di elementi: $score_{left} = \frac{(\sum r_0(i))^2}{2} = 40,5$. Seguendo la stessa logica, il punteggio del nodo destro risulta essere: $score_{right} = \frac{(\sum r_0(i))^2}{4} = 20,25$.
+
+L'elemento cruciale per decidere se confermare questa divisione è il calcolo del **gain** (guadagno). La formula applicata è: $gain = score_{left} + score_{right} - score_{root} + \gamma$. All'interno di questa equazione, la variabile $\gamma$ rappresenta la **pruning constant** (costante di potatura). In questo specifico scenario, il valore della costante è posto a -0. Sostituendo i valori calcolati, il guadagno riportato dall'algoritmo ammonta a 42.
+
+L'albero continua a espandersi ricorsivamente. Ad esempio, il ramo destro subisce una successiva diramazione basata sulla condizione **Time <= 45**. Al termine della costruzione, per ogni foglia terminale viene calcolato l'output finale, che corrisponde semplicemente alla media dei residui contenuti in quella foglia, secondo la formula: $output = \frac{1}{n} \sum r_i$. Grazie a questo calcolo, le tre foglie finali dell'esempio ottengono rispettivamente i valori di output **-4.5**, **4.3** e **-3**.
+
+### I Limiti dell'Exact Greedy Algorithm
+
+Nonostante l'approccio Exact Greedy garantisca di trovare matematicamente il punto di divisione perfetto, si rivela gravemente inefficiente per applicazioni su larga scala.
+
+Il motivo di questa inefficienza risiede nel fatto che il sistema non è in grado di enumerare tutte le possibili divisioni (che possono arrivare fino a *n* split possibili per ogni singola feature) in tempi ragionevoli. Di conseguenza, il tempo di elaborazione richiesto per processare ogni singolo nodo cresce in maniera proporzionale, richiedendo un tempo pari a **(#feature $\times$ #data points)**.
+
+### Introduzione all'Histogram-based Split Finding
+
+Per superare il blocco computazionale appena descritto, i sistemi moderni abbandonano l'Exact Greedy in favore di un approccio noto come **Histogram-based Split Finding**.
+
+[RIFERIMENTO VISIVO DEL PROFESSORE: Grafico a dispersione che mostra i punti dati distribuiti sugli assi "Time" e "Project". L'asse "Time" è suddiviso orizzontalmente in specifiche fasce di valore (0-20, 20-40, 40-60), anticipando visivamente il concetto di partizionamento a blocchi tipico degli istogrammi.]
+
+L'idea fondamentale alla base di questo metodo è rinunciare alla precisione assoluta della scansione punto per punto, raggruppando invece i dati in segmenti più ampi per velocizzare drasticamente la ricerca dello split ottimale.
+
+---
+
+### Concetti Chiave
+
+1. **Score e Gain**: Metriche matematiche fondamentali. Lo *score* valuta la purezza di un singolo nodo, mentre il *gain* quantifica il miglioramento complessivo apportato da uno split rispetto al nodo padre.
+
+2. **Pruning Constant ($\gamma$)**: Un parametro utilizzato nel calcolo del guadagno che serve a controllare la complessità dell'albero; se il guadagno non supera questa soglia, lo split può essere "potato" (ignorato).
+
+3. **Inefficienza dell'Exact Greedy**: Limite strutturale dell'algoritmo di base, il cui costo temporale scala moltiplicando il numero di feature per il numero di punti dati ($O(F \times N)$), rendendolo inadatto a dataset massivi.
+
+4. **Histogram-based Split Finding**: Tecnica di ottimizzazione che mira a risolvere l'inefficienza dell'Exact Greedy, approssimando la ricerca degli split raggruppando i valori delle feature in istogrammi.
+
+---
+
+### La Ricerca degli Split basata su Istogrammi (Histogram-based Split Finding)
+
+Come abbiamo precedentemente osservato, l'approccio exact greedy risulta estremamente oneroso, poiché richiede un tempo di calcolo proporzionale al numero di feature moltiplicato per il numero di punti dati per ogni singolo nodo elaborato. A causa di questo limite, non è materialmente possibile enumerare e testare tutte le possibili divisioni in scenari complessi , dato che ogni singola feature potrebbe presentare fino a *n* split potenziali. Per superare questo collo di bottiglia, l'informatica moderna impiega la tecnica dell'**Histogram-based Split Finding**. Questo metodo sfrutta gli istogrammi come strumento per aggregare valori consecutivi all'interno dei dati. Invece di analizzare ogni punto, i possibili valori assunti da una feature vengono raggruppati all'interno di un determinato numero di "bin" (contenitori virtuali); questa suddivisione può avvenire in modo uniforme oppure seguendo la distribuzione basata sui percentili dei dati. Di conseguenza, è fondamentale prevedere un aggiornamento tempestivo dell'istogramma ogniqualvolta si genera un nuovo nodo nell'albero decisionale , tenendo conto che questa partizione a blocchi può essere applicata sia a livello globale che locale.
+
+[INSERIRE IMMAGINE: Istogramma a barre che mostra la somma dei residui suddivisa per specifici intervalli o bin predefiniti, nello specifico per le fasce 0-20, 20-40 e 40-60 ]
+
+Grazie a questa categorizzazione per fasce, l'efficienza aumenta radicalmente: la ricerca di ogni split richiederà un tempo proporzionale unicamente al numero di feature moltiplicato per il numero di bin, saltando la scansione estenuante di ogni singolo record. Da un punto di vista tecnico, fissando un parametro *b* bit, i valori originali della feature vengono direttamente quantizzati all'interno di $2^b$ bin. Il vantaggio di tale ottimizzazione è cruciale per poter addestrare dataset di proporzioni gigantesche garantendo al contempo un impatto minimo sulla memoria del sistema (memory footprint). Basti pensare che, sfruttando questa tecnica, processare il dataset Higgs contenente 10 milioni di istanze su una GPU consuma solamente 611MB di RAM. Per fornire un quadro delle configurazioni standard, l'algoritmo imposta solitamente di default l'utilizzo di 255 bin, che vengono ridotti a 16 bin se si elabora tramite processore grafico (GPU).
+
+[RIFERIMENTO VISIVO DEL PROFESSORE: Viene mostrato un istogramma a colonne che mette a confronto il tempo di addestramento misurato in secondi. Il grafico valuta dataset molto noti come Higgs, epsilon, Bosch, Microsoft-LTR, Expo e Yahoo-LTR. I test presentano le performance ottenute variando i bin a 255, 63 e 15, ed eseguendo le operazioni sia su una CPU da 28-Core sia su schede grafiche come AMD RX 480 e NVIDIA GTX 1080 ]
+
+### L'Architettura Innovativa di LightGBM
+
+L'algoritmo **LightGBM** è stato formalmente introdotto da Microsoft nel 2016, con il chiaro scopo di processare dataset enormi in maniera ancora più veloce di quanto facesse già XGBoost. Pur basando le proprie fondamenta sul concetto di Histogram-based split finding , gli sviluppatori si resero conto che la sola operazione di costruzione e continuo aggiornamento degli istogrammi restava comunque dispendiosa in termini di tempo, essendo sempre ancorata alla proporzione derivata da #features $\times$ #data points. Per abbattere anche questa barriera computazionale, LightGBM agisce contemporaneamente su due fronti: riduce drasticamente sia il numero delle istanze di dati da processare, sia il numero delle feature effettive. Questi due obiettivi vengono conseguiti attraverso due metodologie proprietarie: il campionamento **Gradient-based One-side Sampling (GOSS)** e il raggruppamento **Exclusive Feature Bundling (EFB)**.
+
+### Riduzione dei Dati: Gradient-based One-side Sampling (GOSS)
+
+La missione principale del GOSS è abbassare il quantitativo di punti dati che partecipano alla delicata fase di adattamento (fitting) dell'albero di regressione. È pratica comune per moltissimi algoritmi di ensemble learning eseguire un banale campionamento casuale uniforme (random sampling) per cercare di sveltire i calcoli. LightGBM stravolge questo approccio: evita il campionamento casuale puro e guida la selezione dei dati soppesando la dimensione del valore assoluto dei residui, che corrisponde essenzialmente al gradiente. Questa strategia nasce dall'intuizione che dati caratterizzati da gradienti nettamente diversi svolgano ruoli differenti quando si tratta di calcolare il guadagno informativo. Pertanto, tutte quelle istanze di dati che presentano un residuo piccolo (ovvero per cui il sistema si sta già sbagliando di poco) possono essere deliberatamente escluse dai passi successivi di addestramento, poiché le loro predizioni risultano essere già altamente affidabili.
+
+Il meccanismo interno del GOSS si governa tramite due parametri: il parametro *a*, che definisce il tasso di campionamento dedicato esclusivamente ai dati con gradiente elevato , e il parametro *b*, destinato a indicare il tasso di campionamento per i dati con gradiente più basso. Prendiamo come esempio un panorama con $n=20$ istanze totali, assegnando artificialmente il valore $a=0.15$ e il valore $b=0.3$. Il protocollo impone per prima cosa di ordinare minuziosamente l'intero set di dati seguendo l'ordine del valore assoluto del residuo. Da questa graduatoria, l'algoritmo preleva un gruppo speciale chiamato TOP, formato esclusivamente dai $t = a \times n = 3$ punti associati ai valori residui più grandi in assoluto. A seguire, seleziona in modo rigorosamente casuale un secondo gruppo, denominato RANDOM, che in questo caso conterrà $l = b \times n = 6$ punti, scelti unicamente fra i punti scartati in precedenza. Per non sbilanciare l'apprendimento, LightGBM inietta una ponderazione matematica: tutte le istanze rientrate nel gruppo TOP ricevono un peso pari a 1 , mentre tutte le istanze del gruppo RANDOM ricevono un peso di compensazione calcolato esattamente con la formula $\frac{1-a}{b}$. Il passo finale consiste nell'addestrare il successivo albero della sequenza impiegando solamente questa manciata di punti (sia TOP che RANDOM) attentamente campionati e moltiplicati per il loro nuovo peso specifico $w$.
+
+| **Time** | **Project** | **y** | **r0​** | **W** |
+| -------- | ----------- | ----- | ------- | ----- |
+| 10       | 1           | 18    | -6      | 1     |
+| 20       | 2           | 30    | 6       | 1     |
+| 40       | 4           | 30    | 6       | 1     |
+| 50       | 3           | 20    | -4      | 2.83  |
+| 30       | 1           | 21    | -3      | 2.83  |
+| 30       | 2           | 25    | 1       | 2.83  |
+
+(Tabella esemplificativa dei valori e dei pesi $W$ generati dal processo GOSS illustrato)
+
+### Riduzione delle Feature: Exclusive Feature Bundling (EFB)
+
+L'altra innovazione cruciale è l'**Exclusive Feature Bundling (EFB)**, concepita espressamente per abbattere l'enorme ammontare di feature attribuite a ciascun punto analizzato. I moderni set di dati ad alta dimensionalità sono contraddistinti da una spiccata sparsità; possiedono, cioè, una quantità esigua di componenti diverse da zero disseminate in colonne perlopiù vuote. Un'osservazione decisiva è che molte di queste feature sono reciprocamente esclusive: non si verifica quasi mai la condizione per cui due variabili simili assumano simultaneamente un valore diverso da zero. L'approccio EFB garantisce una tecnica virtualmente priva di perdita di dati (nearly lossless) strutturata appositamente per snellire questo panorama. Tale metodo fonde (tramite un bundle) queste feature esclusive, raggruppandole in totale sicurezza all'interno di una sola, nuova feature composita. Se è pur vero che l'algoritmo perfetto per partizionare tutte le feature nel minor quantitativo possibile di bundle sia matematicamente classificato come un problema NP-hard , l'implementazione in LightGBM risulta eccezionale per limare i tempi tecnici: una volta formati i cluster, valutare ogni nuovo split costerà al sistema un tempo dipendente semplicemente dal numero di bundle per il numero di bin (indicato come #buddles $\times$ #bins).
+
+| **id** | **Midterms** | **Exam** | **M&E** |
+| ------ | ------------ | -------- | ------- |
+| 1      | 1            | 0        | 1       |
+| 2      | 0            | 1        | 2       |
+| 3      | 0            | 1        | 2       |
+| 4      | 1            | 0        | 1       |
+| 5      | 0            | 0        | 0       |
+| 6      | 1            | 0        | 1       |
+
+(Tabella che dimostra operativamente il concetto di EFB: le colonne esclusive 'Midterms' ed 'Exam' vengono raggruppate senza perdita di logica nella nuova e singola colonna 'M&E')
+
+### Valutazione Sperimentale dei Modelli GBDT
+
+L'impatto di simili architetture viene ampiamente validato dalla comunità accademica. Un punto di riferimento essenziale è lo studio "An Experimental Evaluation of Large Scale GBDT Systems", redatto dagli accademici Fangcheng Fu, Jiawei Jiang, Yingxia Shao e Bin Cui e pubblicato nel contesto del pVLDB nel 2019.
+
+[RIFERIMENTO VISIVO DEL PROFESSORE: Si evidenziano i grafici dei risultati empirici tratti dal documento, che tracciano l'andamento della Valid AUC (misura di accuratezza) in funzione del tempo speso in secondi. Le curve presentate confrontano chiaramente le prestazioni dei sistemi Vero, DimBoost, LightGBM e XGBoost testati a fondo su scenari di enorme complessità, includendo i famosi dataset denominati (a) SUSY, (b) Higgs, (e) RCV1 e (f) Synthesis ]
+
+### Verso l'Inferenza Efficiente: Panoramica e Complessità
+
+Passando dalla teoria dell'addestramento all'applicazione reale, incontriamo il vasto argomento dell'**Inferenza Efficiente di Ensemble di Alberi di Regressione**. Come già menzionato, per orchestrare i modelli di Learning-to-Rank si dispiega una moltitudine di architetture, genericamente raggruppabili sotto la dicitura di "Foresta di alberi": vi rientrano, tra i vari, GBRT, Lambda MART, Random Forest e Oblivious Trees. Ognuno di questi agglomerati poggia sul principio di far collaborare centinaia o migliaia di "weak learners" (i singoli alberi di decisione), laddove ogni unità esprime un minuscolo contributo, ovvero un punteggio parziale. Lo score categorico assegnato infine a un documento equivale logicamente all'addizione completa di tutti questi sotto-punteggi.
+
+La vera criticità emerge nel momento topico del calcolo del punteggio (il cosiddetto scoring time): per valutare l'effettiva pertinenza di un singolo elemento, il motore deve rigorosamente processare l'intera selva di alberi costruita durante la fase offline. Le metriche standard delineano uno scenario computazionalmente brutale: il numero totale di alberi impiegati, etichettato con la variabile $M$, conta frequentemente dalle 1.000 alle 20.000 unità (1K-20K). Ognuno di essi nasconde una struttura densa ramificata in un range che va dalle 16 alle 512 foglie finali. Tutto l'impianto viene alimentato da un vocabolario di parametri esteso tra le 100 e le 2000 feature processate costantemente. Matematicamente, una determinata combinazione originata da una query e dal relativo documento, denotata con $(q, d)$, transita attraverso i nodi $T_1$, $T_2$ fino al terminale $T_n$ generando i relativi frammenti numerici $s_1$, $s_2$ fino a $s_n$; frammenti che saranno poi inglobati nell'espressione ricapitolativa $s(d)=\sum_{i=1}^{n}s_{i}$ per decretare il posizionamento esatto in graduatoria .
+
+[INSERIRE IMMAGINE: Illustrazione del flusso di inferenza parallela per una coppia (q, d) interrogata simultaneamente da alberi multipli (da T1 a Tn). Sotto ogni albero compaiono nodi rettangolari, dai quali scendono frecce tratteggiate verso i rispettivi risultati parziali s1, s2, sn che infine convergono su un'unica linea del punteggio totale ]
+
+---
+
+### Concetti Chiave e Glossario
+
+1. **Histogram-based Split Finding**: Innovativa tecnica per raggruppare i valori di una feature in piccoli scaglioni ("bin" o istogrammi), riducendo drasticamente il costo della scansione dei dati durante l'apprendimento e rendendo obsoleto il dispendioso Exact Greedy Algorithm.
+
+2. **LightGBM**: Imponente architettura ad albero strutturata originariamente da Microsoft, ideata per soverchiare XGBoost velocizzando il trattamento di masse enormi di dati tramite campionamenti predittivi mirati.
+
+3. **GOSS (Gradient-based One-side Sampling)**: Modello di campionamento selettivo asimmetrico: preserva e preleva con probabilità massima tutte quelle istanze che esprimono un margine d'errore elevato (alto gradiente), pescando in misura minore dai cluster con dati ben classificati.
+
+4. **EFB (Exclusive Feature Bundling)**: Filosofia che argina la "maledizione della dimensionalità" tipica dei database sparsi (sparse data); fonde variabili reciprocamente esclusive rendendole un unico vettore condensato quasi senza decurtazione di valore logico.
+
+5. **Inferenza e Scoring Time**: La prova su strada post-addestramento. Durante lo scoring time un modello LtR calcola dal vivo l'aderenza di un documento sommando il contributo microscopico emesso individualmente da ogni singola "foglia" interpellata nell'intero bosco di migliaia di alberi del modello.
+
+---
+
+### I Problemi degli Approcci Tradizionali e la Naïve Baseline
+
+Una volta addestrato un modello complesso, il calcolo del punteggio per un documento richiede l'attraversamento fisico di ogni singolo albero. L'approccio di base, noto come **Naïve baseline**, prevede che ogni nodo dell'albero sia rappresentato come un oggetto informatico contenente l'identificatore della feature (feature id), la soglia di riferimento (threshold) e i puntatori per muoversi verso il ramo sinistro o destro. A livello di codice, questa architettura si traduce tipicamente in classici blocchi condizionali "If-then-else". Il programma valuta una condizione, ad esempio `if (x[4] <= 50.1)`, e procede ricorsivamente sul sotto-albero sinistro in caso affermativo, o sul sotto-albero destro in caso contrario . Se si raggiunge una foglia, il sistema restituisce semplicemente un valore numerico, come ad esempio `return 0.4;` o `return -1.4;` .
+
++3
+
+[INSERIRE IMMAGINE: Struttura condizionale If-then-else che modella il passaggio tra i nodi di un albero di decisione, in base a soglie predefinite per specifiche feature]
+
+Questo meccanismo apparentemente lineare nasconde gravi falle prestazionali. In primo luogo, il sistema è costretto a "pagare" computazionalmente sempre per l'intera profondità dell'albero (depth of the tree). In secondo luogo, questi salti continui causano un alto tasso di errata predizione dei salti da parte del processore (**High branch misprediction rate**) e portano a un bassissimo tasso di hit nella cache di memoria (**Low cache hit ratio**). La comunità di ricerca ha tentato di proporre tecniche allo stato dell'arte (SoA) per arginare il problema, tra cui spiccano **Struct+** e **VPred**. Quest'ultimo, ad esempio, implementa funzioni ottimizzate per elaborare la profondità, come la funzione C-like `double depth4(float x, Node nodes)` che estrae l'identificatore del nodo e aggiorna sequenzialmente il suo indice calcolando il percorso sui figli per poi ritornare gli score finali . Ciononostante, i colli di bottiglia legati all'architettura hardware rimangono presenti.
+
++4
+
+### L'Intuizione di QuickScorer: Oltre l'If-Then-Else
+
+Per superare radicalmente queste inefficienze fisiche e logiche, è stato introdotto l'algoritmo **QuickScorer**. Il successo di questo metodo si fonda su due ingredienti principali: da una parte propone un attraversamento alternativo per ogni singolo albero (Alternative traversal of a single tree), dall'altra è in grado di processare l'intera foresta di alberi simultaneamente (Process the whole forest at once).
+
++1
+
+Il funzionamento di QuickScorer durante l'attraversamento del singolo albero (Single Tree Traversal) abbandona completamente il concetto di navigazione gerarchica. Al contrario, l'algoritmo esamina le condizioni imposte dai nodi classificandole categoricamente in **True Node** (Nodo Vero) e **False Node** (Nodo Falso).
+
++2
+
+[RIFERIMENTO VISIVO DEL PROFESSORE: Un albero decisionale colorato in verde e rosso per distinguere visivamente i nodi veri da quelli falsi, con le foglie numerate da 0 a 7, e affiancato da array di bit ("Result") che subiscono operazioni logiche per isolare il valore finale ]
+
++1
+
+La genialità di QuickScorer risiede nell'utilizzo delle maschere per i nodi falsi (use of false nodes' masks). Ogni nodo dell'albero è associato a uno specifico vettore di bit (bitvector). L'algoritmo inizializza un vettore "Result" (Risultato) impostando tutti i bit a 1, come ad esempio la stringa `11111111` che rappresenta le 8 foglie terminali di un ipotetico albero. Successivamente, il sistema identifica esclusivamente i nodi la cui condizione non è soddisfatta (i nodi falsi) e applica un'operazione logica **AND** sequenziale tra il vettore "Result" e i bitvector associati a questi nodi. In virtù delle proprietà matematiche dell'operazione AND condotta su questi vettori (ad esempio combinando `00011111` e `11111101`), il risultato isola esattamente il bit corrispondente alla foglia finale corretta.
+
++4
+
+Questo stratagemma matematico rende il processo totalmente **insensibile all'ordine di elaborazione dei nodi** (Insensitive to nodes' processing order!). Potendo demandare a un "oracolo" la semplice stesura della lista dei nodi falsi, l'algoritmo abbatte la necessità di eseguire istruzioni di salto, azzerando di fatto le "branches" (No branches) e annientando così il problema della branch misprediction.
+
++2
+
+### Attraversamento Interlacciato e Disposizione dei Dati
+
+Il secondo ingrediente fondamentale di QuickScorer è l'attraversamento interlacciato degli alberi (Interleaved tree traversals), che permette di processare la foresta in blocco. Per ottenere ciò, i dati non vengono più immagazzinati come alberi logici separati, ma vengono spacchettati in una serie di array contigui in memoria.
+
++1
+
+Specificamente, le soglie di divisione vengono raggruppate per feature (da f0​, f1​ fino a f∣F∣−1​) e salvate all'interno di un grande array denominato `thresholds`, rigorosamente ordinate per valori crescenti (increasing values) . L'architettura prevede un array `offsets` di dimensione ∣F∣ che funge da indice, un array `tree_ids` per rintracciare la provenienza di ciascun nodo e il contenitore dei `bitvectors`. I risultati finali sono gestiti tramite gli array ausiliari `v` e `leaves`, entrambi dipendenti dal numero delle foglie . Incolonnando l'esecuzione con questa struttura dati orizzontale, QuickScorer ribalta le prestazioni: assicura un basso tasso di branch misprediction (Low branch misprediction rate) e massimizza l'efficienza della memoria con un alto cache hit ratio.
+
++4
+
+[INSERIRE IMMAGINE: Schema che rappresenta l'architettura lineare degli array di QuickScorer: offsets che puntano alle sezioni dell'array thresholds (ordinato in modo crescente), seguiti dagli array tree_ids, bitvectors, v e leaves]
+
+### Valutazione e Risultati Sperimentali
+
+L'efficacia pratica di questa architettura è stata dimostrata tramite approfonditi test comparativi che misurano il tempo di scoring per singolo documento, espresso in microsecondi, e il relativo fattore di accelerazione (speedup). I test sono stati condotti utilizzando dataset di riferimento del settore come **MSN-1** e **Y!S1**. L'esperimento ha valutato foreste di densità crescente, testando insiemi di 1.000, 5.000, 10.000 e fino a 20.000 alberi decisionali. Nelle batterie di prova, sono stati confrontati fianco a fianco quattro metodi: **QS** (QuickScorer), **VPRED**, **IF-THEN-ELSE**, e **STRUCT+**. I modelli sono stati inoltre declinati in base al numero di foglie massime per albero: 8, 16, 32 e 64.
+
++1
+
+Di seguito una tabella sintetica che ritrae una porzione dei risultati su modelli da 1.000 e 5.000 alberi con foglie di livello 8 (i dati completi si estendono parallelamente per tutte le configurazioni analizzate):
+
+| Metodo           | Alberi: 1.000 (MSN-1) | Alberi: 1.000 (Y!S1) | Alberi: 5.000 (MSN-1) | Alberi: 5.000 (Y!S1) |
+| ---------------- | --------------------- | -------------------- | --------------------- | -------------------- |
+| **QS**           | 2.2 (-)               | 4.3 (-)              | 10.5 (-)              | 14.3 (-)             |
+| **VPRED**        | 7.9 (3.6x)            | 8.5 (2.0x)           | 40.2 (3.8x)           | 41.6 (2.9x)          |
+| **IF-THEN-ELSE** | 8.2 (3.7x)            | 10.3 (2.4x)          | 81.0 (7.7x)           | 85.8 (6.0x)          |
+| **STRUCT+**      | 21.2 (9.6x)           | 23.1 (5.4x)          | 107.7 (10.3x)         | 112.6 (7.9x)         |
+
+I dati confermano che QuickScorer sovraperforma nettamente i metodi precedenti, offrendo speedup enormi rispetto alla naive baseline If-then-else e surclassando anche le tecniche più avanzate come Struct+ e VPred in ogni ordine di scala.
+
+---
+
+### Glossario e Concetti Chiave
+
+- **Branch Misprediction**: L'errore che commette il processore del computer quando tenta di indovinare in anticipo la destinazione di un'istruzione condizionale (come un `if`). Nelle foreste decisionali tradizionali, l'imprevedibilità dei rami causa continui "vuoti" computazionali e rallentamenti.
+
+- **QuickScorer**: Innovativo algoritmo di inferenza che abbandona l'esplorazione gerarchica degli alberi, convertendo la struttura di decisione in array lineari ordinati ed eseguendo calcoli matematici logici al posto dei salti condizionali.
+
+- **Bitvector / Maschere di bit**: Insiemi di bit associati a ciascun nodo dell'albero in QuickScorer. Attraverso operazioni di AND logico basate esclusivamente sui nodi di cui non si è verificata la condizione ("False Nodes"), il sistema riesce a isolare direttamente l'indice della foglia risolutiva per assegnare il punteggio finale.
+
+- **Interleaved Tree Traversals**: La logica strutturale di QuickScorer che consiste nell'impacchettare i dati di tutti gli alberi per raggrupparli in sequenza per "feature" e ordinarli. Questo permette al processore di leggere e valutare i dati della memoria cache in un flusso continuo e altamente efficiente.
+
+---
+
+# Slide 10:# Modelli Linguistici
+
+In questa prima sezione dedicata all'elaborazione del linguaggio naturale, esploreremo le fondamenta dei modelli computazionali usati per la rappresentazione dei testi, partendo dagli approcci stocastici per arrivare alle moderne reti neurali.
+
+### Modelli Probabilistici e Modello Statistico del Linguaggio
+
+L'indagine parte dall'analisi dei **modelli probabilistici**. Un **modello statistico del linguaggio** può essere definito, nella sua essenza, come una distribuzione di probabilità $P$ che viene applicata a specifiche sequenze di termini. Immaginiamo di analizzare un documento $d$ che è composto da una precisa sequenza di parole, come ad esempio $w_{1}w_{2}w_{3}$. Tramite l'applicazione delle leggi della probabilità condizionata, possiamo calcolare la probabilità dell'intero documento tramite la seguente espressione: $P(d)=P(w_{1}w_{2}w_{3})=P(w_{1})P(w_{2}|w_{1})P(w_{3}|w_{1}w_{2})$. Sulla base delle diverse assunzioni che decidiamo di fare su questa distribuzione di probabilità, abbiamo la possibilità di creare modelli statistici che presentano differenti gradi di complessità. La formula appena citata è, a livello teorico, perfetta: essa non fa alcuna assunzione pregressa ed è quindi capace di modellare in modo esatto le caratteristiche di qualsiasi lingua. Tuttavia, si rivela totalmente impraticabile all'atto pratico, dal momento che per funzionare richiederebbe di imparare le probabilità di letteralmente qualsiasi sequenza di parole che possa esistere nel linguaggio considerato.
+
+### Modello a Unigrammi e Modelli N-gram
+
+Per superare i limiti computazionali del modello generale, occorre introdurre delle assunzioni semplificative. Il **modello a unigrammi** assume che esista un'assoluta indipendenza statistica tra le varie parole di un testo. In base a questa regola, la probabilità che un documento $d$ esista è semplicemente data dal prodotto matematico delle probabilità singole delle sue parole: $P(d)=P(w_{1}w_{2}w_{3})=P(w_{1})P(w_{2}|w_{1})P(w_{3}|w_{1}w_{2}) = P(w_{1})P(w_{2})P(w_{3})=\prod_{i}P(w_{i})$. Proprio per via di questa forte e irrealistica assunzione di indipendenza, il classificatore bayesiano che sfrutta tale logica viene denominato "naïve" (ingenuo). A livello ingegneristico, questi modelli utilizzano comunemente i logaritmi delle probabilità per poter operare in modo più agevole all'interno di uno spazio lineare: $\log(\prod_{i}P(w_{i}))=\sum_{i}\log(P(w_{i}))$. Bisogna però considerare il problema dei termini rari o mancanti; per ovviare al rischio che il sistema generi probabilità pari a zero annullando il prodotto complessivo, si adotta una tecnica nota come **smoothing**, che solitamente consiste nell'aggiungere artificialmente un'unità ("add one") a tutte le frequenze calcolate.
+
+Un approccio capace di introdurre maggiore ricchezza informativa è il **modello a bigrammi**, o più genericamente il **modello n-gram**. A differenza dell'unigramma, il bigramma assume che vi sia una dipendenza statistica tra una data parola e quella che la precede immediatamente. Di conseguenza, la formula si sviluppa come segue: $P(d)=P(w_{1}w_{2}w_{3})=P(w_{1})P(w_{2}|w_{1})P(w_{3}|w_{1}w_{2}) = P(w_{1})P(w_{2}|w_{1})P(w_{3}|w_{2})=\prod_{i}P(w_{i}|w_{i-1})$. Sebbene sembri una modifica banale, questa semplice aggiunta rende il modello già ampiamente in grado di catturare una buona quantità di regolarità intrinseche del linguaggio. Applicando questo concetto su scale più ampie, emerge un evidente compromesso matematico (trade-off): maggiore è la lunghezza dell'n-gram che adottiamo nel nostro modello, maggiore è la quantità di semantica che viene catturata. D'altra parte, però, all'aumentare della lunghezza della stringa si abbassa la significatività statistica del modello stesso, sbilanciandolo verso un comportamento orientato alla pura memorizzazione a scapito della capacità di generalizzazione.
+
+### Modelli Neurali e l'Introduzione di Word2Vec
+
+Il vero punto di rottura rispetto alla tradizione si ottiene con il passaggio ai **modelli neurali**. Lo standard di riferimento in questo ambito è **Word2Vec**. I due principali approcci proposti dall'architettura di Word2Vec, noti come **Skip-gram** e **CBoW** (Continuous Bag-of-Words), definiscono due specifici task speculari: il primo si focalizza sulla predizione di un contesto a partire da una parola nota, mentre il secondo si occupa di predire una parola specifica basandosi sul suo contesto di contorno. Da un punto di vista strutturale, entrambi i meccanismi vengono implementati come una rete neurale lineare dotata di due soli livelli ("two-layers linear neural network"). All'interno di queste reti, sia le parole immesse in input che quelle attese in output sono fornite sotto forma di rappresentazioni di tipo "one-hot". Tali vettori sparsi vengono quindi prima codificati e successivamente decodificati verso e da una **rappresentazione densa** caratterizzata da una dimensionalità molto più contenuta.
+
+[INSERIRE IMMAGINE: Diagrammi a blocchi dei modelli Skip-gram e CBoW. Nel modello Skip-gram, la parola di input $w_t$ viene elaborata dal livello nascosto $h$ per generare le proiezioni sulle parole di contesto $w_{t-2}, w_{t-1}, w_{t+1}, w_{t+2}$. Nel modello CBoW, le parole di contesto $w_{t-2}, w_{t-1}, w_{t+1}, w_{t+2}$ convergono verso il livello nascosto $h$ per poter effettuare la predizione della parola centrale $w_t$.]
+
+### L'Apprendimento degli Embeddings e il Contesto
+
+Risulta fondamentale comprendere che gli **embeddings** (cioè i vettori d'incorporamento) costituiscono, di fatto, un semplice sottoprodotto ("byproduct") del task di predizione delle parole. Anche se le reti affrontano un evidente task di previsione, esse presentano il formidabile vantaggio di poter essere addestrate virtualmente su qualsiasi blocco di testo. Questo processo avviene in modo completamente non supervisionato, rimuovendo la necessità di impiegare lunghi e costosi dati etichettati dall'uomo ("human-labeled data").
+
+[INSERIRE IMMAGINE: Cattura dallo show televisivo "L'Eredità" in cui, attraverso il gioco del collegamento semantico, le parole indizio TITOLO, ESEMPIO, DOTTORE, SENZA, CONSERVARE e PIENO guidano alla predizione della parola mancante, evidenziando le dinamiche umane per le associazioni contestuali di termini. Il premio in palio mostrato è di 80.000 e si nota un errore ortografico nella parola ENERGIA barrata.]
+
+Per determinare quali parole facciano parte dell'orizzonte di analisi, si definisce la dimensione di una finestra di contesto ("context window size"). Tale parametro solitamente spazia in un range compreso tra due e cinque parole prima e dopo il termine centrale di riferimento. È interessante notare che adottare finestre di ampiezza maggiore (tipicamente tra i 6 e i 10 lemmi) consente di catturare una più ricca rete semantica, riducendo di conseguenza il peso delle sole relazioni sintattiche locali. Al termine del training, la dimensione tipica dei vettori di embedding risultanti in Word2Vec si assesta usualmente in un valore compreso tra le 200 e le 300 dimensioni.
+
+### Funzionamento Interno dei Livelli di Word2Vec
+
+La struttura della rete Word2Vec si basa sull'interazione di due specifici livelli funzionali. Il primo di questi strati prende in input la matrice $W_I$, che corrisponde alla rappresentazione altamente sparsa delle parole (ovvero il vettore "one-hot" avente una dimensione pari a $|F|$) e ha lo scopo di generare una nuova rappresentazione astratta, denotata come $h$, che incapsula le informazioni del contesto. Successivamente interviene il secondo strato, governato dalla matrice dei pesi $W_o$. Questo livello ha l'incarico di prendere l'astrazione vettoriale $h$ e convertirla in un vettore finale di probabilità $u$, il quale rappresenta l'effettiva predizione del target linguistico ricercato. Infine, tale output viene normalizzato ricorrendo alla nota funzione softmax.
+
+[INSERIRE IMMAGINE: Architettura dettagliata a due livelli di Word2Vec, che illustra il flusso informativo dove le parole del contesto (rappresentate da input come $w_{t-2}$, $w_{t-1}$, $w_{t+1}$, $w_{t+2}$) vengono moltiplicate per la matrice di input $W_I$ per creare l'astrazione nascosta $h$. Questa passa poi attraverso la matrice d'uscita $W_O$ creando la predizione $u$, applicando poi softmax per ottenere la parola predetta $w_t$.]
+
+L'aspetto teoricamente più incisivo di tutta questa architettura si verifica proprio nel primo strato di pesi della rete neurale: difatti, ogni singola riga della matrice $W_I$ costituisce esattamente l'embedding reale del termine. Questo valore vettoriale viene raffinato e calibrato in maniera incrementale lungo l'intero processo di addestramento legato al task della predizione contestuale. L'implicazione di questo addestramento iterativo è che quelle parole che condividono un uso analogo o contesti simili nel linguaggio naturale, finiranno inesorabilmente per essere collocate in posizioni affini nello spazio, assumendo quindi vettori di embedding tra loro molto simili. Straordinariamente, vari e articolati aspetti concettuali e relazionali del linguaggio si ritrovano modellati implicitamente nelle diverse dimensioni matematiche che costituiscono questi vettori densi.
+
+---
+
+### Concetti Chiave
+
+- **Modello Statistico del Linguaggio**: Distribuzione di probabilità che modella in forma quantitativa sequenze di termini e parole per predirne la corretta formulazione testuale.
+
+- **Smoothing**: Processo correttivo (ad esempio l'aggiunta di "1" a ogni frequenza contata) essenziale per impedire che i termini a probabilità zero inficino i calcoli a catena dei modelli probabilistici.
+
+- **Modelli N-gram**: Astrazioni statistiche in cui la occorrenza di un termine non è indipendente, ma condizionata da $n-1$ termini immediatamente precedenti nella sequenza grammaticale.
+
+- **Word2Vec**: Modello neurale lineare impiegato per derivare vettori rappresentativi densi (embeddings) del testo, operando attraverso i task non supervisionati di Skip-gram e CBoW.
+
+- **Embedding**: Rappresentazione vettoriale densa di limitate dimensioni, ottimizzata per riflettere le vicinanze d'uso di un termine, la cui estrazione avviene non come target ma come prezioso sottoprodotto del training neurale.
+
+---
+
+### Il Test degli Embeddings e l'Impatto dei Dati di Addestramento
+
+Per valutare l'efficacia delle rappresentazioni vettoriali, è fondamentale sottoporle a specifici test volti a verificare se gli embeddings siano effettivamente in grado di catturare le corrette proprietà sintattiche e semantiche del linguaggio.
+
+[INSERIRE IMMAGINE: Diagrammi vettoriali che illustrano come la distanza e la direzione tra le parole 'MAN' e 'WOMAN' siano parallele a quelle tra 'UNCLE' e 'AUNT', o tra 'KING' e 'QUEEN', dimostrando la capacità di catturare il genere. Un secondo schema mostra il parallelismo tra 'KING' e 'KINGS' rispetto a 'QUEEN' e 'QUEENS', evidenziando la cattura della pluralità.]
+
+Una delle metodologie più celebri è il test delle analogie. Questo test si basa su relazioni proporzionali e semantiche: ad esempio, ci si chiede quale concetto stia a Roma così come Parigi sta alla Francia ("Paris stands to France as Rome stands to ?"). Altri esempi includono "Writer stands to book as painter stands to ?" oppure "Cat stands to cats as mouse stands to ?". Matematicamente, questa complessa astrazione linguistica si risolve sorprendentemente attraverso basilari operazioni algebriche sui vettori; l'analogia geografica appena menzionata può essere approssimata con la formula matematica $e(\text{France}) - e(\text{Paris}) + e(\text{Rome}) \approx e(\text{Italy})$. Più in generale, data un'analogia del tipo $a : b = c : d$, il vettore incognito $d$ si calcola cercando nello spazio vettoriale il termine $x$ che massimizza il prodotto e la normalizzazione tra le distanze, con la formula $d = \arg\max_x \frac{(e(b) - e(a) + e(c))^T e(x)}{||e(b) - e(a) + e(c)||}$.
+
+Tuttavia, nell'analisi e nell'impiego dei vettori bisogna sempre tenere a mente l'importanza cruciale del contesto di origine. La specifica fonte (il dataset) sui cui un modello viene addestrato determina inevitabilmente quale specifica sfumatura semantica verrà catturata e prioritizzata. A dimostrazione di ciò, si può osservare come l'addestramento svolto su Wikipedia produca associazioni concettuali drasticamente diverse per alcuni termini ambigui rispetto a un addestramento condotto su un corpus testuale basato sui libri.
+
+| **Termine Analizzato** | **Prossimità su Modello WIKI** | **Prossimità su Modello BOOKS** | **Prossimità su Modello WIKI** | **Prossimità su Modello BOOKS** |
+| ---------------------- | ------------------------------ | ------------------------------- | ------------------------------ | ------------------------------- |
+| sega / chianti         | dreamcast                      | motosega                        | radda                          | merlot                          |
+| sega / chianti         | genesis                        | seghe                           | gaiole                         | lambrusco                       |
+| sega / chianti         | megadrive                      | seghetto                        | montespertoli                  | grignolino                      |
+| sega / chianti         | snes                           | trapano                         | carmignano                     | sangiovese                      |
+| sega / chianti         | nintendo                       | smerigliatrice                  | greve                          | vermentino                      |
+| sega / chianti         | sonic                          | segare                          | castellina                     | sauvignon                       |
+|                        |                                |                                 |                                |                                 |
+
+### Implementazione Pratica, FastText e le Parole OOV
+
+A livello di pratica ingegneristica, per il calcolo e la gestione computazionale degli embeddings, la nota libreria Python *Gensim* fornisce un'implementazione estremamente efficiente e ricca di dettagli utili. In termini di codice, l'addestramento è diretto: è sufficiente definire un input strutturato di frasi (`sentences = [['this', 'is', 'a', 'sentence'], ['this', 'is', 'another', 'sentence']]`), importare il modulo (`from gensim.models import Word2Vec`) e istanziare l'oggetto passandogli le frasi (`model = Word2Vec(sentences)`). Ovviamente, per finalità didattiche e di ricerca, esistono implementazioni di Word2Vec skip-gram scritte da zero utilizzando framework di alto livello come PyTorch.
+
+Un notevole passo evolutivo nella tecnica di rappresentazione vettoriale è stato introdotto da **FastText**. Questo approccio estende le logiche del classico modello di embedding di Word2Vec scendendo a un livello di granularità sub-lessicale, ovvero lavorando integrando gli n-grammi che compongono le singole parole. In FastText, una parola come "goodbye" non è più trattata come un singolo token indivisibile, ma viene esplosa ed è rappresentata anche attraverso il suo corredo di n-grammi, ai quali si sommano i delimitatori speciali '<' e '>' indicanti l'inizio e la fine del lemma. La parola si frammenta quindi in sequenze quali "<go", "goo", "ood", "odb", "dby", "bye" e "ye>". La lunghezza esatta dell'n-gramma da generare è un iperparametro liberamente configurabile, ma nella pratica comune la finestra tipica impone di includere tutti gli n-grammi aventi una lunghezza che varia dai 3 ai 6 caratteri.
+
+Alla luce di questa scomposizione, l'embedding definitivo di una parola viene calcolato dinamicamente eseguendo la somma vettoriale tra l'embedding standard della parola intera e l'embedding collettivo dei suoi frammenti (n-grammi) costitutivi. Sfruttare queste "subword information" garantisce tre colossali vantaggi sul campo. In primo luogo, dona al sistema la capacità inestimabile di calcolare e assegnare un embedding sensato anche a quelle parole **OOV** (Out Of Vocabulary), ovvero termini mai apparsi nel dataset di training originale. In secondo luogo, migliora sensibilmente la qualità della mappatura per tutte le parole afflitte da refusi o errori ortografici accidentali (misspelled words). Infine, a dimostrazione della sua scalabilità, FastText distribuisce oggi vettori preaddestrati su enormi corpus per oltre 200 lingue differenti. A titolo dimostrativo, lanciando una query sul termine "gearshift", il modello propone immediatamente affinità logiche strettissime (score prossimi a 0.77-0.79) con concetti derivati come gearing, flywheels, flywheel, gears, driveshafts, e varianti come driveshaft, daisywheel, wheelsets, epicycles e gearboxes. Allo stesso modo, fornendogli una parola scritta clamorosamente male come "accomodation" (mancante di una 'm'), la struttura a n-grammi colma l'errore associandovi prontamente variazioni come accomodations, l'esatto accommodation, o termini tematici robusti come accommodations, accommodative, accomodating, amenities, hostelling, catering, greenbelts o hospitality.
+
+### Dai Vettori di Parole alle Rappresentazioni di Documenti (Doc2Vec)
+
+Avanzando di un livello di astrazione, il problema successivo risiede nel comprendere come rappresentare non solo lemmi discreti, ma documenti completi all'interno di uno spazio continuo di embedding. Poiché, nella sua forma più elementare, un documento non è altro che un insieme ("set") di parole contenute al suo interno, la logica più elementare suggerisce di prendere i vettori densi di queste singole parole e combinarli assieme. Tramite operazioni statistiche come il calcolo della media ("average") oppure l'estrazione del valore massimo tra essi ("max pooling"), diviene possibile produrre un unico vettore riassuntivo che si fa carico dell'embedding del documento intero.
+
+Una strada più sofisticata e progettata *ad hoc* consiste nell'estendere l'architettura originaria di Word2Vec per modellarvi in forma esplicita i documenti, dando vita al modello noto come **Doc2Vec**. Proposto originariamente dai ricercatori Le e Mikolov, Doc2Vec altera il paradigma di Word2Vec integrando dimensioni di input aggiuntive destinate in via esclusiva a recepire gli identificatori di sistema unici legati ai documenti (identifiers of documents). Di riflesso a questa mutazione architetturale, la matrice di input $W_I$ assume una nuova dimensione di $(|D| + |F|) \cdot |h|$. Questo permette agli identificatori (Document ids) di essere mappati e proiettati esattamente nello stesso iperspazio astratto abitato fino a quel momento solo dalle parole. Sfruttando un modello addestrato in questa forma, è possibile procedere anche con l'inferenza di vettori per documenti totalmente nuovi e mai visti prima; sarà sufficiente passare alla rete le parole che compongono il nuovo documento e lasciare che il sistema vi posizioni lo spazio semantico.
+
+[INSERIRE IMMAGINE: Schema architetturale a rete neurale del sistema Doc2Vec. Insieme agli input di contesto temporale come $W_{t-2}$, $W_{t-1}$, $W_{t+1}$ e $W_{t+2}$, vi è un elemento di input distinto chiamato "docId" proiettato in una matrice $W_I$, i cui segnali convergono nel nodo nascosto $h$ e fuoriescono da $W_O$ verso la predizione finale filtrata da softmax.]
+
+In un approccio più "moderno" e svincolato, possiamo anche saltare le combinazioni matematiche a priori, e utilizzare direttamente e grezzamente gli embeddings delle singole parole come se fossero il primissimo strato di una più complessa rete neurale profonda, delegando interamente alla capacità esplorativa della rete neurale il gravoso compito di imparare e modellare implicitamente la totalità del contenuto semantico del documento lungo i suoi livelli convoluzionali o ricorrenti.
+
+### Gli Embeddings nell'Ecosistema delle Reti Neurali e il Padding
+
+Approfondendo l'aspetto implementativo all'interno del Deep Learning, il livello deputato all'embedding costituisce, di prassi, il primo strato operativo in assoluto di un'architettura neurale votata all'NLP. Strutturalmente si tratta di un semplice strato lineare fondato su una grande matrice di pesi $W$ la cui dimensione è $|F| [cite_start]\cdot n$, dove il parametro $n$ fissa brutalmente e deterministicamente la dimensione desiderata per lo spazio vettoriale (la lunghezza del vettore embedding per parola). Come accennato, tale matrice si assume l'incarico vitale di tradurre entità linguistiche isolate nelle celebri e lavorabili rappresentazioni dense (dense representations). La natura versatile di questo livello permette di inizializzarne i valori assegnando ai pesi vettori puramente casuali che verranno affinati in seguito, oppure sfruttando le solide basi offerte da vettori preaddestrati. Proprio in riferimento all'addestramento, qualora si scelgano pesi preaddestrati d'alta qualità, lo sviluppatore ha facoltà di "congelarli" mantenendoli fissi per tutta la sessione di addestramento, oppure di sbloccarli e aggiornarli ("updated"), avviando di fatto un processo di adattamento e fine-tuning dell'embedding stesso che gli permetterà di performare al meglio sullo specifico task in elaborazione.
+
+[INSERIRE IMMAGINE: Diagramma di flusso operativo dell'incorporamento nelle reti neurali. Un testo descrittivo testuale ("all work and no play...") entra come stringa e viene tokenizzato in una 'Sequenza di word ids' (es. [2,4,1,8,10,5,0,0...]). Attraversando un blocco centrale chiamato 'Embeddings', in cui convergono i valori preaddestrati, i numeri divengono una massiccia 'Sequenza di vettori di embedding', che alla fine del flusso si dirama alimentando i vari blocchi convoluzionali (Convolutional) o ricorrenti (Recurrent).]
+
+Per analizzare il diagramma esposto in precedenza con un caso d'uso: prendendo un frammento testuale grezzo ("Text") come "all work and no play...", la macchina elabora la sequenza di identificatori, che si configura in una lista intera, ad esempio [2,4,1,8,10,5,0,0,0,0,0,0]. Tale sequenza si infrange sul layer degli Embeddings (guidato dai "Pretrained values" se presenti) scaturendo in uscita un raggruppamento o sequenza di vettori, matrici multidimensionali che racchiudono file come `[0.2, -0.3, 0.9, -0.2... 0.8]`, `[-0.1, 0.7, 0.7, -0.1... -0.1]` e così via. Tutto questo è facilmente toccabile con mano esplorando i branch dei repository GitHub ufficiali di framework come Keras (es. `imdb_cnn.py`), dove viene palesato l'interfacciamento tra livelli linguistici e strati puramente computazionali Convolutional o Recurrent.
+
+Trattare dati in serie comporta però due insidie per l'architettura neurale, per le quali occorrono degli accorgimenti drastici: le OOV words e la necessità imperativa di allineamento dimensionale nel padding. Riguardo al primo problema, poiché i modelli linguistici (LMs) che si basano rigidamente su un vocabolario testuale fisso non sono capaci, per loro stessa natura progettuale, di gestire e modellare parole "Out Of Vocabulary", occorre aggirare l'ostacolo addizionando preventivamente allo spazio un elemento speciale artificiale noto come parola sconosciuta o "unknown word". Ovviamente, per poterla inglobare nell'architettura, la si correda subito del suo embedding isolato da far imparare progressivamente al sistema lungo le epoche di addestramento. Per via del loro funzionamento intrinseco volto alla parallelizzazione computazionale da affidare alle schede grafiche, le NNs tendono a non processare quasi mai frasi singole alla volta, preferendo raggruppare i campioni in un lotto unitario definito "batch" contenente $k$ esempi paralleli. Questo porta al secondo inghippo meccanico: per processare i flussi simultaneamente è strettamente tassativo che le sequenze fornite nel blocco posseggano una lunghezza spaccatamente identica l'una con l'altra. La tecnica per forzare questa uniformità richiede di prendere la frase di calibro maggiore nel lotto e di allungare artificialmente tutte le restanti. Questo avviene inserendo una speciale "**padding** word" (la parola riempitiva neutrale) per allungare le sentenze e fare perno (match) con la lunghezza massima. Anche tale token è affiancato da un suo micro-vettore embedding inattivo e l'inserimento non è arbitrario: la prassi impone d'essere puramente e inflessibilmente coerenti riguardo al posizionamento spaziale del padding, accodandolo o premettendo alle parole sempre e solo da un solo lato (before/after) in ogni computazione per impedire che l'ordine sequenziale causi danni nel processamento.
+
+### L'Evoluzione verso la Self-Attention e i Transformer
+
+Allargando l'orizzonte verso le attuali frontiere del machine learning si nota chiaramente che negli ultimissimi anni stiamo assistendo alla genesi di una nuova generazione tecnologica con schiere di modelli profondi concorrenti e ferocemente competitivi in campo linguistico, dotati di skill modellistiche linguistiche e di generazione testuale classificate quasi unanimente come "outstanding" e impressionanti.
+
+[INSERIRE IMMAGINE: Infografica a loghi sovrapposti che simboleggia l'ascesa delle grandi reti. Mostra gli emblemi fiammeggianti e i nomi in rassegna dei titani tecnologici del settore come THE TRANSFORMER, ULM-FIT, OpenAI Transformer, ELMO e BERT.]
+
+L'eccezionalità di queste performance non proviene dal nulla, bensì è radicata nel massiccio sforzo ingegneristico per architetture neurali di scala sbalorditiva. Il mercato è popolato da reti bi-direzionali applicate in profondità a livello di singolo carattere tramite celle LSTM – delle quali il capostipite fu indubbiamente ELMO – affiancate a logiche mostruosamente parallele come la tanto decantata **multi-headed self-attention** che troneggia sulle fondamenta di sistemi leader come The Transformer, lo scibile dietro le OpenAI Transformer, le reti BERT e una miriade di loro cloni. Mentre le versioni arcaiche di vettori inglobavano semantica basica su testi localizzati, queste corazzate divorano enormi ed estese collezioni mondiali di documenti, immagazzinando una conoscenza tentacolare che sbilancia il peso degli addestramenti fino a inghiottire sistemi dotati di molteplici miliardi di parametri ("billions of parameters") computazionali liberi e modificabili.
+
+Al cuore pulsante di tutto quest'ecosistema troneggia fiera l'operazione nota come **Self-attention**. Si tratta non di un semplice escamotage sintattico ma di una profondissima tecnica neurale il cui scopo primario e unico è imparare con minuziosità chirurgica il contributo esatto e preciso di ogni elemento contestuale del testo verso la definizione finale di quella che diventerà l'autentica semantica in quel momento applicata alla singola parola, tenendo costantemente un faro vigile sul qui-e-ora della frase e distogliendosi dal generico preaddestramento fisso. Questa meraviglia emerge chiaramente monitorando con visori il lavoro in parallelo delle numerose "teste" (Head). In questa scomposizione e delegazione del lavoro, analizzando una singola passata su un input come "found in taiwan. [SEP] the wingspan is 24 - 28 mm." si scorgono comportamenti differenti e mirati da parte delle teste che coabitano il network. Alcune teste come la "Head 1-1" focalizzano una vista "a scorrimento largo", guardando in forma sparsa e dilatata un po' a ogni parola per scovarne il senso e i macro-topic, lavorando su associazioni molto estese e broadly attendute. Parallelamente, una "Head 3-1" adotta un'intelligenza decisamente da n-gramma stretto, appuntando le sue frecce sintattiche prettamente in avanti ad anticipare il singolo token successivo nell'attesa e nel "next token prediction". Poi giungono sul palco intelligenze altamente asettiche e regolamentate dal programmatore: abbiamo teste puntiformi quali la "Head 8-7" con la mania di non guardare i termini, se non l'unico elemento di delimitazione contestuale netto [SEP] al termine del segmento ; similmente si muove la "Head 11-6" in piena ricerca esclusiva sul tracciamento ostinato di ogni punto fermo o dei caratteri di stop per captare l'andamento frasale. L'ammontare quantitativo (o oscurità delle connessioni visibili, la "darkness of a line" che indica la palese intensità della weight attenzionale assorbita ) ci dimostra plasticamente come i cervelli profondi, smontando un segmento di frase operino del tutto similmente all'addestramento su una fotografia. Questo esatto processo modulare somiglia vertiginosamente al funzionamento su grid dei progressivi filtri classici delle CNN (Convolutional Neural Networks) nel loro apprendimento visuale, in cui le prime linee catturano contorni basilari al 'Layer 1', per poi progredire e stratificarsi su strutture semantiche complesse attraversando i Layer 2 e 3 del reticolato.
+
+[INSERIRE IMMAGINE: Diagrammi a linea mostrano concretamente i vari "pattern" attenzionali, in cui fili viola molto marcati uniscono a colpo d'occhio termini fra le due colonne parallele del testo frasale. A fianco è disposta l'affinità visiva alle immagini generate e destrutturate dei filtri convoluzionali impilate sulle classiche layer-grid delle CNN, dalla 1 alla 3.]
+
+### Rappresentazioni Dense e Operazioni di Information Retrieval
+
+Un'applicazione potentissima in cui vettori e modelli attenzionali danno frutti diretti tangibili al ricercatore risiede ovviamente nelle operazioni veloci di *Retrieval* su dataset spropositati, incrociando i flussi asincroni di architetture neurali Siamese. In quest'ottica si sdoppia l'azione: tutto ha inizio con il duro lavoro in background di elaborazione della sorgente (la cosiddetta "Offline Computation") durante la quale si inietta l'ennesimo lungo documento denotato come documento $d$, costituito per convenzione da un numero $m$ di discreti token, all'interno della trafila fitta e chiusa della Rete Neurale e dei suoi meccanismi interni. Ne uscirà a fatica un compatto Feature Vector di $d$ a disposizione del db. Sull'altra parallela sponda, magari ad accensione server già partita e a runtime reattivo, scaturirà improvvisa una *query* indicata formalmente con la lettera $q$ di una precaria e minuscola lunghezza stimata in $n$ token. Attraversato il suo network identico al documento otterrà simmetricamente un istantaneo *Feature Vector di q* in uscita. Mettendo faccia a faccia l'un l'altro i vettori nella nuova *Dense Representation*, scatta il calcolo dell'affinità (lanciando un classico prodotto scalare – dot product) che materializzerà sotto forma tangibile e utile per i ranking uno specifico e prelibatissimo calcolo matematico: il punteggio di rilevanza $S_{q,d}$ tra lo stimolo umano $q$ e la risposta documentale $d$.
+
+Le architetture neurali, forti dei loro posizionamenti e misurazioni della prossimità tramite dot product o per similarità o coseno angolare (cosine similarity) puntano massimamente tutto il peso sulla tattica topologica che va sotto l'arcinoto acronimo del **k Nearest Neighbour (KNN) Retrieval**. Lo scopo della ricerca in questo reame si fa estremamente pragmatico: trovare materialmente fra l'universo le associazioni iperlocali identificando i documenti in modo spietato trovando esclusivamente i "closest $k$ points" (i punti con maggiore densità vettoriale) sparsi e confinati all'interno del proprio gigantesco reame iperdimensionale N-dimensionale. Soffermandoci sulla performance in scala massiccia ("Retrieval as finding"), la ricerca sviscerata del risultato Esatto e minuzioso è costosa ("All d's against q"): scontrar ogni punto richiede pesantissime comparazioni asintotiche computate matematicamente sui logaritmi in notazione "O grande" come tempistiche piene a scalino pari a $O(n \log k)$ e appoggiandosi incessantemente a strutture dati ingorde quali gli *Heap* programmati all'esplicito e solo fine di trattenere nella vetta delle code solo gli ammessi $k$ elementi fregiati della più elevata similarità misurabile fra i vettori.
+
+Data questa strozzatura cronica asfissiante sui Big Data, i ricercatori dibattono sul noto dualismo "Slow/Exact vs Fast/Approximate", prediligendo massicciamente le procedure di recupero rapide mediante stratagemmi euristici ed imperfetti, racchiusi storicamente nella famiglia di tecnologie **ANN** (Approximate Nearest Neighbour). Le variegate metodiche spaziano infatti in svariate ramificazioni architetturali di stivamento veloce tra cui si ramificano con forza sistemi astuti a partizionamento che utilizzano ad albero binario (Trees), connettività iperdimensionali spaziali tramite grafi e link direzionali (Graphs), funzioni hash locazionali tolleranti ai margini (LSH) o durissime quantizzazioni numeriche compattanti.
+
+[INSERIRE IMMAGINE: Scatter plot su sfondo chiaro popolato da densissime nubi di punti rossi, in cui spicca solitaria in una sponda del piano un punto blu, bollato chiaramente come query vettoriale $q$. Da essa irradiano a ventaglio quattro inequivocabili frecce nere indirizzate rigidamente sui quattro vicini rossi in assoluto dotati di minima distanza geometrica nello spazio bidimensionale KNN mostrato.]
+
+### Conclusioni Fondamentali sui Modelli Linguistici
+
+Terminando il percorso attraverso le stratificazioni di astrazione e l'implementazione pratica ingegneristica, dobbiamo riconoscere che i Language models si ergono oggi incontestabilmente come uno dei più potenti, scalabili e flessibili strumenti computazionali in circolazione nel panorama delle tecnologie del software per collezionare massivamente informazioni estrapolate, in forma e procedura totalmente "unsupervised", partendo nativamente da qualsiasi fonte semantica complessa o da uno specifico dominio testuale target per poi riversare il tutto e condensarlo magicamente in strabilianti forme rappresentative latenti e intrinsecamente "machine-readable".
+
+Le vertiginose proprietà derivate dalla trasformazione in tali costrutti di forma vettoriale garantiscono al giorno d'oggi ai data scientist due imponenti e cruciali rampe di lancio finalizzate all'indagine applicativa. In primis, esse rendono immediatamente e tecnicamente esplorabile la complessità di una lingua o i labirinti oscuri di un dominio, agevolando in modo stratosferico lo scovamento o "discover" semi-automatizzato delle innumerevoli entità sensibili rilevanti del settore affiancate alla decodifica istantanea del loro groviglio incomprensibile di sotterranee interrelazioni, vincoli sintattici strutturali e affinità semantiche dirette. In secundis e in forma più pragmatica, i modelli incamerano una mostruosa spugna di saggezza linguistica ("infuse general knowledge") accumulata dalla lingua o dallo scibile umano e permettono successivamente a un banale e piccolissimo modello ad addestramento "supervised" di fruirne direttamente importandone il nucleo inietta al volo, portando la neonata e asettica rete a sprigionare abilità esecutive spaventosamente accelerate esprimendo sin dalle prime epoche una clamorosa abilità migliorativa in termini di potenza di astrazione trasversale e pura "generalization ability" finale.
+
+---
+
+### Concetti Chiave
+
+- **FastText e OOV**: Evoluzione algoritmica applicata alla base dei sistemi di word embedding di concezione classica per esplorare le parole a livello sub-strutturale (n-grammi). Permette al sistema computazionale di superare il limite della parola ignota fuori dal dizionario addestrato (Out Of Vocabulary).
+
+- **Doc2Vec**: Estensione formale per reti neurali sviluppata al fine di espandere le proprietà architetturali dell'algoritmo Word2Vec introducendo in input dei segnali identificativi o tag per mappare il senso logico testuale di un unico documento monolitico intero nei medesimi e collaudati spazi di vettorializzazione creati per accogliere singole parole discrete.
+
+- **Self-attention**: L'ingegnosa tattica focale asincrona impiegata da Reti Transformer rivoluzionarie come BERT tramite blocchi denominati "Head". Il suo scopo principe è discernere e pesare indipendentemente ed ecletticamente il livello matematico e semantico delle influenze del micro e del macro contesto periferico frasale in cui giace avvolta una determinata parola osservata, prestando attenzioni mirate in direzione passata, futura o sui delimitatori frasali artificiali.
+
+- **Approssimazione KNN (ANN)**: Assieme matematico di metodologie computazionali e architetturali in ambito Information Retrieval e vettoriale il cui intento unico è arginare le esplosioni o impennate nei rallentamenti algoritmici classici della tecnica Nearest Neighbour Esatta ($O(n \log k)$), operando calcoli con tolleranza di precisione sfruttando aggregati ad alberi informatici, cluster a grafo o hash geometrici di quantizzazione direzionale (LSH).
+
+---
+
+# Slide 11:
