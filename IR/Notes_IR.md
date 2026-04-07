@@ -2655,7 +2655,7 @@ Questa architettura riduce drasticamente i FLOPs (operazioni in virgola mobile) 
 
 - **Hard Negatives e Dynamic Sampling**: Documenti semanticamente molto simili alla query ma errati. Il campionamento dinamico li estrae in tempo reale in base alle classifiche erronee del modello durante il training, fornendo gli esempi più istruttivi per l'apprendimento.
 
-- **Approximate Nearest Neighbour (ANN)**: Tecniche algoritmiche (come LSH o alberi) utilizzate per superare il limite computazionale $O(n \log k)$ della ricerca kNN esatta, permettendo di trovare velocemente i vettori più simili in dataset di grandi dimensioni.
+- **Approximate Nearest Neighbour (ANN)**: Tecniche algoritmiche (come LSH o alberi) utilizzate per superare il limite computazionale $O(n \log k)$ della ricerca kNN esatta, permettendo di trovare velocemente i vettori più simili in dataset di grandi dimensioni.https://meet.google.com/fvi-pvcf-ttu
 
 - **ANCE (Approximate Nearest-neighbor Negative Contrastive Estimation)**: Un modello basato su Dual Encoder che migliora le proprie prestazioni aggiornando asincronamente (tramite un Inferencer) l'indice dei negativi difficili durante il processo di training.
 
@@ -2781,4 +2781,3 @@ Prendendo ad esempio la query "cost of endless pools swim spa", il sistema evide
 
 ---
 
-S
