@@ -2432,7 +2432,7 @@ Le vertiginose proprietà derivate dalla trasformazione in tali costrutti di for
 
 ---
 
-# Slide 11:# L'Utilizzo di BERT nell'Information Retrieval
+# Slide 11: L'Utilizzo di BERT nell'Information Retrieval
 
 **Introduzione** Il panorama dell'elaborazione del linguaggio naturale ha subito una trasformazione radicale a partire dal 2018, segnando l'inizio di una nuova era dominata dai modelli basati su architettura Transformer. In questa sezione esploreremo come i modelli linguistici avanzati, e in particolare BERT, siano stati adattati e integrati con successo nei sistemi di Information Retrieval (IR) per migliorare significativamente la pertinenza e la qualità delle ricerche, analizzando i metodi di calcolo offline e le strategie di interazione online.
 
