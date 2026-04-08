@@ -2994,4 +2994,270 @@ Sebbene l'impossibilità matematica di superare questo trilemma non sia stata an
 
 ---
 
-# Lezione 13:
+# Lezione 13:# Hard and Soft Forks in Bitcoin
+
+L'evoluzione dei sistemi informatici distribuiti richiede continui adattamenti, e le tecnologie decentralizzate non fanno eccezione. Questo capitolo raccoglie ed espande i concetti esposti nella Lezione 13 del corso "P2P Systems and Blockchains" , erogato nel Dipartimento di Informatica dell'Università degli Studi di Pisa nella primavera del 2026 (indicata formalmente sulle slide con la data 31/83/2026 ). Guidati dai docenti Laura Ricci e Damiano Di Francesco Maesa , con riferimento principale al materiale redatto dalla Prof.ssa Ricci , ci concentreremo sul concetto generale di fork all'interno delle blockchain, applicandolo nello specifico al caso di Bitcoin.
+
+### Il Concetto di Blockchain Fork
+
+Nello sviluppo software tradizionale, il codice necessita di aggiornamenti costanti; nel mondo delle criptovalute, questi aggiornamenti prendono il nome specifico di **fork**. Un fork si definisce come un cambiamento apportato al protocollo di una rete blockchain e alle sue relative strutture dati.
+Le motivazioni che spingono una rete a implementare un fork sono molteplici. Innanzitutto, possono essere necessari per implementare nuove funzionalità o per apportare miglioramenti diretti al protocollo. Inoltre, risultano fondamentali per risolvere vulnerabilità di sicurezza critiche o per correggere bug del sistema. Un altro obiettivo primario è affrontare in modo efficace le sfide legate alla scalabilità e alle prestazioni generali della rete. Infine, i fork rappresentano uno strumento sociale e tecnico vitale per risolvere eventuali disaccordi sorti all'interno della comunità e tra gli sviluppatori riguardo alla direzione futura che la rete dovrebbe intraprendere.
+
+### Protocol Fork contro Chain Fork
+
+Quando analizziamo le ramificazioni di una catena, è essenziale distinguere tra due fenomeni fondamentalmente diversi: i *Protocol Fork* e i *Chain Fork*.
+
+Il **Protocol Fork** comporta un vero e proprio cambiamento delle regole di base (Rule Change). Questo fenomeno è causato da modifiche dirette alle regole di consenso della rete e si verifica attraverso un aggiornamento che è al tempo stesso intenzionale e coordinato dai partecipanti. A seguito di questo cambiamento, i nodi della rete potrebbero iniziare a seguire set di regole differenti, generando così una divisione persistente (persistent split) che dà vita a due blockchain, e conseguentemente a due asset, completamente separati. Sotto questo cappello rientrano due categorie principali: il Soft Fork, che mantiene una certa compatibilità, e l'Hard Fork, che non risulta compatibile.
+
+Il **Chain Fork**, al contrario, è un fenomeno di natura temporanea legato ad attacchi o al normale funzionamento tecnico. È causato da eventi come il mining simultaneo di blocchi da parte di minatori diversi, dalla fisiologica latenza della rete o da azioni ostili. Il risultato è la presenza temporanea di molteplici blocchi validi situati alla stessa altezza (height) della catena. Il sistema risolve automaticamente questi conflitti applicando la regola della "catena più lunga", prediligendo il ramo che presenta la maggior quantità di lavoro cumulativo. Il ramo perdente diventa orfano e i suoi blocchi vengono definiti "stale blocks". In questo scenario non avviene alcun cambiamento delle regole né tantomeno la creazione di un nuovo asset digitale , trattandosi di una dinamica che si verifica regolarmente nelle operazioni di routine.
+
+### Esempi di Applicazione dei Fork
+
+Nella pratica, i fork della blockchain vengono utilizzati per implementare diverse tipologie di modifiche sostanziali. Tra gli esempi più emblematici troviamo:
+
+- L'aumento della dimensione dei blocchi (Increase Block Size), una scelta tecnica che consente di inserire un numero maggiore di transazioni per ogni singolo blocco.
+
+- L'aumento delle ricompense di mining (Increase Mining Reward), strategia volta a offrire incentivi economici più alti per attrarre e trattenere i minatori. [INSERIRE IMMAGINE: Illustrazione di tre pile di monete dorate con una freccia azzurra rivolta verso il basso, a simboleggiare visivamente l'aumento delle ricompense di mining descritte come "Increase Mining Reward" ]
+
+- Il potenziamento della privacy (Enhance Privacy), focalizzato sull'aumento della riservatezza e della confidenzialità dei dati in transito.
+
+- La conformità normativa (Regulatory Compliance), necessaria per adattare la rete a nuovi requisiti legali o fiscali (TAX) imposti dagli enti regolatori.
+
+### Tipologie di Protocol Fork: Hard e Soft
+
+I Protocol Fork si diramano in due categorie diametralmente opposte, a seconda dell'impatto che hanno sull'ecosistema.
+
+L'**Hard Fork** è un evento traumatico per la rete che si traduce in una divisione permanente della catena (Chain Splits).
+
+- Questo processo porta alla creazione di una moneta completamente nuova (New Coin Created).
+
+- Per continuare a partecipare alla rete aggiornata, tutti i nodi devono obbligatoriamente effettuare l'upgrade del proprio software (Nodes Must Upgrade).
+
+- A partire dal punto di biforcazione (fork point), il sistema originario basato su "Old Rules" si divide irreversibilmente in "Two Separate Networks", ciascuna con le proprie regole e la propria storia futura.
+
+Il **Soft Fork**, invece, rappresenta un approccio molto più morbido, configurandosi come un aggiornamento organico della catena (Chain Updates).
+
+- In questo scenario, la stessa moneta originale viene preservata (Same Coin Maintained).
+
+- La caratteristica chiave è che l'aggiornamento è retrocompatibile (Backward Compatible).
+
+- Il risultato è il mantenimento di una singola catena continua (Single Chain) e di una singola rete (Single Network) che passa ordinatamente dalle vecchie alle nuove regole ("New Rules").
+
+[INSERIRE IMMAGINE: Schema grafico che confronta i flussi di un Hard Fork e di un Soft Fork. A sinistra, la freccia "SINGLE CHAIN" porta a una "Single Network" nel caso Soft, mentre a destra porta a "Two Separate Networks" nel caso Hard ]
+
+### Il Processo di Votazione e Accettazione
+
+Affinché un fork venga integrato, è necessario seguire un processo specifico di proposta e approvazione. Gli sviluppatori propongono inizialmente un aggiornamento del software , progettato per diventare effettivamente operativo alcuni mesi più tardi. In questo lasso di tempo, i nodi sono in grado di monitorare in tempo reale quanti altri minatori hanno deciso di accettare l'aggiornamento ; questo controllo avviene analizzando i numeri di versione (version) inseriti all'interno dei blocchi appena minati. Raggiunta una certa soglia, la rete si domanda: la maggior parte dei minatori ha accettato l'aggiornamento? Se sì, questo diventa effettivo?. È fondamentale sottolineare che i minatori hanno la totale libertà di scegliere se adottare o meno il fork proposto. Se decidono di supportarlo, generalmente aggiornano il numero di versione (version number) presente nell'header dei blocchi che minano. [INSERIRE IMMAGINE: Struttura di base di un blocco che mostra l'header (contenente i campi version, time, mhash) e l'elenco delle transazioni (tx 1, 2, 3, 4) unificate tramite un Merkle tree ]
+
+La decisione dei minatori di accettare o rifiutare la nuova versione equivale a un vero e proprio "voto distribuito" sull'aggiornamento. L'esito di questa votazione determinerà la conferma o il rifiuto della proposta di fork. Di per sé, il bit di versione è solamente un segnale e non costituisce una regola di consenso attiva. Attraverso questi bit, i minatori consapevoli delle nuove regole segnalano il loro supporto, dimostrando di essere pronti a implementarle, ma di fatto non le applicano immediatamente. L'effettiva applicazione delle nuove regole scatta soltanto nel momento in cui il fork viene approvato a tutti gli effetti. A titolo di esempio, il soft fork del 2015 che introdusse il BIP66 (che implementava un cambiamento nel formato delle firme crittografiche) ottenne un travolgente successo, vedendo il 95% della potenza di hashing dei minatori concorde nell'accettarlo.
+
+### Approfondimento sui Soft Fork e la Sopravvivenza della Rete
+
+In un Soft Fork, la modifica al software blockchain è strutturata per essere retrocompatibile. Questo garantisce che un nodo non ancora aggiornato possa continuare a transare senza interruzioni con i nodi che hanno già effettuato l'aggiornamento. Solitamente, questi aggiornamenti servono ad applicare regole più restrittive rispetto alle precedenti. Un esempio classico è la decisione di ridurre la dimensione massima del blocco, passando magari da 2MB a 1MB.
+[INSERIRE IMMAGINE: Diagramma temporale che illustra il processo di un Soft Fork. A sinistra i blocchi viola rappresentano le "Old Rules" (2MB), attraversano un orologio ("SOFT FORK") per diventare i blocchi blu delle "New Rules" (1MB) a destra ] La logica di compatibilità risiede nel fatto che i nodi non aggiornati sono comunque in grado di ricevere e gestire i nuovi blocchi. Infatti, se un nodo è stato programmato per gestire blocchi di grandi dimensioni, sarà intrinsecamente in grado di elaborare anche blocchi di dimensioni inferiori.
+
+Ma cosa succede realmente alla vecchia versione e come fa a "morire"? Il processo è guidato da incentivi economici durante la fase di adattamento al nuovo consenso. All'inizio del fork, i vecchi minatori che utilizzano ancora il vecchio protocollo ("Old Miners") continuano a generare blocchi compatibili con le proprie regole (ad esempio blocchi da 2MB o 3MB). Parallelamente, chi è passato alle nuove regole inizia a costruire la nuova catena. Man mano che la maggioranza adotta le nuove regole, la catena che contiene blocchi troppo grandi (es. 3MB) viene categorizzata come rifiutata ("Rejected Chain"). Di conseguenza, l'unica catena valida considerata dal network è quella che contiene blocchi aderenti alle nuove restrizioni ("Valid Chain <2MB Blocks"). Poiché solo i blocchi della catena valida permettono ai minatori di ricevere la ricompensa finanziaria (Receives Reward) , i vecchi minatori si renderanno presto conto dell'inefficienza e inizieranno a minare blocchi inferiori a 2MB per poter seguire "la catena che paga". [INSERIRE IMMAGINE: Schema del processo di "morte" della vecchia versione, che mostra un minatore intento a spostarsi dalla catena rifiutata con blocchi da 3MB alla catena valida con blocchi <2MB, spinto dalla ricezione della ricompensa ("Receives Reward") ]
+
+Di conseguenza, gli esiti possibili per un soft fork sono essenzialmente tre:
+
+1. Tutti i minatori concordano immediatamente; in tal caso, il fork non genera alcuna scissione percepibile e funge semplicemente da aggiornamento software fluido.
+
+2. La maggioranza dei minatori concorda; il nuovo fork si consolida ("sticks") e la vecchia versione scompare gradualmente e inesorabilmente.
+
+3. La maggioranza dei minatori è in disaccordo; in questo scenario la proposta fallisce e il nuovo fork muore.
+
+L'agonia e la scomparsa definitiva della vecchia versione ("how the old version dies") è un processo inesorabile. Una volta che la maggioranza dell'hash power ha accettato le nuove regole, la versione ereditata (legacy) non ha scampo. Questo accade semplicemente perché qualsiasi blocco generato da un nodo non aggiornato, se in violazione delle nuove regole, viene immediatamente scartato dalla maggioranza della rete ormai aggiornata. Essendo entità razionali focalizzate sul profitto economico, i minatori scelgono inevitabilmente di seguire la catena che genera rendimento, evitando di sprecare costosa potenza di calcolo (hashing power) per tentare di minare blocchi che verrebbero certamente ignorati dall'ecosistema.
+
+---
+
+### Glossario e Concetti Chiave
+
+- **Fork**: Qualsiasi modifica apportata al software e al protocollo di una blockchain, utilizzata per introdurre aggiornamenti o per correggere bug tecnici.
+
+- **Hard Fork**: Un tipo di aggiornamento non retrocompatibile che forza una spaccatura netta e permanente nella catena di blocchi originale, portando le due parti della rete a operare come entità separate, potendo generare un nuovo asset.
+
+- **Soft Fork**: Un aggiornamento del protocollo che rimane retrocompatibile con il passato. Di solito stringe le regole e permette alla rete di non spaccarsi, mantenendo la coesione dei nodi.
+
+- **Chain Fork**: Una deviazione temporanea della catena causata da contingenze esterne (latenza o attacchi) e non da modifiche al software. Si risolve affidandosi al ramo con più Proof of Work.
+
+- **Voto Distribuito (Distributed Voting)**: Il processo tramite il quale la rete di minatori accetta e implementa in maniera trasparente un aggiornamento, utilizzando campi specifici del blocco (come il 'version bit') per dichiarare il proprio consenso.
+
+---
+
+# L'Evoluzione di Bitcoin: Da SegWit a Taproot
+
+Dopo aver compreso le dinamiche teoriche che governano i fork in un sistema decentralizzato, è fondamentale analizzare come la rete Bitcoin si sia evoluta nella pratica nel corso degli anni. Questo capitolo esplora la cronologia dei principali aggiornamenti del protocollo, concentrandosi in particolare sulle rivoluzioni tecniche introdotte da SegWit e, successivamente, da Taproot.
+
+### La Cronologia dei Principali Soft Fork di Bitcoin
+
+La storia di Bitcoin è costellata da aggiornamenti cruciali che ne hanno potenziato le capacità senza fratturare irrimediabilmente la rete. Il percorso inizia nel 2012 con l'introduzione di **P2SH** (Pay-to-Script-Hash), un aggiornamento pensato per rendere molto più semplice la gestione delle transazioni multifirma (easier multisig). Successivamente, nel 2015, è stato implementato il **Check Sequence Verify**, fondamentale per abilitare le transazioni bloccate nel tempo (time-locked transactions) a livello relativo.
+
+L'anno della vera svolta è stato però il 2017, che ha visto una duplice innovazione: da un lato l'introduzione del **Check Lock Time Verify** (per i blocchi temporali assoluti) , e dall'altro l'attivazione di **Segregated Witness** (noto come SegWit), un aggiornamento epocale finalizzato a garantire una migliore scalabilità del sistema (better scalability). Infine, nel 2021, la rete ha fatto un ulteriore salto di qualità con **Taproot**, un aggiornamento progettato per migliorare drasticamente la privacy e l'efficienza degli smart contract sulla rete.
+
+### L'Avvento di SegWit (Agosto 2017) e il Problema della Malleabilità
+
+Per comprendere l'importanza di SegWit, dobbiamo prima analizzare come funzionava Bitcoin prima dell'agosto 2017. In origine, una transazione Bitcoin conteneva diverse componenti fondamentali: gli **Inputs** (che indicano la provenienza dei fondi), gli **Outputs** (che indicano la destinazione dei fondi) e le **Signatures** (le firme digitali che provano l'autorizzazione del mittente). Il problema critico risiedeva nel fatto che queste firme erano incluse direttamente all'interno dei dati della transazione.
+
+Questa struttura esponeva la rete a un difetto tecnico insidioso: un attaccante poteva alterare leggermente i dati della firma senza invalidare la transazione stessa. Pur rimanendo valida, questa impercettibile alterazione causava la modifica del **txid** (l'identificatore univoco della transazione). Questo fenomeno, noto come *malleabilità delle transazioni*, creava enormi problemi per i protocolli di secondo livello in fase di sviluppo, come il Lightning Network, che facevano affidamento sull'immutabilità degli identificatori.
+
+### La Soluzione: Separare la Firma
+
+La soluzione implementata con SegWit è letteralmente descritta dal suo nome: "Testimone Segregato". L'aggiornamento ha separato i dati della firma dai dati base della transazione, spostandoli in una nuova e apposita sezione chiamata **Witness**.
+
+[INSERIRE IMMAGINE: Schema comparativo tra un "Old Block" (Pre-SegWit) e un "SegWit Block". Nel primo, le firme sono inserite all'interno delle transazioni; nel secondo, le transazioni contengono solo i dati base (Input e Output), mentre le firme sono separate e collocate nella sezione "Witness Data" sottostante.]
+
+Questa riorganizzazione strutturale ha risolto alla radice il problema: poiché il txid viene ora calcolato escludendo i dati della firma, è diventato impossibile alterarlo dopo che la transazione è stata firmata. Le conseguenze di questa correzione sono state enormi: l'eliminazione della manipolazione del txid ha reso molto più sicure le transazioni non ancora confermate (safer unconfirmed transactions) e ha finalmente permesso il corretto funzionamento del Lightning Network. Inoltre, lo spazio risparmiato estraendo le firme ha fornito una capacità extra (extra capacity) per inserire più transazioni all'interno del singolo blocco.
+
+### Un Nuovo Paradigma: Il Block Weight
+
+SegWit non è stato progettato esplicitamente per aumentare le dimensioni del blocco (che all'epoca erano rigorosamente limitate a 1MB), ma lo ha fatto in modo indiretto, aumentando l'effettivo throughput delle transazioni. Per farlo, ha introdotto un nuovo concetto di misurazione: il **Block Weight** (peso del blocco).
+
+Nel nuovo sistema, le firme digitali "pesano meno". Il protocollo assegna 4 unità di peso per ogni byte che costituisce la transazione base, mentre assegna solo 1 unità di peso per ogni byte che compone i dati Witness (le firme). Il limite massimo consentito per un blocco non è più calcolato in megabyte, ma è fissato a 4 milioni di unità di peso (4.000.000 weight units). Poiché i dati Witness occupano meno spazio logico nel calcolo del blocco, i minatori possono stipare molte più transazioni, arrivando a superare le 5.000 transazioni per blocco (come mostrato nell'esempio con 5.714 transazioni).
+
+[INSERIRE IMMAGINE: Grafico che illustra il calcolo del "Block Weight" a 4.000.000 di unità. Mostra l'esempio di una singola transazione dove 150 byte di dati base valgono 600 unità (150 x 4) e 100 byte di Witness ne valgono solo 100 (100 x 1), per un peso totale di 700 unità.]
+
+### Il "Trucco" della Retrocompatibilità: Perché SegWit è un Soft Fork
+
+Come abbiamo visto nel capitolo precedente, un soft fork richiede che i vecchi nodi non aggiornati continuino ad accettare i blocchi. A prima vista, l'aumento effettivo della capacità introdotto da SegWit sembrerebbe violare il limite storico di 1MB, rendendolo un hard fork. Tuttavia, gli sviluppatori hanno implementato un "trucco" brillante per garantire la retrocompatibilità (backward compatibility), un aggiornamento graduale e nessuna rottura della rete.
+
+Il segreto risiede nel fatto che le firme sono state spostate all'esterno della porzione di dati che i vecchi nodi conteggiano. I nodi non aggiornati, semplicemente, non effettuano il parsing (l'analisi) delle firme della sezione Witness. Ai loro occhi, il blocco appare sempre inferiore o uguale a 1MB; di conseguenza, ai loro "occhi" tutto risulta valido, nessuna regola viene violata e il blocco viene regolarmente accettato e aggiunto alla blockchain.
+
+[INSERIRE IMMAGINE: Illustrazione riassuntiva "SEGWIT: RECAP" che chiarisce il concetto di "Same block, two views". Da una parte si mostra come i Legacy Nodes vedano solo la Base Data (entro 1MB) ignorando il Witness, dall'altra come i Modern Nodes vedano l'intero pacchetto fino a 4 milioni di unità di peso.]
+
+I vecchi nodi, pur non potendo sfruttare le nuove funzionalità di SegWit fino all'aggiornamento, possono continuare a effettuare transazioni "old-style" e rimanere sincronizzati con il network. Questa soluzione, definibile come una sorta di "hack" ingegnoso (hacky way), ha permesso a Bitcoin di scalare risolvendo il problema della malleabilità, evitando del tutto lo scenario disastroso di costringere l'intera comunità ad aggiornarsi forzatamente per non rimanere tagliata fuori.
+
+### L'Era di Taproot (Novembre 2021)
+
+Quattro anni dopo SegWit, il network ha accolto un altro fondamentale soft fork: **Taproot**, attivato ufficialmente il 14 novembre 2021. Questo aggiornamento è entrato in vigore con estrema fluidità, forte del supporto di oltre il 90% dei minatori, il che ne ha facilitato un'adozione priva di traumi.
+
+L'obiettivo principale di Taproot è duplice: migliorare esponenzialmente le capacità di scripting (scripting capabilities) dei contratti complessi e innalzare il livello di privacy (privacy of the Bitcoin network) per gli utenti. Per raggiungere questi ambiziosi traguardi, l'aggiornamento fonde insieme due potenti tecnologie crittografiche: la **Merkelized Abstract Syntax Tree (MAST)** e le **Firme di Schnorr** (Schnorr Signatures). Le meccaniche e i vantaggi di queste due tecnologie costituiranno il fulcro della nostra prossima analisi.
+
+---
+
+### Glossario e Concetti Chiave
+
+- **P2SH (Pay-to-Script-Hash)**: Aggiornamento del 2012 che ha standardizzato e semplificato la creazione di transazioni multifirma, migliorando la flessibilità del protocollo.
+
+- **SegWit (Segregated Witness)**: Soft fork del 2017 che ha separato le firme digitali (Witness) dai dati base della transazione, risolvendo il bug della malleabilità del *txid* e aprendo la strada al Lightning Network.
+
+- **Block Weight**: Nuovo sistema di misurazione dello spazio nel blocco introdotto da SegWit, che sconta il peso crittografico delle firme, permettendo di superare di fatto il limite storico di 1MB in totale sicurezza e retrocompatibilità.
+
+- **Taproot**: Soft fork attivato nel 2021 per migliorare la privacy e le potenzialità degli smart contract su Bitcoin, basato sull'unione sinergica degli alberi MAST e delle firme crittografiche di Schnorr.
+
+---
+
+# Le Tecnologie alla Base di Taproot: Firme di Schnorr e MAST
+
+Per comprendere appieno l'importanza del soft fork Taproot, è necessario scendere nel dettaglio delle due innovazioni crittografiche su cui si fonda: le firme di Schnorr e gli alberi MAST. Queste tecnologie, lavorando in sinergia, hanno ridefinito il modo in cui Bitcoin gestisce la privacy e la scalabilità dei contratti complessi.
+
+### Le Firme di Schnorr e le loro Proprietà
+
+Le **Firme di Schnorr** (Schnorr Signatures) rappresentano uno schema di firma digitale basato sui problemi del logaritmo discreto (discrete logarithm problems). Rispetto al precedente standard utilizzato da Bitcoin, questo schema è caratterizzato da diverse proprietà fondamentali che ne elevano l'efficienza e la sicurezza.
+
+In primo luogo, garantiscono un elevato livello di **privacy**, poiché non è possibile distinguere le singole firme all'interno di una transazione. Una delle caratteristiche più rivoluzionarie è la **linearità** (linearity): questo schema fornisce un metodo semplice ed efficiente che permette a molteplici parti che collaborano tra loro di produrre un'unica firma che risulta valida per la somma delle loro chiavi pubbliche. Questo processo produce, di fatto, una singola chiave pubblica e una singola firma, la quale può essere verificata esattamente come se fosse stata creata da un unico firmatario (one signer). Tuttavia, per raggiungere questo risultato, è richiesta una cooperazione interattiva tra i firmatari, che include lo scambio delle chiavi pubbliche e il coordinamento dell'intero processo di firma.
+
+[INSERIRE IMMAGINE: Diagramma del processo delle Firme di Schnorr, diviso in "SIGNING" (dove le Public Key P1, P2 e P3 con le rispettive Signature S1, S2, S3 vengono combinate) e "VERIFYING" (che mostra l'Aggregated Signature e l'Aggregated Public Key verificate come una singola entità)]
+
+Un'altra proprietà cruciale è la **batch verification** (verifica in batch), che ottimizza i calcoli computazionali dei nodi. Nel precedente sistema di verifica sequenziale (Sequential Verification) basato su ECDSA, validare tre firme richiedeva tre operazioni distinte, rappresentabili con la formula $Ver(sig1)+Ver(sig2)+Ver(sig3)=3$ operazioni. Con le firme di Schnorr, la verifica in batch permette di accorpare il calcolo, rendendo l'equazione $Ver(sig1 + sig2+ sig3) = 1$ operazione. Infine, lo schema offre la **non malleabilità** (non malleability), impedendo che le firme possano essere modificate dopo la creazione, e vanta una sicurezza matematicamente dimostrabile (provable security).
+
+### La Struttura MAST: Merkle Abstract Syntax Tree
+
+La seconda componente fondamentale di Taproot è il **MAST** (Merkelized Abstract Syntax Tree), una struttura dati che unisce le logiche degli Abstract Syntax Tree (AST) con gli alberi di Merkle.
+
+La porzione relativa all'**Abstract Syntax Tree** (AST) ha il compito di definire come suddividere la logica di spesa (spending logic) in diverse "foglie" (leaves). Questa struttura astrae la struttura dello script e analizza le condizioni (parse the conditions). Se uno script prevede una condizione "OR" logica (ad esempio, l'opzione "A OR B OR C"), in cui è necessaria una sola condizione per sbloccare i fondi, queste opzioni vengono separate in foglie distinte (separate leaves). Al contrario, se le condizioni sono legate da un "AND" logico, per cui devono avverarsi simultaneamente, esse vengono raggruppate nella stessa foglia (same leaf).
+
+[INSERIRE IMMAGINE: Diagramma dell'Abstract Syntax Tree all'interno del MAST. Mostra come una condizione "AND" e una "OR" si scompongano in "Leaf 1" (contenente un 2-of-3 Multisig) e "Leaf 2" (contenente un Timelock AND Hash Preimage legati assieme)]
+
+Una volta che la logica è stata suddivisa in foglie, entra in gioco la porzione **Merkle Tree** del MAST. Ogni condizione di spesa viene hashata individualmente, generando ad esempio "Hash 3" per un Hashlock, "Hash 4" per un Timelock inferiore a 3 mesi, "Hash 5" per un Multisig 2-su-3 e "Hash 6" per una singola firma. Questi hash vengono poi combinati a coppie (ad esempio, generando l'Hash dell'unione di Hash 3 e Hash 4, e l'Hash di Hash 5 e Hash 6), risalendo la struttura ad albero fino a culminare in un'unica radice crittografica: la **MAST Root**.
+
+[INSERIRE IMMAGINE: Rappresentazione completa del MAST. In basso si vedono le singole condizioni logiche (Hashlock, Timelock, Multisig, Single Signature) che vengono hashate, combinate a coppie e infine unificate nella MAST Root in cima all'albero]
+
+Per comprendere l'impatto del MAST, consideriamo un esempio pratico con quattro condizioni di spesa: uno Script 1 (un multisig 2-su-3 tra Alice, Bob e Charlie), uno Script 2 (un timelock di 1 anno), uno Script 3 (un Hash preimage) e uno Script 4 (una singola firma di Alice). Senza l'utilizzo del MAST, tutte le condizioni verrebbero inevitabilmente incluse nella transazione (le slide riportano testualmente "all 3 scripts are included", riferendosi al blocco di logica da inserire). Con il MAST, invece, vengono inclusi nella blockchain esclusivamente lo script effettivamente eseguito e la relativa prova di Merkle (Merkle proof), garantendo un enorme risparmio di spazio e una privacy superiore.
+
+### La Creazione della Tweaked Public Key
+
+Il punto di incontro tra le Firme di Schnorr e il MAST si concretizza nella **Tweaked Public Key** (chiave pubblica modificata). Si tratta di una chiave pubblica che combina al suo interno una normale chiave pubblica con un "impegno" (commitment) verso delle condizioni di spesa nascoste.
+
+Dal punto di vista matematico, il processo inizia prendendo una chiave pubblica $P$ (che può essere una chiave singola o una chiave aggregata, come ad esempio l'unione delle chiavi di Alice, Bob e Charlie) e la radice di Merkle degli script, ovvero il MAST, denotata con $m$. A questo punto, si calcola il "tweak" (la modifica) attraverso la formula $t = H(P || m)$, calcolando quindi l'hash della concatenazione tra la chiave pubblica $P$ e la Merkle root $m$. Infine, si applica questo tweak effettuando una somma su curva ellittica (a sum on elliptic curve), mediante la formula $P^{\prime}=P+t\cdot G$. Il risultato finale è, appunto, la tweaked public key.
+
+Ma cosa viene effettivamente registrato sulla blockchain (What is written on chain)? L'output on-chain non contiene separatamente né la chiave pubblica originale, né la radice del MAST. Al contrario, contiene esclusivamente la singola tweaked public key. Questa singola chiave modificata funge da vincolo crittografico che racchiude, all'interno di un unico oggetto, sia la chiave Schnorr interna sia l'intero albero degli script.
+
+[INSERIRE IMMAGINE: Diagramma concettuale della "Tweaked Key". Mostra un lucchetto (Original Public Key) che, passando attraverso un documento di testo (Secret Script), si trasforma in un nuovo lucchetto con una spunta verde (Tweaked Key), a simboleggiare la "Modified Public Key"]
+
+Il vantaggio cruciale della tweaked key risiede nel fatto che essa è letteralmente indistinguibile da una normale chiave pubblica (looks like a normal key). Sebbene abbia condizioni nascoste (has hidden conditions), gli script sottostanti non sono visibili pubblicamente, pur essendo impegnati crittograficamente (cryptographically committed) al suo interno. In sintesi, questa architettura abilita regole di spesa estremamente flessibili pur preservando in modo assoluto la privacy della transazione.
+
+### Spendere tramite il Taproot Script Path
+
+Quando un utente decide di spendere i fondi utilizzando una delle condizioni nascoste, effettua una spesa tramite il **Taproot Script Path** (percorso dello script). Questo processo richiede di rivelare alla rete tre componenti specifiche.
+
+In primo luogo, deve essere fornito **The Script** (chiamato Tapleaf): questa componente rappresenta la diramazione specifica (specific branch) del MAST che viene utilizzata in quel momento, mostrando alla rete lo script completo che deve essere soddisfatto (ad esempio la stringa `<pubkey> OP_CHECKSIG`). In secondo luogo, si deve presentare **The Witness Stack** (la pila dei testimoni): esso contiene gli input effettivi necessari per soddisfare le condizioni dello script rivelato, come ad esempio la firma digitale (`<signature>`), la controimmagine di un hash (`<preimage>`) o altri dati arbitrari (`<data>`). Infine, è necessario includere **The Control Block** (il blocco di controllo), un elemento vitale che collega logicamente lo script rivelato all'output di Taproot originale. Il blocco di controllo è composto da un byte identificativo (che indica parità e versione), dalla chiave interna (Internal Key) e dal percorso di Merkle (Merkle Path), rappresentato da una serie di hash (`[hash1]`, `[hash2]`) necessari per dimostrare crittograficamente che lo script mostrato fa effettivamente parte dell'albero originale.
+
+---
+
+### Glossario e Concetti Chiave
+
+- **Firme di Schnorr**: Algoritmo crittografico che consente la *linearity* (aggregazione di più chiavi e firme in una sola) e la *batch verification* (verifica simultanea), aumentando l'efficienza e la privacy.
+
+- **MAST (Merkelized Abstract Syntax Tree)**: Struttura dati che permette di inserire contratti complessi nella blockchain rivelando unicamente la parte di logica (foglia) che viene effettivamente eseguita per sbloccare i fondi.
+
+- **Tweaked Public Key ($P'$)**: Chiave pubblica generata sommando una chiave pubblica originale a un *tweak* derivato dall'hash di un albero MAST. Appare come una normale chiave ma nasconde al suo interno l'impegno crittografico di uno o più script.
+
+- **Taproot Script Path**: La modalità di spesa dei fondi di un indirizzo Taproot che avviene rivelando uno specifico script nascosto nel MAST, fornendo il Witness Stack e il Control Block per dimostrarne la validità.
+
+---
+
+### Le Modalità di Spesa in Taproot: Il Key Path
+
+Il meccanismo più efficiente e privato introdotto dall'aggiornamento è il **Key Path Spend** (la spesa tramite percorso della chiave). Questa strada si percorre quando tutti i partecipanti a un contratto cooperano all'unanimità. Dal punto di vista della blockchain, l'output on-chain (il cosiddetto *scriptPubKey*) si presenta esattamente come un normale output a chiave singola. Al suo interno, sia la chiave originale $P$ sia gli script complessi del MAST rimangono totalmente invisibili.
+
+Durante la fase di firma, i partecipanti aggregano matematicamente le loro chiavi pubbliche ($P = P_A + P_B + P_C$) per formare un'unica chiave aggregata. Successivamente, calcolano il *tweak* ($t = H(P||m)$) ricavandolo dalla radice di Merkle del MAST e lo sommano alla chiave privata, ottenendo la chiave privata modificata ($x^{\prime}=x+t$). Questo procedimento collaborativo culmina nella produzione di un'unica firma crittografica di Schnorr. Infine, un nodo della rete verifica la validità della spesa semplicemente confrontando la firma prodotta con la chiave pubblica modificata ($P^{\prime}$), tramite l'operazione *Verify(sig, P')*. L'aspetto straordinario è che, on-chain, tutta questa operazione complessa risulta assolutamente indistinguibile da una banale transazione a chiave singola.
+
+[INSERIRE IMMAGINE: Diagramma del Taproot Key Path Spending che mostra la cooperazione tra Alice, Bob e Charlie per formare una singola Tweaked Public Key P', invisibile e indistinguibile on-chain.]
+
+### L'Alternativa d'Emergenza: Lo Script Path
+
+Qualora la collaborazione tra i partecipanti venga a mancare, subentra la seconda modalità: lo **Script Path Spend** (la spesa tramite percorso dello script). In questo scenario, per sbloccare i fondi i partecipanti devono rivelare apertamente la specifica condizione di spesa che intendono utilizzare.
+
+Sebbene i dettagli esatti delle condizioni di spesa siano inizialmente ignoti, l'albero di Merkle (MAST) integrato nella chiave ne codifica in modo sicuro l'esistenza. Per attivare lo script, l'utente deve fornire il percorso di Merkle necessario a dimostrare il collegamento tra lo script svelato e la radice dell'albero. Di conseguenza, è richiesta la produzione di firme multiple che corrispondano esplicitamente allo script rivelato. Durante la fase di verifica, il network controlla che le firme presentate combacino perfettamente con le condizioni dello script. Questo meccanismo permette l'implementazione di regole di spesa incredibilmente flessibili ed espressive, garantendo sempre una via d'uscita anche nei contratti più elaborati.
+
+[INSERIRE IMMAGINE: Diagramma del Taproot Script Path che illustra come sbloccare i fondi (icona del lucchetto che si apre) rivelando uno specifico ramo di un albero di Merkle e producendo le relative firme.]
+
+### Il Ritorno agli Hard Fork: Il Caso Studio di Bitcoin Cash
+
+Se i soft fork come Taproot permettono evoluzioni non traumatiche, la storia delle blockchain è costellata anche da fratture permanenti. Ricordiamo che un **Hard Fork** è una modifica alle regole di consenso non retrocompatibile: i nodi sono obbligati ad aggiornarsi e i vecchi nodi inizieranno a rifiutare i nuovi blocchi, generando una vera e propria scissione della catena (chain split) in cui le due nuove reti condividono la cronologia solo fino al punto di biforcazione.
+
+La comunità di Bitcoin ha sempre tentato di evitare tali eventi, ma nell'agosto del 2017 il crescente conflitto sulla scalabilità del protocollo ha portato a un punto di non ritorno. Il dibattito si è polarizzato sulla dimensione del blocco (block size). Da una parte emerse la visione di *Bitcoin (Core)*, volta a mantenere piccoli blocchi (circa 1MB) e affidare lo sviluppo a SegWit e al Lightning Network. Dall'altra parte, si compattò la fazione di **Bitcoin Cash**, che scelse di incrementare drasticamente e in modo diretto la dimensione dei blocchi portandola a 8MB o più.
+
+La divisione produsse effetti immediati sui capitali degli utenti: poiché le storie delle catene erano identiche fino al momento del fork, chi possedeva 10 bitcoin si ritrovò automaticamente in possesso di 10 bitcoin tradizionali e 10 **bitcoincash**. Le chiavi private e gli indirizzi dei wallet rimanevano gli stessi per entrambe le valute. Inoltre, gli utenti potevano spendere liberamente un UTXO (transazione non spesa) su una catena senza che questo invalidasse il corrispondente UTXO sull'altra, eliminando il rischio di *double spending* essendo i network ormai separati. Molti investitori colsero l'opportunità per vendere i propri Bitcoin Cash a prezzi inizialmente molto alti, con lo scopo di comprare ulteriori Bitcoin. Nonostante un successivo fisiologico rallentamento dei prezzi, Bitcoin Cash è sopravvissuto, arrivando a gestire fino a 200 transazioni al secondo e mantenendo lo stesso algoritmo di mining di Bitcoin (cosa che permette ai minatori di estrarre indifferentemente entrambe le criptovalute).
+
+### Hard Fork Strategici: Il Lancio di Nuove Criptovalute
+
+L'episodio di Bitcoin Cash aprì gli occhi del mercato su una dinamica interessante: gli hard fork possono essere sfruttati in modo strategico. Quando un creatore decide di lanciare una nuova criptovaluta (altcoin) da zero, il timore principale è che le persone non vi prestino alcun interesse. Tuttavia, invece di creare un sistema ex novo, si può effettuare un hard fork della catena di Bitcoin, pubblicizzando l'evento nei blog e nei forum specializzati.
+
+Attraverso questo meccanismo, ogni possessore di Bitcoin riceve gratuitamente la nuova valuta. Dopo la spaccatura della catena, gli utenti si ritrovano in tasca due valute indipendenti, duplicando virtualmente l'ammontare dei loro asset digitali (anche se il loro valore di mercato reale sarà indipendente). Questa pratica è diventata un metodo popolare per avviare (*bootstrap*) nuove monete, tanto che nel corso del 2017 individui esterni alla comunità originale di sviluppatori hanno creato propri hard fork, dando vita a progetti paralleli come Bitcoin Gold (BTG) o il discusso SegWit2x (B2X).
+
+[INSERIRE IMMAGINE: Grafico temporale ad albero che mostra le biforcazioni di Bitcoin nel 2017. Evidenzia la catena verde principale da cui si ramificano la catena azzurra di Bitcoin Cash (BCH), l'aggiornamento verde del Softfork SegWit e le successive nascite di Bitcoin Gold (BTG) in rosso e SegWit2x (B2X) in grigio.]
+
+### L'Hard Fork Come Risposta a Vulnerabilità Software
+
+Sebbene i fork precedentemente descritti derivassero da scelte umane o divergenze politiche, in scenari estremi un hard fork può diventare una necessità imposta da gravi vulnerabilità tecnologiche (software flaws) scoperte nelle basi crittografiche del network.
+
+Se, ad esempio, il celebre algoritmo di hashing SHA-256 dovesse un giorno essere compromesso, l'unica soluzione per la blockchain sarebbe quella di migrare verso un algoritmo più moderno, come SHA-3. Mentre l'aggiunta opzionale di SHA-3 potrebbe essere gestita con un soft fork, la completa rimozione e sostituzione del vulnerabile SHA-256 implicherebbe un hard fork inevitabile. Un pericolo ancora più grave e potenziale è rappresentato dall'avvento dei computer quantistici (quantum computers), le cui enormi capacità di calcolo potrebbero abbattere la sicurezza delle curve ellittiche, delle firme digitali classiche e persino delle moderne firme di Schnorr. In uno scenario del genere, un attaccante potrebbe intercettare impunemente le chiavi private degli utenti e sottrarre i fondi altrui; per prevenire questo esito fatale, la rete sarebbe costretta a eseguire un hard fork d'emergenza per adottare un algoritmo di firma digitale *quantum resistant*.
+
+---
+
+### Glossario e Concetti Chiave
+
+- **Key Path Spend**: La modalità di spesa di Taproot utilizzata quando i partecipanti a uno smart contract cooperano, apparendo on-chain come una normale transazione indistinguibile per proteggere la privacy dei contraenti.
+
+- **Script Path Spend**: Modalità di spesa in cui si rivelano solo specifiche condizioni nascoste in un albero MAST per poter mobilitare i fondi in assenza di cooperazione.
+
+- **Chain Split**: La spaccatura permanente di una blockchain che si verifica durante un Hard Fork, portando alla creazione di reti parallele (es. Bitcoin e Bitcoin Cash).
+
+- **Double Spending (Assenza di)**: Nei fork, siccome le due nuove reti operano in isolamento dopo il momento della rottura, spendere una valuta su un lato della catena non invalida i fondi sull'altra catena, evitando conflitti di consenso.
+
+- **Quantum Resistant Algorithms**: Sofisticati algoritmi di crittografia che si renderebbero necessari, tramite implementazione via Hard Fork, per proteggere la rete in un futuro in cui la crittografia attuale venga violata dall'informatica quantistica.
+
+---
+
+# Lezione 14:

@@ -591,4 +591,4 @@ While InfiniBand remains dominant in dedicated supercomputing data centers (ofte
 
 ---
 
-# Lecture 8:
+# Lecture 9:
