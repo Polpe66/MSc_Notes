@@ -1,49 +1,54 @@
 # Slide 1: L'Architettura Generale di un Motore di Ricerca
 
-Per comprendere come valutare un sistema di Information Retrieval, è essenziale osservare la sua architettura interna, la quale si divide in componenti di elaborazione **Offline** e **Online**. La fase offline è propedeutica e dedicata alla preparazione dell'infrastruttura sui dati: partendo da una vasta **Document Collection**, il sistema esegue un processo di indicizzazione ("Indexing") per costruire un **Inverted Index**. Parallelamente, un processore estrae le caratteristiche dai testi (Feature Processor) per memorizzarle all'interno di una **Document Features Repository**. In questa fase viene anche effettuato il training di un modello di **Learning-to-rank**, sfruttando un insieme di dati di addestramento (Training Data). Durante la fase online, il sistema processa in tempo reale la **Query** immessa dall'utente: quest'ultima viene innanzitutto espansa e passata al modulo di Query Processing, che consulta l'indice invertito. I documenti candidati passano poi a una fase di calcolo e recupero delle feature (Feature Lookup and Computation), per essere infine ordinati in base alla loro pertinenza da una **Learned Ranking Function** e presentati all'utente.
+Per comprendere come valutare un sistema di Information Retrieval, è essenziale osservare la sua architettura interna, la quale si divide in componenti di elaborazione **Offline** e **Online**. 
 
-[INSERIRE IMMAGINE: Diagramma di flusso dell'architettura del motore di ricerca divisa tra pipeline online e pipeline offline]
+La **fase offline** è propedeutica e dedicata alla preparazione dell'infrastruttura sui dati: partendo da una vasta **Document Collection**, il sistema esegue un processo di indicizzazione ("Indexing") per costruire un **Inverted Index**. Parallelamente, un processore estrae le caratteristiche dai testi (Feature Processor) per memorizzarle all'interno di una **Document Features Repository**. In questa fase viene anche effettuato il training di un modello di **Learning-to-rank**, sfruttando un insieme di dati di addestramento (Training Data). 
+
+Durante la **fase online**, il sistema processa in tempo reale la **Query** immessa dall'utente: quest'ultima viene innanzitutto espansa e passata al modulo di Query Processing, che consulta l'indice invertito. I documenti candidati passano poi a una fase di calcolo e recupero delle feature (Feature Lookup and Computation), per essere infine ordinati in base alla loro pertinenza da una **Learned Ranking Function** e presentati all'utente.
+
+![](assets/2026-04-09-14-42-39-image.png)
 
 ### Efficienza, Efficacia e la Misura della Soddisfazione
 
-La valutazione di un motore di ricerca parte da interrogativi di natura prettamente prestazionale. Dal punto di vista dell'efficienza, ci si interroga sulla velocità con cui il sistema indicizza la collezione (in numero di documenti elaborati per ora) e sulla sua capacità di eseguire un'indicizzazione incrementale, ad esempio assorbendo 10.000 nuovi prodotti al giorno. Riguardo alla ricerca in sé, è fondamentale misurare la latenza e i requisiti di elaborazione della CPU necessari per elaborare query su indici di grandissime dimensioni, come collezioni da 5 milioni di documenti. Inoltre, si valuta la qualità dei servizi collaterali, verificando se il sistema è in grado di suggerire all'utente prodotti correlati validi per l'acquisto.
+La valutazione di un motore di ricerca parte da interrogativi di natura prettamente prestazionale. Dal punto di vista dell'efficienza, ci si interroga sulla velocità con cui il sistema indicizza la collezione (in numero di documenti elaborati per ora) e sulla sua capacità di eseguire un'indicizzazione incrementale, ad esempio assorbendo 10.000 nuovi prodotti al giorno. 
 
-Questi aspetti tecnici, per quanto cruciali, non descrivono tuttavia l'efficacia e la qualità intrinseca del motore di ricerca in ottica utente. L'obiettivo finale di un sistema IR è garantire un'alta soddisfazione durante l'esperienza di ricerca, concentrandosi in particolar modo sulla bontà della pagina dei risultati (SERP) costruita per ogni specifica interrogazione. Valutare se un utente sia "felice" rappresenta però una sfida notevole. Un segnale apparente di successo è l'elevato numero di clic sui risultati restituiti, ma questo dato va analizzato criticamente poiché titoli o sommari fuorvianti potrebbero ingannare gli utenti e forzare clic non legati a una reale pertinenza. In determinate situazioni, l'assenza di clic ("no clicks") può persino configurarsi come una buona notizia se, per esempio, l'utente trova l'informazione desiderata direttamente nelle anteprime della SERP. Ulteriori segnali forti di soddisfazione derivano da azioni concrete post-ricerca, come l'acquisto di beni investendo ingenti somme di denaro, il ritorno di visitatori ricorrenti su base settimanale o mensile, e l'analisi del **Dwell time**, ovvero il tempo trascorso sulla pagina di destinazione dopo aver cliccato un link della SERP prima di tornare alla lista dei risultati.
+Riguardo alla ricerca in sé, è fondamentale misurare la latenza e i requisiti di elaborazione della CPU necessari per elaborare query su indici di grandissime dimensioni, come collezioni da 5 milioni di documenti. Inoltre, si valuta la qualità dei servizi collaterali, verificando se il sistema è in grado di suggerire all'utente prodotti correlati validi per l'acquisto.
+
+Questi aspetti tecnici, per quanto cruciali, non descrivono tuttavia l'efficacia e la qualità intrinseca del motore di ricerca in ottica utente. L'obiettivo finale di un sistema IR è garantire un'alta soddisfazione durante l'esperienza di ricerca, concentrandosi in particolar modo sulla bontà della pagina dei risultati (SERP) costruita per ogni specifica interrogazione. Valutare se un utente sia "felice" rappresenta però una sfida notevole. Un segnale apparente di successo è l'elevato numero di clic sui risultati restituiti, ma questo dato va analizzato criticamente poiché titoli o sommari fuorvianti potrebbero ingannare gli utenti e forzare clic non legati a una reale pertinenza. In determinate situazioni, l'assenza di clic ("no clicks") può persino configurarsi come una buona notizia se, per esempio, l'utente trova l'informazione desiderata direttamente nelle anteprime della SERP. 
+
+Ulteriori segnali forti di soddisfazione derivano da azioni concrete post-ricerca, come l'acquisto di beni investendo ingenti somme di denaro, il ritorno di visitatori ricorrenti su base settimanale o mensile, e l'analisi del **Dwell time**, ovvero il tempo trascorso sulla pagina di destinazione dopo aver cliccato un link della SERP prima di tornare alla lista dei risultati.
 
 ### Misurare la Rilevanza: Il Metodo Cranfield e TREC
 
 Essendo la felicità di natura elusiva e complessa da tracciare, il proxy più comune utilizzato nella valutazione accademica e industriale è la misurazione della **rilevanza dei risultati di ricerca**. Tale metodologia fu pionieristicamente introdotta da Cyril Cleverdon attraverso gli Esperimenti di Cranfield.
 
-[INSERIRE IMMAGINE: Fotografia di Cyril Cleverdon, pioniere degli esperimenti di Cranfield]
 
-La quantificazione formale della rilevanza richiede l'interazione di tre elementi imprescindibili: una collezione documentale di test (benchmark), una suite di query prefissate, e un giudizio formale che associ a ogni singola coppia query-documento un'etichetta di rilevanza o non-rilevanza. Supponendo di voler valutare un nuovo algoritmo, si può immaginare di incrociare una collezione da 5 milioni di documenti con un campione di 50.000 query, per produrre una matrice di giudizi. I giudizi possono manifestarsi nella forma più semplice come valutazioni binarie (rilevante contro non rilevante) o adottare misurazioni più sfumate su scale numeriche progressive (es. 0, 1, 2, 3...).
 
-Questo approccio incontra limiti fisici colossali. Moltiplicando 5 milioni di documenti per 50.000 query si otterrebbero un quarto di trilione ($0.25 \times 10^{12}$) di coppie teoriche da valutare. Se per ogni giudizio un revisore umano impiegasse solo 2,5 secondi, occorrerebbero circa 170 milioni di ore-persona per completare il task. È pertanto obbligatorio restringere il numero dei documenti da valutare a un sottoinsieme della collezione totale. Per abbattere i costi elevati degli esaminatori esperti, la ricerca ha ampiamente studiato l'utilizzo del **crowdsourcing** tramite piattaforme online come Amazon Mechanical Turk, per far valutare i risultati a lavoratori generici a basso costo. Il principale insegnamento derivante dalla letteratura in merito è che questo metodo restituisce un segnale di base utile, ma la varianza qualitativa derivante dai giudizi è inevitabilmente molto alta.
+La quantificazione formale della rilevanza richiede l'interazione di tre elementi imprescindibili: 
+
+- una collezione documentale di test (benchmark), 
+
+- una suite di query prefissate,  
+
+- un giudizio formale che associ a ogni singola coppia query-documento un'etichetta di rilevanza o non-rilevanza. 
+
+Supponendo di voler valutare un nuovo algoritmo, si può immaginare di incrociare una collezione da 5 milioni di documenti con un campione di 50.000 query, per produrre una matrice di giudizi. I giudizi possono manifestarsi nella forma più semplice come valutazioni binarie (rilevante contro non rilevante) o adottare misurazioni più sfumate su scale numeriche progressive (es. 0, 1, 2, 3...).
+
+Questo approccio incontra limiti fisici colossali. Moltiplicando 5 milioni di documenti per 50.000 query si otterrebbero un quarto di trilione ($0.25 \times 10^{12}$) di coppie teoriche da valutare. 
+
+Se per ogni giudizio un revisore umano impiegasse solo 2,5 secondi, occorrerebbero circa 170 milioni di ore-persona per completare il task. È pertanto obbligatorio restringere il numero dei documenti da valutare a un sottoinsieme della collezione totale. Per abbattere i costi elevati degli esaminatori esperti, la ricerca ha ampiamente studiato l'utilizzo del **crowdsourcing** tramite piattaforme online come Amazon Mechanical Turk, per far valutare i risultati a lavoratori generici a basso costo. Il principale insegnamento derivante dalla letteratura in merito è che questo metodo restituisce un segnale di base utile, ma la varianza qualitativa derivante dai giudizi è inevitabilmente molto alta.
 
 ### La Costruzione delle Query e le Collezioni Pubbliche
 
-Per testare adeguatamente i sistemi, le test query impiegate devono essere direttamente pertinenti ai documenti a disposizione e, soprattutto, risultare rappresentative dei reali bisogni formativi di un utente. L'estrazione casuale di termini dai testi archiviati per simulare query è considerata una pessima pratica; un metodo decisamente migliore consiste invece nel campionare interrogazioni autentiche estrapolandole dai log del motore di ricerca. Nelle metodologie classiche sviluppate prima dell'avvento del Web, dove i tassi di interrogazione esigui limitavano la disponibilità dei log, la prassi richiedeva che gli esperti ideassero e confezionassero a mano i cosiddetti "bisogni dell'utente" (che la terminologia TREC chiama **topics**) e le query associate.
+Per testare adeguatamente i sistemi, le test query impiegate devono essere direttamente pertinenti ai documenti a disposizione e, soprattutto, risultare rappresentative dei reali bisogni formativi di un utente. L'estrazione casuale di termini dai testi archiviati per simulare query è considerata una pessima pratica.
 
-L'ecosistema dell'IR si basa fortemente su collezioni di test pubbliche. Di seguito un riepilogo tabellare storico dei benchmark, che mostra l'enorme salto di scala avvenuto con le raccolte TREC:
-
-| **Collection** | **NDocs** | **NQrys** | **Size (MB)** | **Term/Doc** | **Q-D RelAss** |
-| -------------- | --------- | --------- | ------------- | ------------ | -------------- |
-| ADI            | 82        | 35        |               |              |                |
-| AIT            | 2109      | 14        | 2             | 400          | >10,000        |
-| CACM           | 3204      | 64        | 2             | 24.5         |                |
-| CISI           | 1460      | 112       | 2             | 46.5         |                |
-| Cranfield      | 1400      | 225       | 2             | 53.1         |                |
-| LISA           | 5872      | 35        | 3             |              |                |
-| Medline        | 1033      | 30        | 1             |              |                |
-| NPL            | 11,429    | 93        | 3             |              |                |
-| OSHMED         | 34,8566   | 106       | 400           | 250          | 16,140         |
-| Reuters        | 21,578    | 672       | 28            | 131          |                |
-| TREC           | 740,000   | 200       | 2000          | 89-3543      | >> 100,000     |
-|                |           |           |               |              |                |
+Un metodo decisamente migliore consiste invece nel campionare interrogazioni autentiche estrapolandole dai log del motore di ricerca. Nelle metodologie classiche sviluppate prima dell'avvento del Web, dove i tassi di interrogazione esigui limitavano la disponibilità dei log, la prassi richiedeva che gli esperti ideassero e confezionassero a mano i cosiddetti "bisogni dell'utente" (che la terminologia TREC chiama **topics**) e le query associate. L'ecosistema dell'IR si basa fortemente su collezioni di test pubbliche. 
 
 **TREC (Text Retrieval Conference)** è il punto di riferimento in questo ambito: un'iniziativa sponsorizzata dal National Institute of Standards and Technology (NIST) il cui fine primario è consolidare l'infrastruttura di test per valutazioni su vasta scala nel dominio IR, unificando sia la ricerca sui metodi che la creazione dei materiali. L'accezione di "Information Retrieval" viene qui mantenuta volutamente vasta, per abbracciare tutte le tecniche dedicate all'accesso a informazioni non strutturate preventivamente per le macchine. TREC è suddiviso concettualmente in **track**, vere e proprie aree di interesse ispirate da specifici "use case" e bisogni dell'utente.
 
-Ogni collezione di test TREC si articola su tre direttrici: i documenti, i bisogni informativi o "topic" e, infine, i giudizi di pertinenza (relevance judgments), i quali descrivono quali testi andrebbero estratti per i determinati argomenti. Quando un sistema algoritmico processa un intero set di istruzioni all'interno di una collezione, il risultato finale si chiama **run**. Nelle prime edizioni, per risolvere il problema dell'impossibilità di valutare l'intera base di dati di TREC, venne ideata la tecnica del **Pooling**. Essa consiste nel fondere in un solo "pool" i documenti posizionati nelle primissime posizioni dai vari partecipanti; solo quelli all'interno del bacino vengono successivamente valutati dal giudizio umano. Ai fini del punteggio finale, qualunque documento posizionato fuori da questo limitato pool viene considerato di default come non rilevante. Numerose divisioni interne a TREC continuano tuttora la ricerca per ideare modalità ottimali e imparziali per il campionamento su larga scala.
+Ogni collezione di test TREC si articola su tre direttrici: i documenti, i bisogni informativi o "topic" e, infine, i giudizi di pertinenza (relevance judgments), i quali descrivono quali testi andrebbero estratti per i determinati argomenti. 
+
+Quando un sistema algoritmico processa un intero set di istruzioni all'interno di una collezione, il risultato finale si chiama **run**. Nelle prime edizioni, per risolvere il problema dell'impossibilità di valutare l'intera base di dati di TREC, venne ideata la tecnica del **Pooling**. Essa consiste nel fondere in un solo "pool" i documenti posizionati nelle primissime posizioni dai vari partecipanti; solo quelli all'interno del bacino vengono successivamente valutati dal giudizio umano. Ai fini del punteggio finale, qualunque documento posizionato fuori da questo limitato pool viene considerato di default come non rilevante. Numerose divisioni interne a TREC continuano tuttora la ricerca per ideare modalità ottimali e imparziali per il campionamento su larga scala.
 
 ### Bisogno Informativo e Valutazioni Binarie: Precision e Recall
 
@@ -51,9 +56,9 @@ Prima di passare al calcolo delle metriche di ranking vere e proprie, bisogna fa
 
 Assumendo che i giudizi di rilevanza siano esclusivamente binari (un documento o è pertinente, o non lo è), l'IR adotta storicamente due metriche non basate sull'ordinamento chiamate **Precision** e **Recall**.
 
-- La **Precision** si definisce come la porzione dei documenti recuperati dal sistema che risultano concretamente pertinenti all'interno della ristretta cerchia di testi proposti al lettore. In termini probabilistici: $P(\text{relevant retrieved} \mid \text{retrieved})$.
+- La **Precision** si definisce come la porzione dei documenti recuperati dal sistema che risultano concretamente rilevanti all'interno della ristretta cerchia di testi proposti al lettore. In termini probabilistici: $P(\text{relevant retrieved} \mid \text{retrieved})$.
 
-- La **Recall** valuta la metrica dal punto di vista globale, calcolando la percentuale di tutti i documenti effettivamente pertinenti celati nel corpus che l'algoritmo ha saputo intercettare: $P(\text{relevant retrieved} \mid \text{relevant})$.
+- La **Recall** valuta la metrica dal punto di vista globale, calcolando la percentuale di tutti i documenti effettivamente rilevanti celati nel corpus che l'algoritmo ha saputo intercettare: $P(\text{relevant retrieved} \mid \text{relevant})$.
 
 Questi due concetti vengono estrapolati quantificando i Veri Positivi ($tp$), Falsi Positivi ($fp$), e Falsi Negativi ($fn$):
 
@@ -61,9 +66,10 @@ Questi due concetti vengono estrapolati quantificando i Veri Positivi ($tp$), Fa
 | ------------------------------ | ------------------------ | ------------------------------- |
 | Recuperato (Retrieved)         | $tp$                     | $fp$                            |
 | Non Recuperato (Not Retrieved) | $fn$                     | $tn$                            |
-|                                |                          |                                 |
 
-Applicando questa matrice, possiamo quantificare aritmeticamente le misure: $precision = \frac{tp}{tp+fp}$ ovvero $precision = \frac{\text{Number of relevant documents retrieved}}{\text{Total number of documents retrieved}}$. $recall = \frac{tp}{tp+fn}$ ovvero $recall = \frac{\text{Number of relevant documents retrieved}}{\text{Total number of relevant documents}}$.
+<img src="assets/2026-04-09-14-59-23-image.png" title="" alt="" width="272">
+
+<img title="" src="assets/2026-04-09-14-57-56-image.png" alt="" width="447">
 
 ### L'Armonizzazione con la F-Measure (o F-Score)
 
@@ -71,6 +77,8 @@ Spesso durante la valutazione emerge la difficoltà intrinseca di ottimizzare si
 La formula di base è: $F = \frac{1}{0.5\frac{1}{P} + 0.5\frac{1}{R}} = 2\frac{PR}{P+R}$
 
 Il motivo matematico alla base di questa scelta risiede nel fatto che la media armonica fornisce un risultato che non potrà mai superare né la media aritmetica né quella geometrica e, soprattutto, quando i due valori a confronto presentano grandi deviazioni, tende ad avvicinarsi fortemente verso il numero più basso dei due. Se, come puro caso teorico, un motore di ricerca cattura tutti i documenti possibili portando il valore Recall al 100%, la sua Precision subirà un inevitabile crollo; il valore di F-Score si adatterà assecondando e mostrando con precisione le penalizzazioni dovute al valore peggiore.
+
+
 
 Nei casi in cui il progettista intenda dare priorità mirata ad uno solo dei due indicatori asimmetrici, può fare affidamento su una formula di ponderazione definendo l'iperparametro $\beta$ attraverso l'equazione $\alpha = 1/(1+\beta^{2})$ che conferisce il peso $\alpha$ alla Precision e il suo complimento alla Recall. La **F-Measure pesata** si scriverà dunque in questo modo: $F_{\beta} = \frac{1}{\alpha\frac{1}{P} + (1-\alpha)\frac{1}{R}} = (\beta^{2}+1)\frac{PR}{\beta^{2}P+R}$ Ne consegue che, abbassando la frazione in modo che $\beta < 1$, si avvantaggerà lo studio e il peso della Precision (andandone in direzione convergente); mentre se si solleverà l'asticella cosicché $\beta > 1$, la priorità dell'equazione ricadrà forzatamente sulla Recall.
 
@@ -96,11 +104,13 @@ Una volta compresi i fondamenti della rilevanza binaria aspecifica (come Precisi
 
 Per valutare la qualità dell'intero ranking restituito per una singola query, si utilizza l'**Average Precision (AP)**. Questa misura considera la posizione in classifica di ogni singolo documento pertinente man mano che la recall aumenta lungo la lista dei risultati. Più precisamente, si calcola la "Precision@K" esclusivamente nei punti $K_{1}, K_{2}, \dots, K_{R}$ in cui viene effettivamente incontrato un documento utile. Ad esempio, per una query che possiede in totale $R=3$ documenti rilevanti, i quali compaiono alle posizioni 1, 3 e 5 della classifica, l'AP si calcola sommando le precisioni in quei punti e dividendole per 3, ottenendo $\frac{1}{3}\cdot(\frac{1}{1}+\frac{2}{3}+\frac{3}{5})\approx0.76$.
 
-Analizzando casi più estesi, se un sistema restituisce due differenti ordinamenti (Ranking #1 e Ranking #2) per la stessa serie di documenti rilevanti, l'Average Precision premia nettamente l'algoritmo che posiziona i testi pertinenti più in alto. Calcolando l'AP su una lista ipotetica, il Ranking #1 potrebbe ottenere un punteggio di $(1.0+0.67+0.75+0.8+0.83+0.6)/6=0.78$, mentre un peggiore Ranking #2 si fermerebbe a $(0.5+0.4+0.5+0.57+0.56+0.6)/6=0.52$.
+![](assets/2026-04-09-15-18-51-image.png)
 
-[INSERIRE IMMAGINE: Esempio visivo del calcolo della Mean Average Precision con due ranking di documenti, rappresentati da fogli grigi (rilevanti) e bianchi (non rilevanti)]
+![](assets/2026-04-09-15-18-02-image.png)
 
 La **MAP (Mean Average Precision)** non è altro che la media aritmetica di tutti i valori di AP calcolati trasversalmente su un intero set di query, fornendo così un singolo valore riassuntivo della qualità del sistema. Questo approccio adotta un meccanismo di macro-averaging, il che significa che ogni query pesa equamente sul risultato finale, indipendentemente dal fatto che per alcuni bisogni informativi esistano moltissimi documenti rilevanti e per altri pochissimi. Proprio per questa sua robustezza, la MAP rappresenta una delle misure più adoperate all'interno delle pubblicazioni scientifiche che trattano la rilevanza binaria.
+
+![](assets/2026-04-09-15-20-43-image.png)
 
 ### Precision@K e MAP@K nel Contesto Web
 
@@ -109,8 +119,14 @@ Ci si potrebbe chiedere se metriche olistiche come la MAP siano ottimali anche p
 Per catturare questa dinamica si introduce la **Precision@K (P@K)**, che fissa una soglia di ranking $K$ e calcola semplicemente la percentuale di documenti pertinenti presenti nei primi $K$ risultati, ignorando tutto ciò che si trova al di sotto di tale soglia. Ad esempio, se tra i primi tre risultati ne abbiamo due rilevanti, la Prec@3 sarà $2/3=0.66$; se il quarto risultato è irrilevante, la Prec@4 scenderà a $2/4=0.5$, dimostrando come questa curva non sia strettamente monotona crescente (infatti Prec@4 è inferiore a Prec@3). Se il quinto è nuovamente rilevante, la Prec@5 risalirà a $3/5=0.6$. Analogamente si può calcolare la Recall@K.
 
 Il difetto principale della P@K è che non restituisce medie affidabili su un insieme eterogeneo di query, poiché il numero totale di documenti rilevanti specifici per ogni interrogazione influenza pesantemente i risultati. Per arginare il problema pur concentrandosi sui vertici delle classifiche, si ricorre alle metriche **AP@K** e **MAP@K**, ampiamente utilizzate nei Motori di Ricerca Web e nei Recommender Systems.
-La formula per l'Average Precision al rango K per una determinata query $q_i$ è: $AP@K(q_{i})=\frac{1}{K_{i}}\sum_{k=1}^{K}P@k(q_{i})\cdot rel(q_{i},k)$ Dove $rel(q_{i},k)$ vale $1$ se l'elemento al k-esimo rango è rilevante, altrimenti $0$, e il fattore di normalizzazione è $K_{i}=\sum_{k=1}^{K}rel(q_{i},k)$.
+La formula per l'Average Precision al rango K per una determinata query $q_i$ è: $AP@K(q_{i})=\frac{1}{K_{i}}\sum_{k=1}^{K}P@k(q_{i})\cdot rel(q_{i},k)$ 
+
+Dove $rel(q_{i},k)$ vale $1$ se l'elemento al k-esimo rango è rilevante, altrimenti $0$, e il fattore di normalizzazione è $K_{i}=\sum_{k=1}^{K}rel(q_{i},k)$.
+
+
 Di conseguenza, la MAP@K sull'intero insieme di query $Q$ si ottiene calcolando la media aritmetica delle singole AP@K: $MAP@K(Q)=\frac{1}{|Q|}\sum_{q_{i}\in Q}AP@K(q_{i})$.
+
+![](assets/2026-04-09-15-23-13-image.png)
 
 ### Mean Reciprocal Rank (MRR)
 
@@ -122,16 +138,20 @@ Per misurare formalmente questo sforzo si utilizza il **Mean Reciprocal Rank (MR
 
 Nei moderni motori di ricerca commerciali, i documenti non sono semplicemente utili o inutili, ma possiedono sfumature di utilità.
 
-[INSERIRE IMMAGINE: Screenshot di una pagina dei risultati di ricerca (SERP) di Google per la query "information retrieval unipi", mostrando risultati istituzionali misti a informazioni generali]
-
 Per gestire questa gradualità, la metrica più diffusa è il **Discounted Cumulative Gain (DCG)**. Essa poggia su due assunti cognitivi fondamentali: in primo luogo, i documenti altamente pertinenti sono intrinsecamente più utili rispetto a quelli marginalmente pertinenti; in secondo luogo, più un documento rilevante scivola in basso nella classifica, meno probabilità avrà di essere esaminato, risultando di conseguenza meno utile.
 
-Il DCG accumula il guadagno o utilità ("gain") scendendo lungo le posizioni della classifica, applicando però una "penalità" progressiva ai ranghi più bassi (lo sconto, o "discount"). Svolgendo giudizi di pertinenza su una scala che va da $0$ a $m$ (con $m>2$), il semplice Cumulative Gain (CG) al rango $n$ sarebbe una pura somma: $CG=r_{1}+r_{2}+\dots+r_{n}$. Il DCG interviene penalizzando i documenti che compaiono ai ranghi maggiori di 1, dividendone il valore di rilevanza generalmente per il logaritmo della loro posizione: $1/log(rank)$. Usando la base 2, ad esempio, lo sconto applicato alla quarta posizione dimezzerà il punteggio ($1/log_2(4) = 1/2$), mentre all'ottava lo ridurrà a un terzo ($1/log_2(8) = 1/3$).
+Il DCG accumula il guadagno o utilità ("gain") scendendo lungo le posizioni della classifica, applicando però una "penalità" progressiva ai ranghi più bassi (lo sconto, o "discount"). 
+
+Svolgendo giudizi di pertinenza su una scala che va da $0$ a $m$ (con $m>2$), il semplice Cumulative Gain (CG) al rango $n$ sarebbe una pura somma: $CG=r_{1}+r_{2}+\dots+r_{n}$. 
+
+Il DCG interviene penalizzando i documenti che compaiono ai ranghi maggiori di 1, dividendone il valore di rilevanza generalmente per il logaritmo della loro posizione: $1/log(rank)$. Usando la base 2, ad esempio, lo sconto applicato alla quarta posizione dimezzerà il punteggio ($1/log_2(4) = 1/2$), mentre all'ottava lo ridurrà a un terzo ($1/log_2(8) = 1/3$).
 La formulazione standard al rango $p$ è: $DCG_{p}=rel_{1}+\sum_{i=2}^{p}\frac{rel_{i}}{log_{2}i}$.
 
 Esiste tuttavia una formulazione alternativa, adottata da alcune grandi aziende di web search, che amplifica esponenzialmente il peso dei documenti altamente rilevanti per dare massima priorità al loro recupero: $DCG_{p}=\sum_{i=1}^{p}\frac{2^{rel_{i}}-1}{log(1+i)}$.
 
 Ad esempio, valutando 10 documenti con giudizi su una scala da 0 a 3 (es: 3, 2, 3, 0, 0, 1, 2, 2, 3, 0), il DCG applicherà i logaritmi ai denominatori ottenendo valori parziali scontati, per poi sommarli progressivamente e giungere a un DCG complessivo al decimo rango pari a 9.61.
+
+![](assets/2026-04-09-15-27-28-image.png)
 
 ### Normalizzazione dei Punteggi: NDCG
 
@@ -139,15 +159,11 @@ Il limite del puro DCG risiede nell'impossibilità di fare confronti coerenti tr
 
 Il processo consiste nel calcolare prima il ranking ideale (chiamato Ideal DCG), ordinando i risultati decrescenti partendo dai giudizi di rilevanza più alti verso i più bassi. Il valore finale si ottiene dividendo il DCG misurato empiricamente per l'Ideal DCG calcolato teoricamente. A causa di questa normalizzazione, il valore dell'NDCG in qualsiasi posizione $p$ sarà sempre compreso tra 0 e 1 ($NDCG \le 1$). Riprendendo l'esempio precedente, se il ranking perfetto dei documenti avrebbe prodotto un Ideal DCG finale di 10.88, e il nostro algoritmo si è fermato a 9.61, l'NDCG risultante sarà pari a 0.88.
 
+![](assets/2026-04-09-15-28-13-image.png)
+
 Di seguito una tabella riassuntiva che mostra il confronto diretto tra il Ground Truth (verità di base) e le funzioni di ranking algoritmiche (RF1 e RF2) su una scala ristretta a 4 documenti:
 
-| **i** | **Ground Truth (Document Order)** | **ri​** | **Ranking Function 1 (Document Order)** | **ri​** | **Ranking Function 2 (Document Order)** | **ri​** |
-| ----- | --------------------------------- | ------- | --------------------------------------- | ------- | --------------------------------------- | ------- |
-| 1     | d4                                | 2       | d3                                      | 2       | d3                                      | 2       |
-| 2     | d3                                | 2       | d4                                      | 2       | d2                                      | 1       |
-| 3     | d2                                | 1       | d2                                      | 1       | d4                                      | 2       |
-| 4     | d1                                | 0       | d1                                      | 0       | d1                                      | 0       |
-|       | **$NDCG_{GT}=1.00$**              |         | **$NDCG_{RF1}=1.00$**                   |         | **$NDCG_{RF2}=0.9203$**                 |         |
+![](assets/2026-04-09-15-29-26-image.png)
 
 Come si evince, il $MaxDCG$ (cioè l'Ideal DCG del Ground Truth) è pari a $4.6309$. La Ranking Function 1, seppur invertendo l'ordine dei due documenti con rilevanza massima 2 (d4 e d3), ottiene anch'essa un $DCG$ perfetto di $4.6309$, e quindi un NDCG di $1.00$. La Ranking Function 2, invece, inserendo un documento meno rilevante al rango 2, vede il suo punteggio abbassarsi a $4.2619$, ottenendo di conseguenza un NDCG normalizzato di $0.9203$.
 
@@ -181,7 +197,7 @@ Il **linguaggio naturale** è il mezzo che gli esseri umani usano quotidianament
 
 L'elaborazione di questo strumento comunicativo è estremamente complessa a causa di numerose sue caratteristiche intrinseche. Innanzitutto, il linguaggio si basa su **migliaia di simboli** e possiede una **sintassi complessa**.
 
-[INSERIRE IMMAGINE: Rappresentazione di alberi sintattici e grafi delle dipendenze, ad esempio la scomposizione della frase "the angry bear chased the frightened little squirrel" e l'analisi di mercato legata ad Apple].
+
 
 Inoltre, la semantica del linguaggio è prevalentemente **composizionale**, il che significa che il significato generale di un'espressione deriva solitamente dall'unione delle sue singole parti. Tuttavia, in questo ambito esistono varie sfumature che complicano l'analisi. Si passa da espressioni puramente composizionali (come "comprare un'auto" o "leggere un libro" ) alle collocazioni, ovvero associazioni abituali di parole (come "make the bed" o "saltare la lezione" ), per giungere alle **espressioni idiomatiche**, il cui significato non è in alcun modo deducibile in via letterale dalle singole parole (ad esempio, l'augurio "break a leg" o il proverbio "dalla padella nella brace" ).
 
@@ -213,7 +229,7 @@ Anche le reti complesse, o **Grafi**, tipiche dei Social Network, beneficiano am
 
 Infine, l'intersezione tra elaborazione linguistica, **Immagini e Video** genera la branca del *Cross-media processing*. Un classico compito è l'**Image Captioning**, ovvero la generazione automatica di descrizioni testuali per il contenuto di un'immagine. Tali metodologie sono utilissime per affinare i processi di recupero e ricerca visiva e forniscono un aiuto inestimabile per le persone affette da disabilità visive, descrivendo loro in linguaggio naturale, e con vari livelli di accuratezza, le scene presentate a schermo.
 
-[INSERIRE IMMAGINE: Griglia di esempi di "Image Captioning", che mostra valutazioni dalle descrizioni perfette senza errori a quelle vagamente correlate o completamente scollegate dall'immagine].
+
 
 ---
 
@@ -233,15 +249,17 @@ Infine, l'intersezione tra elaborazione linguistica, **Immagini e Video** genera
 
 Il *cross-media processing* si spinge fino alla generazione di rappresentazioni visive astratte a partire dal testo. Questo approccio abilita metodi di recupero delle informazioni (*retrieval*) molto più intelligenti e sofisticati. Attraverso l'uso di modelli informatici denominati VisSim, VisReg e Text2Vis, è possibile tradurre stringhe testuali descrittive in precise interpretazioni visive, confrontandole con l'azione scenica reale . Ne è un esempio l'elaborazione della frase "un uomo si prepara a lanciare un frisbee" ("a man gets ready to throw a frisbee"), dove il modello isola l'azione e la relaziona all'immagine.
 
-[INSERIRE IMMAGINE: Sequenza di fotogrammi video che mostrano individui che giocano a frisbee, affiancati verticalmente dalle diciture VisSim, VisReg e Text2Vis in risposta all'input testuale corrispondente].
+
 
 Per raggiungere questi traguardi ci si avvale di una profonda convergenza di diverse **Tecnologie**. Storicamente e metodologicamente, le discipline del **Natural Language Processing (NLP)**, dell'**Information Retrieval (IR)** e del **Machine Learning (ML)** non sono nettamente distinte tra loro . Al contrario, si influenzano e si nutrono reciprocamente: i metodi legati al NLP sono molto spesso costruiti sfruttando e poggiandosi sui fondamenti dell'IR e del ML. Allo stesso tempo, il ML adotta sistematicamente le metriche e le misure tipiche dell'IR per poter definire gli obiettivi qualitativi dei propri modelli di apprendimento. Di conseguenza, il ML presuppone in modo intrinseco che il linguaggio naturale debba essere prima manipolato e strutturato dai metodi NLP e IR affinché gli algoritmi predittivi possano lavorarci efficacemente.
 
-[INSERIRE IMMAGINE: Diagramma a tre cerchi interconnessi da frecce che rappresentano le aree NLP, IR e ML, indicando la loro natura fluida e interdipendente].
+
 
 ### Il Concetto di Pipeline ed Estrazione dei Dati dal Web
 
-Questo indispensabile pre-processamento è strutturato attraverso le cosiddette **Pipelines**. Una *Processing Pipeline* si definisce come una catena ordinata di passaggi o moduli sequenziali attraverso cui un dato passa per essere trasformato, analizzato o elaborato . Questo concetto è ricorrente nei metodi di *text analytics*, in quanto il testo grezzo è raramente elaborabile "così com'è" dai complessi metodi di Machine Learning. Esso richiede tassativamente di essere trasformato in una rappresentazione che si adatti al metodo specifico in uso in quel momento. È fondamentale notare che queste trasformazioni non sono mai delle semplici conversioni di formato informatico: esse possono filtrare attivamente e modificare l'informazione per far sì che venga sfruttata al meglio dagli stadi successivi della pipeline, avendo come obiettivo il sostanziale miglioramento del risultato finale dell'intero processo.
+Questo indispensabile pre-processamento è strutturato attraverso le cosiddette **Pipelines**. Una *Processing Pipeline* si definisce come una catena ordinata di passaggi o moduli sequenziali attraverso cui un dato passa per essere trasformato, analizzato o elaborato . 
+
+Questo concetto è ricorrente nei metodi di *text analytics*, in quanto il testo grezzo è raramente elaborabile "così com'è" dai complessi metodi di Machine Learning. Esso richiede tassativamente di essere trasformato in una rappresentazione che si adatti al metodo specifico in uso in quel momento. È fondamentale notare che queste trasformazioni non sono mai delle semplici conversioni di formato informatico: esse possono filtrare attivamente e modificare l'informazione per far sì che venga sfruttata al meglio dagli stadi successivi della pipeline, avendo come obiettivo il sostanziale miglioramento del risultato finale dell'intero processo.
 
 Il primo step empirico di questa catena riguarda spesso l'ottenimento e l'estrazione di testo direttamente dalla rete. Nel linguaggio di programmazione Python, si utilizzano librerie specifiche per estrapolare agilmente testo o dati da siti e applicazioni web. Il primo pacchetto citato in questo contesto è **urllib**, il quale implementa metodi che consentono una necessaria interazione a basso livello direttamente con i server web ospitanti . Il recupero del contenuto di una pagina risulta tipicamente semplice: importando il modulo `request` da `urllib`, è possibile definire l'URL desiderato (ad esempio la directory `http://hpc.isti.cnr.it/~nardini/`), utilizzare la funzione `urlopen` per ottenere la risposta dal server e infine leggerla e decodificarla nel formato UTF-8, facendosi restituire un output grezzo corrispondente al codice sorgente HTML (`<!DOCTYPE html>\n<html lang="en-US">...`) .
 
@@ -281,13 +299,13 @@ Una volta ottenuto un testo correttamente tokenizzato, si apre la strada ad alcu
 
 Il linguaggio naturale presenta le parole in molteplici forme flesse. Lo **Stemming** e la **Lemmatizzazione** (talvolta riferita informalmente come *Lemming*) sono due tecniche complementari che mirano a ridurre le diverse declinazioni e coniugazioni di una parola alla sua radice fondamentale .
 
-[RIFERIMENTO VISIVO DEL PROFESSORE: Diagramma che mostra le parole derivate "Dancing", "Danced", "Dancer" e "Dances" che convergono tutte verso la singola radice comune "Dance" ].
+
 
 Nello specifico, lo **Stemming** esegue questo processo applicando un insieme di regole di trasformazione della parola che sono strettamente dipendenti dalla lingua in uso. Poiché si tratta di un approccio prettamente algoritmico basato su troncamenti, il risultato può produrre una radice che è lessicalmente scorretta o priva di significato autonomo. Utilizzando il modulo `PorterStemmer` di NLTK, possiamo osservare come la parola al plurale "cars" venga correttamente ridotta al singolare "car" . Tuttavia, applicando lo stesso algoritmo al verbo "was", l'output risultante è il moncone "wa", una parola grammaticalmente inesistente .
 
 Al contrario, la **Lemmatizzazione** adotta un'analisi NLP molto più profonda e, di conseguenza, computazionalmente più costosa. Il suo obiettivo non è troncare, ma ricondurre una parola esattamente alla sua forma da dizionario, il cosiddetto "lemma".
 
-[INSERIRE IMMAGINE: Estratto di un dizionario che mostra le definizioni di parole come "dictatorial", "diction" e "dictionary", utile a illustrare il concetto di ricerca della forma base ].
+
 
 Implementando l'oggetto `WordNetLemmatizer` di NLTK, notiamo differenze cruciali rispetto allo stemming . La parola "cars" viene nuovamente ridotta a "car" . Quando si valuta la parola "was", l'algoritmo di base restituisce ancora "wa", poiché la lemmatizzazione richiede di conoscere preventivamente la *Part of Speech* (POS), ovvero la categoria grammaticale della parola analizzata. Se infatti forniamo al lemmatizzatore l'informazione aggiuntiva che "was" svolge la funzione di verbo (impostando il parametro `pos='v'`), l'analisi si affina e restituisce correttamente il lemma base "be" (essere) .
 
@@ -322,6 +340,8 @@ Un esempio lampante di questa criticità si evince confrontando due frasi dal si
 Per ovviare a questa grave perdita di significato posizionale, si introduce il concetto di **Word N-grams** (N-grammi di parole). Un N-gramma è semplicemente una sequenza di *n* elementi consecutivi estratti da un testo, che permette di rappresentare il linguaggio in termini di "pezzi locali", aggiungendo ordine e contesto al vettore delle feature. Riprendendo le frasi precedenti e applicando la funzione `nltk.ngrams` con una dimensione pari a 2 (creando quindi dei 2-grammi o bigrammi), l'algoritmo non isola più le singole parole, ma le coppie consecutive. La prima frase produrrà feature composite come `W2G_won_and` e `W2G_you_lose`, mentre la seconda genererà `W2G_lose_and` e `W2G_you_won` . Pertanto, il confronto logico tra i due set restituirà correttamente `False`, riflettendo la diversità concettuale delle due espressioni . Il formato preciso con cui vengono denominate queste nuove feature (come l'aggiunta del prefisso `W2G_`) è irrilevante ai fini pratici, purché non si crei ambiguità tra le feature estratte da metodi differenti.
 
 Questa logica di raggruppamento sequenziale può essere applicata anche a livello sub-lessicale, dando origine ai **Character N-grams** (N-grammi di caratteri). Eseguendo l'algoritmo sulle singole parole anziché sull'intera frase, si scompone il vocabolo in sequenze di lettere. Questa tecnica si rivela estremamente utile per mitigare l'effetto dei refusi e degli errori di battitura (typos). Se si confronta la corretta ortografia "rainbow" con la forma errata "rainbaw" utilizzando dei 3-grammi di caratteri, si otterranno due set di feature in gran parte sovrapponibili . L'intersezione tra i due insiemi dimostrerà infatti che i due termini condividono svariati N-grammi (come `C3G_a_i_n`, `C3G_i_n_b`, e `C3G_r_a_i`), segnalando all'algoritmo una fortissima similarità strutturale nonostante l'errore di digitazione .
+
+QUA ARRIVATA
 
 ### La Legge di Zipf e la Frequenza delle Parole
 
@@ -2779,5 +2799,4 @@ Prendendo ad esempio la query "cost of endless pools swim spa", il sistema evide
 
 - **Interpretabilità**: La proprietà di un sistema di Information Retrieval, accentuata in EPIC, che consente agli utenti e agli sviluppatori di capire il ragionamento interno della macchina (ad esempio visionando quali parole hanno ricevuto il peso maggiore per attivare la classificazione).
 
----
-
+---z
