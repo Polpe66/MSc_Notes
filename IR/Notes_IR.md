@@ -332,8 +332,6 @@ Questa distribuzione altamente sbilanciata viene teoricamente giustificata dal *
 
 Da questo postulato derivano due leggi correlate altrettanto interessanti: vi è una relazione inversa tra la frequenza d'uso di un termine e la sua lunghezza grafica, e si osserva che anche il numero di significati diversi $m$ associati a una parola obbedisce a una legge inversa rispetto alla sua frequenza ($m \propto 1/f$) .
 
-
-
 ### L'Ottimizzazione del Vocabolario: Stopwords e Parole Rare
 
 Le conseguenze della Legge di Zipf incidono direttamente su come i sistemi informatici filtrano i testi. Agli estremi della curva troviamo, da un lato, parole onnipresenti, e dall'altro parole uniche. Si osserva che le parole più comuni di una determinata lingua—come gli articoli ("il", "lo", "the", "a"), le preposizioni ("di", "con", "of") o le congiunzioni—non contribuiscono in modo significativo alla reale comprensione semantica del documento in cui si trovano. Questi vocaboli vengono denominati **Stopwords**.
@@ -358,8 +356,6 @@ In questo modello, ogni documento viene mappato come un vettore $v$ definito all
 
 La transizione dallo spazio testuale a quello vettoriale richiede l'assegnazione di ogni singola feature a una dimensione univoca dello spazio $\mathbb{R}^{|F|}$. Questo si ottiene generando una matrice identità in cui si crea per ciascun token un **one-hot vector**, ossia un vettore che possiede tutti i valori impostati a 0, ad eccezione della singola posizione corrispondente a quella specifica parola, che viene marcata con un 1. In questa struttura basilare, il vocabolo 'I' potrebbe assumere la forma $v('I') = [1, 0, \dots, 0, 0]$, il termine 'you' sarà $v('you') = [0, 1, \dots, 0, 0]$ e così via, per ogni token esistente nel dizionario .
 
-
-
 Una volta definite le dimensioni per i singoli vocaboli, l'intero documento viene espresso analiticamente come la somma pesata dei vettori delle feature che vi sono contenute. La formula formale è:
 
 ![](assets/2026-04-12-19-14-29-image.png)
@@ -378,10 +374,7 @@ L'interrogativo cruciale che chiude questa fase di modellizzazione, e che fa da 
 
 Questo capitolo introduce il passaggio dai sistemi di recupero logici classici ai modelli di **Ranked Retrieval**, esplorando le tecniche fondamentali di calcolo dei punteggi per ordinare i documenti, come la frequenza dei termini (TF) e la frequenza inversa dei documenti (IDF).
 
-### L'Architettura di un Motore di Ricerca
 
-Il processo operativo di un sistema di Information Retrieval è suddiviso in due macro-fasi. La fase offline gestisce la **Document Collection** tramite il processo di **Indexing**, il quale ha lo scopo di generare un **Inverted Index**. Parallelamente, un **Feature Processor** estrae i dati per popolare il **Document Features Repository** e per fornire i dati di training (Training Data) necessari all'addestramento del modello **Learning-to-rank**. La fase online, invece, riceve la **Query** iniziale dell'utente ed elabora una **Expanded Query**. Successivamente, attraverso il **Query Processing** e una fase di calcolo delle caratteristiche (Feature Lookup and Computation), il sistema sfrutta la funzione di ranking precedentemente appresa per generare e mostrare i risultati.
-[INSERIRE IMMAGINE: Diagramma a blocchi dell'architettura di un sistema di Information Retrieval, che separa chiaramente i processi offline di indicizzazione da quelli online di processamento della query.]
 
 ### Dal Boolean Search al Ranked Retrieval
 
@@ -404,7 +397,11 @@ Nel tentativo di incorporare il peso delle occorrenze, si passa dalla semplice m
 In questo paradigma prende forma la **Term Frequency** ($tf_{t,d}$), intesa strettamente come il mero conteggio delle apparizioni di un termine $t$ all'interno di un documento $d$. Applicarla in modo grezzo, tuttavia, creerebbe distorsioni: se è vero che un testo con 10 occorrenze di una parola chiave debba avere uno score più alto di uno con 1 singola occorrenza, è ugualmente vero che esso non sarà esattamente "10 volte" più rilevante. L'aumento della rilevanza, infatti, non è direttamente proporzionale alla crescita della frequenza matematica.
 
 Per ammorbidire questo sbilanciamento si introduce il **Log-frequency weighting**, una funzione logaritmica concepita per smorzare l'effetto dei conteggi estremi. Il nuovo peso del termine diviene $w_{t,d} = 1 + log_{10}tf_{t,d}$ nei casi in cui $tf_{t,d} > 0$, restando fermo a 0 in caso contrario. Attraverso questa correzione, progressioni aritmetiche marcate come 1, 10, 1000 vengono compresse linearmente verso i punteggi 1, 2 e 4. Lo score di match query/documento diventa quindi la sommatoria dei pesi smorzati per i termini in comune: $score_{qd}=\sum_{t\in q\cap d}(1+log~tf_{t,d})$.
-[INSERIRE IMMAGINE: Grafico a curva logaritmica che descrive la progressione smorzata del peso in relazione all'aumento lineare della term frequency.]
+
+
+
+
+![](assets/2026-04-12-19-34-28-image.png)
 
 ### Document Frequency e Inverse Document Frequency (IDF)
 
@@ -412,8 +409,10 @@ In aggiunta alle occorrenze testuali, un buon sistema di ranking deve saper isol
 
 Il fattore impiegato per formalizzare questa intuizione è la **Document Frequency** ($df_{t}$), definita come il quantitativo totale di documenti, all'interno di una collezione grande $N$, che ospitano il vocabolo $t$. Avere un elevato valore di $df_{t}$ implica una bassa informatività concettuale. Ribaltando matematicamente questo indicatore nasce l'**Inverse Document Frequency (IDF)**. Per addolcire l'impatto di collezioni testuali sterminate, la formula definitiva applica anch'essa un logaritmo al rapporto di questi valori: $idf_{t}=log_{10}(N/df_{t})$.
 
-Questo punteggio di rarità è unico e immutabile per ciascun termine nella collezione prescindendo dalla query attiva, rendendolo precalcolabile offline. A titolo esemplificativo, analizzando un volume ipotetico di un milione di documenti, articoli molto comuni avranno un divisore identico al totale, producendo un peso nullo ($IDF=0$), mentre termini rintracciabili in un solo documento arriveranno a ottenere un poderoso moltiplicatore pari a 6.
-[INSERIRE IMMAGINE: Discesa asintotica della curva Inverse Document Frequency lungo l'asse della Document Frequency in costante crescita.]
+Questo punteggio di rarità è unico e immutabile per ciascun termine nella collezione prescindendo dalla query attiva, rendendolo precalcolabile offline. A titolo esemplificativo, analizzando un volume ipotetico di un milione di documenti, articoli molto comuni avranno un divisore identico al totale, producendo un peso nullo ($IDF=0$), mentre termini rintracciabili in un solo documento arriveranno a ottenere un moltiplicatore pari a 6.
+
+
+![](assets/2026-04-12-19-36-25-image.png)
 
 ### Glossario / Concetti Chiave
 
@@ -427,9 +426,7 @@ Questo punteggio di rarità è unico e immutabile per ciascun termine nella coll
 
 ---
 
-## Pesi TF-IDF e il Modello Spaziale Vettoriale
 
-Questo capitolo approfondisce l'impiego della frequenza inversa dei documenti nel calcolo del ranking, per poi introdurre lo schema di pesatura più celebre dell'Information Retrieval e la rappresentazione geometrica dei documenti e delle query.
 
 ### L'Effetto dell'IDF sul Ranking e la Frequenza nella Collezione
 
@@ -441,17 +438,18 @@ Per valutare la rarità e l'efficacia di una parola chiave, è inoltre essenzial
 | --------- | ------------------------ | ---------------------- |
 | Insurance | 10440                    | 3997                   |
 | Try       | 10422                    | 8760                   |
-|           |                          |                        |
 
 Di fronte a questi due indicatori, sorge spontaneo domandarsi quale delle due parole rappresenti un termine di ricerca migliore, meritevole di un peso maggiore nel motore di ricerca. Osservando i dati, risulta palese che il lemma "Insurance", pur avendo una presenza totale nella collezione molto simile al verbo "Try", è distribuito in meno della metà dei testi (una Document frequency nettamente inferiore), risultando perciò molto più distintivo, informativo e utile per filtrare i risultati della ricerca.
 
 ### Lo Schema di Pesatura TF-IDF
 
-[INSERIRE IMMAGINE: Medaglia d'oro con il numero 1, a simboleggiare che il TF-IDF è il miglior e più noto schema di pesatura nel campo dell'Information Retrieval]
-
 Avendo chiarito le dinamiche dell'IDF, si pone il problema matematico di come pesare in maniera corretta i termini dei documenti all'interno dei vettori. L'intuizione concettuale che guida questa misurazione si basa su due pilastri fondamentali. In primo luogo, i termini che compaiono con alta frequenza in un documento – parametro misurato dalla **Term Frequency** (TF) – dovrebbero ricevere pesi elevati. Il motivo è puramente logico: quanto più spesso un documento contiene, ad esempio, la parola "dog", tanto maggiore è la probabilità che il documento tratti effettivamente di cani. In secondo luogo, però, i vocaboli che appaiono in moltissimi documenti differenti – parametro tracciato dalla **Document Frequency** (DF) – dovrebbero ottenere pesi decisamente più bassi. È il caso di congiunzioni, articoli o preposizioni come "the", "a" oppure "of", che figurano nella quasi totalità dei documenti archiviati e risultano sprovvisti di un peso semantico discriminante.
 
-Per tradurre questa intuizione in una formula matematica solida, l'Information Retrieval coniuga la Term Frequency con la Inverse Document Frequency. Nasce così lo schema di pesatura **TF-IDF**, nel quale il peso di un termine è strutturato come il prodotto esatto del suo peso TF (espresso come frequenza normalizzata $wf$) moltiplicato per il suo peso IDF. Delineando le formule, se $idf_{t}=log\frac{N}{df_{t}}$ e il peso normalizzato $wf_{t,d}$ è calcolato come $1+log~tf_{t,d}$ (restituendo 1 + logaritmo per frequenze maggiori di zero, e zero assoluto altrimenti), il calcolo definitivo diverrà $wf-idf_{t,d}=wf_{t,d}\times idf_{t}$. Esiste anche un'alternativa in cui si riduce l'impatto del termine TF adottando una formula logaritmica più contenuta, pari a $log(1+tf_{t,d})$. Ad oggi, questo rappresenta il più conosciuto e apprezzato schema di pesatura nel settore. Occorre precisare, per evitare fraintendimenti sintattici, che il trattino nel nome "TF-IDF" è un semplice segno grafico di interpunzione e non deve essere interpretato come un segno di sottrazione; a conferma di ciò, la metrica viene spesso menzionata con le notazioni alternative tf.idf oppure tf x idf. Riassumendo le sue proprietà, il peso restituito dalla formula incrementa di pari passo con il numero di occorrenze della parola all'interno del documento analizzato, e si innalza simultaneamente grazie alla generale rarità del termine nell'intera collezione dei dati.
+Per tradurre questa intuizione in una formula matematica solida, l'Information Retrieval coniuga la Term Frequency con la Inverse Document Frequency. Nasce così lo schema di pesatura **TF-IDF**, nel quale il peso di un termine è strutturato come il prodotto esatto del suo peso TF (espresso come frequenza normalizzata $wf$) moltiplicato per il suo peso IDF. Delineando le formule, se $idf_{t}=log\frac{N}{df_{t}}$ e il peso normalizzato $wf_{t,d}$ è calcolato come $1+log~tf_{t,d}$ (restituendo 1 + logaritmo per frequenze maggiori di zero, e zero assoluto altrimenti), il calcolo definitivo diverrà $wf-idf_{t,d}=wf_{t,d}\times idf_{t}$. 
+
+Esiste anche un'alternativa in cui si riduce l'impatto del termine TF adottando una formula logaritmica più contenuta, pari a $log(1+tf_{t,d})$. Ad oggi, questo rappresenta il più conosciuto e apprezzato schema di pesatura nel settore. 
+
+Riassumendo le sue proprietà, il peso restituito dalla formula incrementa di pari passo con il numero di occorrenze della parola all'interno del documento analizzato, e si innalza simultaneamente grazie alla generale rarità del termine nell'intera collezione dei dati.
 
 Nel momento in cui si richiede di produrre un punteggio totale – o Score – per accoppiare un documento $d$ a una query $q$, il risultato sarà la semplice somma progressiva dei pesi TF-IDF per ciascun termine isolato che compare contemporaneamente nell'intersezione tra la query e il documento in esame. I motori di ricerca permettono l'adozione di moltissime varianti operative di questa base teorica. Le differenze si riscontrano in base a come il punteggio TF viene matematicamente calcolato, decidendo per esempio se applicare i logaritmi o se discretizzare i valori delle frequenze, e scegliendo, inoltre, se estendere la medesima pesatura logica anche ai termini originariamente digitati nella query.
 
@@ -465,13 +463,12 @@ Per trasformare questa astrazione in un calcolo verificabile, supponiamo di dove
 | auto        | 3               | 33              | 0               | 6723     | 2.08      |
 | insurance   | 0               | 33              | 29              | 19,241   | 1.62      |
 | best        | 14              | 0               | 17              | 25,235   | 1.5       |
-|             |                 |                 |                 |          |           |
 
 Procediamo al calcolo effettivo per il Doc1 applicando la normale formula per moltiplicazione $tf_{t,d}\times idf_{t}$. Il termine "car", occorrendo 27 volte nel testo originale, genera un peso di $27\times1.65$, per un totale di 44.55. Il lemma "insurance", del tutto assente dal documento, incide con un risultato pari a 0. Valutando il vocabolo "auto", il punteggio riscontrato si attesta a $3\times2.08 = 6.24$, mentre l'ultimo indicatore "best" conferisce uno score massiccio di $14\times1.5 = 21$. Nel caso in cui gli ingegneri del sistema di ricerca optassero per utilizzare la funzione logaritmica moderata espressa da $log(1+tf_{t,d})$, il fattore $idf_{t}$ finirebbe per ricoprire un'importanza quantitativamente molto più profonda all'interno dell'economia dei risultati. Eseguendo di nuovo i calcoli per il medesimo Doc1, scopriamo come le frequenze vengano attenuate: la parola "car" produrrà in questo caso uno score di appena $1.45\times1.65 = 2.39$. Coerentemente, il lemma "insurance" perdura a 0, ma "auto" fa segnare un modesto risultato di $0.6\times2.08 = 1.2543$ e "best" frena i suoi risultati stabilizzandosi su $1.18\times1.5 = 1.764$.
 
 ### Il Modello Spaziale Vettoriale: Dai Conteggi ai Pesi
 
-L'implementazione algoritmica di questi punteggi converte i metodi di misurazione dei dati testuali in veri e propri enti matematici, compiendo una transizione da un formato binario primordiale, per passare ai meri conteggi posizionali, fino ad assestarsi come una sofisticata **Weight Matrix** basata sui pesi relazionali. Se per visualizzare i concetti evochiamo l'esempio del materiale shakespeariano, l'impalcatura che ordina i testi assumerà una matrice a valori reali decodificabile come segue:
+In sostanza, l'algoritmo prende i classici sistemi usati per misurare i testi e li trasforma in veri e propri oggetti matematici. Questo processo segue un'evoluzione precisa: si parte da un semplice formato binario, dove si guarda solo se una parola c'è o non c'è, per poi passare ai conteggi posizionali, che tengono traccia di dove appaiono i termini. Alla fine, si arriva alla creazione di una *Weight Matrix* molto avanzata, che assegna dei valori in base alle relazioni tra le parole. Se proviamo a immaginare questo meccanismo applicato alle opere di Shakespeare, la struttura che mette in ordine i testi diventa una matrice di numeri reali che possiamo leggere e interpretare con precisione.
 
 | **Termine** | **Antony and Cleopatra** | **Julius Caesar** | **The Tempest** | **Hamlet** | **Othello** | **Macbeth** |
 | ----------- | ------------------------ | ----------------- | --------------- | ---------- | ----------- | ----------- |
@@ -482,11 +479,14 @@ L'implementazione algoritmica di questi punteggi converte i metodi di misurazion
 | Cleopatra   | 2.85                     | 0                 | 0               | 0          | 0           | 0           |
 | mercy       | 1.51                     | 0                 | 1.9             | 0.12       | 5.25        | 0.88        |
 | worser      | 1.37                     | 0                 | 0.11            | 4.15       | 0.25        | 1.95        |
-|             |                          |                   |                 |            |             |             |
 
-Questa configurazione denota un cambiamento sostanziale: ciascun singolo documento viene infatti modellato come un vettore composto da valori reali – i pesi TF-IDF – iscritto in uno spazio che si definisce su una base di tipo $\mathbb{R}^{|V|}$, al cui interno il simbolo V rappresenta l'intero e totale vocabolario riscontrato nella collezione esaminata. Viene così introdotto quello che nella teoria accademica prende il nome di **Modello Spaziale Vettoriale** (Vector Space Model). Stiamo manipolando uno spazio vettoriale la cui dimensione assoluta corrisponde a $|V|$; l'elemento fondante prevede che i singoli termini racchiusi nel vocabolario fungano in prima persona da assi di orientamento cartesiano dello spazio stesso, così che i testi in analisi diventino dei semplici punti di congiunzione, o più propriamente vettori, ancorati in questo paesaggio multidimensionale. Traslando tale concezione astratta all'interno dell'operatività di un tipico motore di web search, stiamo affrontando un contesto dalla dimensionalità sbalorditiva, quantificabile in svariate decine di milioni di dimensioni differenti. I vettori originati per mappare questa complessità esibiscono una proprietà marcata che li classifica come vettori altamente sparsi, ovvero insiemi dove la stragrande maggioranza dei valori numerici in entrata corrisponde a zero perfetto.
+In sostanza, questo sistema cambia tutto: ogni documento viene trasformato in un **vettore** fatto di numeri reali (i famosi pesi **TF-IDF**). Questi vettori si muovono in uno spazio matematico chiamato **Modello Spaziale Vettoriale** (*Vector Space Model*). La grandezza di questo spazio dipende dal vocabolario totale, indicato con **|V|**: in pratica, ogni singola parola del vocabolario diventa un asse, e i documenti diventano dei punti o delle frecce posizionate in questo enorme spazio a tantissime dimensioni.
 
-La transizione finale si attua mediante due intuizioni cruciali (o "Key ideas") progettate per processare similmente anche le richieste inoltrate dagli utenti, trattando fondamentalmente le **Queries as vectors**. La prima intuizione detta di replicare lo stesso protocollo costruttivo usato sui documenti sorgente: si codificano di conseguenza anche le query trasformandole in vettori posizionati all'interno di questo grande spazio concettuale. La seconda intuizione fondamentale si manifesta riordinando tutti i documenti unicamente in base alla loro geometrica "proximity" o vicinanza formale rispetto al nuovo vettore tracciato dalla query dello spettatore. La metrica della prossimità si traduce nella rilevazione formale della "similarity" intercorsa fra detti vettori spaziali. Secondo le logiche dimensionali, si desume chiaramente che questa prossimità rappresenti semplicemente il correlato inverso della distanza matematica verificabile tra due punti. Riepilogando le innovazioni maturate in questa parte del sistema teorico, lo schema rammenta costantemente l'obbiettivo principale per cui questo modello è stato partorito: sfuggire all'ingabbiatura inesorabile del Boolean model – costretto a emettere unicamente un verdetto asettico del tipo "tutto dentro o tutto fuori" – sostituendolo con una graduatoria sensibile (ranking) in cui i contenuti con un grado di pertinenza alto affiorino posizionandosi in cima rispetto alle letture marginali.
+Se pensiamo a come funziona un normale motore di ricerca sul web, parliamo di uno spazio con decine di milioni di dimensioni diverse. I vettori che ne derivano sono però "molto sparsi": significa che sono pieni di zeri, perché ogni documento contiene solo una minima parte di tutte le parole esistenti al mondo.
+
+Il passaggio finale si basa su due idee fondamentali per gestire le ricerche degli utenti, trattando anche le **query come vettori**. La prima idea è semplice: si applica alla ricerca dell'utente lo stesso procedimento usato per i documenti, trasformandola in un vettore nello stesso spazio. La seconda idea è quella di ordinare i risultati in base alla loro **vicinanza geometrica** (o *proximity*) rispetto al vettore della query. In matematica, questa vicinanza indica quanto i due vettori si somigliano: più sono vicini, più sono simili.
+
+In conclusione, tutto questo serve a superare i limiti del vecchio **modello Booleano**, che era troppo rigido e poteva solo dire "sì" o "no" (dentro o fuori). Con questo nuovo sistema, invece, otteniamo una classifica sensibile (il **ranking**), che mette i contenuti più rilevanti e importanti direttamente in cima alla lista.
 
 ---
 
@@ -503,7 +503,13 @@ La transizione finale si attua mediante due intuizioni cruciali (o "Key ideas") 
 ### I Limiti della Distanza Euclidea
 
 Una volta rappresentati i documenti e le query come vettori, sorge la necessità di formalizzare matematicamente la loro prossimità. Un primo approccio intuitivo per risolvere il problema potrebbe essere l'utilizzo della **Distanza Euclidea**. Questa metrica calcola letteralmente la distanza fisica intercorrente tra i punti finali (le punte) dei due vettori analizzati. Purtroppo, affidarsi alla pura Distanza Euclidea si rivela una pessima idea. Il motivo principale del suo fallimento risiede nel fatto che questa metrica restituisce valori enormi quando viene applicata a vettori caratterizzati da lunghezze molto diverse tra loro.
-[INSERIRE IMMAGINE: Grafico cartesiano bidimensionale con le parole GOSSIP e JEALOUS sugli assi x e y. Mostra i vettori d1, d3 e in particolare evidenzia con una linea tratteggiata rossa la grande distanza euclidea tra il vettore della query q e il vettore del documento d2] Come si evince osservando lo spazio vettoriale, la distanza tra il vettore della query $\vec{q}$ e il vettore del documento $\vec{d_2}$ risulta estremamente ampia, nonostante la distribuzione effettiva dei termini (ovvero l'argomento trattato) all'interno di entrambi sia molto simile. In definitiva, la Distanza Euclidea funziona correttamente solamente se applicata a vettori che sono stati precedentemente normalizzati.
+
+
+![](assets/2026-04-12-19-59-17-image.png)
+
+
+
+Come si evince osservando lo spazio vettoriale, la distanza tra il vettore della query $\vec{q}$ e il vettore del documento $\vec{d_2}$ risulta estremamente ampia, nonostante la distribuzione effettiva dei termini (ovvero l'argomento trattato) all'interno di entrambi sia molto simile. In definitiva, la Distanza Euclidea funziona correttamente solamente se applicata a vettori che sono stati precedentemente normalizzati.
 
 ### Sostituire la Distanza con l'Angolo
 
@@ -512,11 +518,25 @@ Per aggirare gli ostacoli posti dalla difformità di lunghezza dei testi, si abb
 ### Dal Coseno al Prodotto Scalare
 
 I concetti di ordinamento basato sull'angolo o basato sul coseno sono del tutto equivalenti. Ordinare i documenti in base all'ordine crescente dell'angolo compreso tra query e documento equivale a tutti gli effetti a ordinarli in ordine decrescente rispetto al loro **Coseno**, ovvero calcolando $cosine(query, document)$. In questa equivalenza logica, l'angolo funge da indice di "distanza", mentre il valore del coseno incarna la pura "similarità". Questa proprietà è dettata dal fatto che il coseno è una funzione monotonicamente decrescente per l'intervallo di gradi che va da $[0^{\circ}, 180^{\circ}]$.
-[INSERIRE IMMAGINE: Grafico a onda che illustra l'andamento della funzione coseno, la quale parte da un valore di 1 e decresce gradualmente scendendo sotto lo zero nell'intervallo tra 0 e 180 gradi sull'asse delle ascisse] Per estrarre questo valore, si ricorre al concetto algebrico e geometrico di **Dot-product** (prodotto scalare). La sua definizione algebrica prevede la somma dei prodotti delle singole componenti: $A \cdot B = \sum_{i=1}^{n} A_i B_i = A_1 B_1 + A_2 B_2 + \dots + A_n B_n$. La sua definizione geometrica lo inquadra invece come $A \cdot B = ||A|| ||B|| [cite_start]\cos \theta$.
-[INSERIRE IMMAGINE: Illustrazione geometrica di due vettori A e B divergenti che formano un angolo theta, evidenziando la proiezione ortogonale di A su B calcolata come magnitudine di A per il coseno di theta]
-In questa equazione, la magnitudine (o lunghezza euclidea) del vettore A è determinata dalla **Norma $L_2$**, calcolata come $||A|| [cite_start]= \sqrt{A \cdot A}$. Isolando il parametro di nostro interesse, ricaviamo la formula finale per la similarità: $\cos(\theta) = \frac{A \cdot B}{||A|| [cite_start]\cdot ||B||} = \frac{A}{||A||} \cdot \frac{B}{||B||}$.
 
-### Length Normalization e Cosine Similarity
+
+Per estrarre questo valore, si ricorre al concetto algebrico e geometrico di **Dot-product** (prodotto scalare). La sua definizione algebrica prevede la somma dei prodotti delle singole componenti: $A \cdot B = \sum_{i=1}^{n} A_i B_i = A_1 B_1 + A_2 B_2 + \dots + A_n B_n$. La sua definizione geometrica lo inquadra invece come:
+
+![](assets/2026-04-12-20-04-27-image.png)
+
+![](assets/2026-04-12-20-05-04-image.png)
+
+
+
+![](assets/2026-04-12-20-05-42-image.png) 
+
+# DA qusasaaaaaaaa
+
+
+
+
+
+# Length Normalization e Cosine Similarity
 
 Come introdotto dalla formula precedente, l'operazione che prevede di dividere un vettore per la sua Norma $L_2$ ($||\vec{x}||_2 = \sqrt{\sum_{i} x_i^2}$) prende il nome di **Length Normalization**. L'applicazione di questa divisione trasforma di fatto il vettore originario in un vettore unitario (di lunghezza intrinseca pari a 1), andandolo a proiettare idealmente sulla superficie esterna di un'ipersfera unitaria. Ritornando al nostro esempio teorico precedente, i due documenti fittizi $d$ e $d'$ avranno vettori totalmente identici a seguito della normalizzazione della lunghezza. Questa operazione è vitale in ambito IR perché permette a documenti lunghi e documenti brevi di disporre finalmente di pesi paragonabili tra loro in maniera equa. La **Cosine Similarity**, denotata come $\cos(\vec{q}, \vec{d})$, è quindi il calcolo del coseno dell'angolo tra il vettore query e il vettore documento. Sviluppando l'intera formula con i pesi TF-IDF, otteniamo: $\cos(\vec{q}, \vec{d}) = \frac{\vec{q} \bullet \vec{d}}{|\vec{q}||\vec{d}|} = \dots = \frac{\sum_{i=1}^{|V|} q_i d_i}{\sqrt{\sum_{i=1}^{|V|} q_i^2} \sqrt{\sum_{i=1}^{|V|} d_i^2}}$. In questa equazione, $q_i$ rappresenta il peso TF-IDF del termine $i$ all'interno della query, mentre $d_i$ è il corrispettivo peso del termine $i$ calcolato all'interno del documento analizzato. Se operiamo alla base con vettori già pre-normalizzati per lunghezza (unitari), il denominatore diventa automaticamente 1, e la Cosine Similarity si semplifica magistralmente coincidendo in tutto e per tutto con il puro prodotto scalare: $\cos(\vec{q}, \vec{d}) = \vec{q} \bullet \vec{d} = \sum_{i=1}^{|V|} q_i d_i$.
 [INSERIRE IMMAGINE: Grafico cartesiano bidimensionale delimitato dagli assi POOR e RICH su una scala da 0 a 1. All'interno si osserva la curva tratteggiata di un'ipersfera unitaria lungo la quale si attestano le estremità dei vettori normalizzati relativi a tre documenti (d1, d2, d3) e a una query (q), con l'angolo theta indicato in evidenza]
