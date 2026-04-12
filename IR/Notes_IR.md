@@ -22,8 +22,6 @@ Ulteriori segnali forti di soddisfazione derivano da azioni concrete post-ricerc
 
 Essendo la felicità di natura elusiva e complessa da tracciare, il proxy più comune utilizzato nella valutazione accademica e industriale è la misurazione della **rilevanza dei risultati di ricerca**. Tale metodologia fu pionieristicamente introdotta da Cyril Cleverdon attraverso gli Esperimenti di Cranfield.
 
-
-
 La quantificazione formale della rilevanza richiede l'interazione di tre elementi imprescindibili: 
 
 - una collezione documentale di test (benchmark), 
@@ -78,8 +76,6 @@ La formula di base è: $F = \frac{1}{0.5\frac{1}{P} + 0.5\frac{1}{R}} = 2\frac{P
 
 Il motivo matematico alla base di questa scelta risiede nel fatto che la media armonica fornisce un risultato che non potrà mai superare né la media aritmetica né quella geometrica e, soprattutto, quando i due valori a confronto presentano grandi deviazioni, tende ad avvicinarsi fortemente verso il numero più basso dei due. Se, come puro caso teorico, un motore di ricerca cattura tutti i documenti possibili portando il valore Recall al 100%, la sua Precision subirà un inevitabile crollo; il valore di F-Score si adatterà assecondando e mostrando con precisione le penalizzazioni dovute al valore peggiore.
 
-
-
 Nei casi in cui il progettista intenda dare priorità mirata ad uno solo dei due indicatori asimmetrici, può fare affidamento su una formula di ponderazione definendo l'iperparametro $\beta$ attraverso l'equazione $\alpha = 1/(1+\beta^{2})$ che conferisce il peso $\alpha$ alla Precision e il suo complimento alla Recall. La **F-Measure pesata** si scriverà dunque in questo modo: $F_{\beta} = \frac{1}{\alpha\frac{1}{P} + (1-\alpha)\frac{1}{R}} = (\beta^{2}+1)\frac{PR}{\beta^{2}P+R}$ Ne consegue che, abbassando la frazione in modo che $\beta < 1$, si avvantaggerà lo studio e il peso della Precision (andandone in direzione convergente); mentre se si solleverà l'asticella cosicché $\beta > 1$, la priorità dell'equazione ricadrà forzatamente sulla Recall.
 
 ---
@@ -122,7 +118,6 @@ Il difetto principale della P@K è che non restituisce medie affidabili su un in
 La formula per l'Average Precision al rango K per una determinata query $q_i$ è: $AP@K(q_{i})=\frac{1}{K_{i}}\sum_{k=1}^{K}P@k(q_{i})\cdot rel(q_{i},k)$ 
 
 Dove $rel(q_{i},k)$ vale $1$ se l'elemento al k-esimo rango è rilevante, altrimenti $0$, e il fattore di normalizzazione è $K_{i}=\sum_{k=1}^{K}rel(q_{i},k)$.
-
 
 Di conseguenza, la MAP@K sull'intero insieme di query $Q$ si ottiene calcolando la media aritmetica delle singole AP@K: $MAP@K(Q)=\frac{1}{|Q|}\sum_{q_{i}\in Q}AP@K(q_{i})$.
 
@@ -197,8 +192,6 @@ Il **linguaggio naturale** è il mezzo che gli esseri umani usano quotidianament
 
 L'elaborazione di questo strumento comunicativo è estremamente complessa a causa di numerose sue caratteristiche intrinseche. Innanzitutto, il linguaggio si basa su **migliaia di simboli** e possiede una **sintassi complessa**.
 
-
-
 Inoltre, la semantica del linguaggio è prevalentemente **composizionale**, il che significa che il significato generale di un'espressione deriva solitamente dall'unione delle sue singole parti. Tuttavia, in questo ambito esistono varie sfumature che complicano l'analisi. Si passa da espressioni puramente composizionali (come "comprare un'auto" o "leggere un libro" ) alle collocazioni, ovvero associazioni abituali di parole (come "make the bed" o "saltare la lezione" ), per giungere alle **espressioni idiomatiche**, il cui significato non è in alcun modo deducibile in via letterale dalle singole parole (ad esempio, l'augurio "break a leg" o il proverbio "dalla padella nella brace" ).
 
 Una delle sfide più gravose per un sistema automatizzato è la natura **potenzialmente ambigua** del testo. Questa ambiguità si presenta a molteplici livelli strutturali. Esiste l'ambiguità grammaticale (part of speech ambiguity), dove una medesima parola può rivestire ruoli sintattici differenti; per esempio, la parola "beat" può fungere sia da sostantivo ("Ascolta questo bel beat") sia da verbo ("Ti batterò a dama") . Sussiste poi un'ambiguità semantica legata al senso della parola (word sense ambiguity), come nel caso del termine "interest", che può indicare l'attenzione verso un argomento, oppure il tasso di interesse economico alzato da una banca . Infine, vi è l'ambiguità sintattica pura, in cui la struttura della frase permette interpretazioni multiple e contrastanti, ben esemplificata dalla nota gag in cui si afferma di aver sparato a un elefante mentre si indossava un pigiama .
@@ -229,8 +222,6 @@ Anche le reti complesse, o **Grafi**, tipiche dei Social Network, beneficiano am
 
 Infine, l'intersezione tra elaborazione linguistica, **Immagini e Video** genera la branca del *Cross-media processing*. Un classico compito è l'**Image Captioning**, ovvero la generazione automatica di descrizioni testuali per il contenuto di un'immagine. Tali metodologie sono utilissime per affinare i processi di recupero e ricerca visiva e forniscono un aiuto inestimabile per le persone affette da disabilità visive, descrivendo loro in linguaggio naturale, e con vari livelli di accuratezza, le scene presentate a schermo.
 
-
-
 ---
 
 ### Concetti Chiave del Capitolo
@@ -249,11 +240,7 @@ Infine, l'intersezione tra elaborazione linguistica, **Immagini e Video** genera
 
 Il *cross-media processing* si spinge fino alla generazione di rappresentazioni visive astratte a partire dal testo. Questo approccio abilita metodi di recupero delle informazioni (*retrieval*) molto più intelligenti e sofisticati. Attraverso l'uso di modelli informatici denominati VisSim, VisReg e Text2Vis, è possibile tradurre stringhe testuali descrittive in precise interpretazioni visive, confrontandole con l'azione scenica reale . Ne è un esempio l'elaborazione della frase "un uomo si prepara a lanciare un frisbee" ("a man gets ready to throw a frisbee"), dove il modello isola l'azione e la relaziona all'immagine.
 
-
-
 Per raggiungere questi traguardi ci si avvale di una profonda convergenza di diverse **Tecnologie**. Storicamente e metodologicamente, le discipline del **Natural Language Processing (NLP)**, dell'**Information Retrieval (IR)** e del **Machine Learning (ML)** non sono nettamente distinte tra loro . Al contrario, si influenzano e si nutrono reciprocamente: i metodi legati al NLP sono molto spesso costruiti sfruttando e poggiandosi sui fondamenti dell'IR e del ML. Allo stesso tempo, il ML adotta sistematicamente le metriche e le misure tipiche dell'IR per poter definire gli obiettivi qualitativi dei propri modelli di apprendimento. Di conseguenza, il ML presuppone in modo intrinseco che il linguaggio naturale debba essere prima manipolato e strutturato dai metodi NLP e IR affinché gli algoritmi predittivi possano lavorarci efficacemente.
-
-
 
 ### Il Concetto di Pipeline ed Estrazione dei Dati dal Web
 
@@ -299,13 +286,9 @@ Una volta ottenuto un testo correttamente tokenizzato, si apre la strada ad alcu
 
 Il linguaggio naturale presenta le parole in molteplici forme flesse. Lo **Stemming** e la **Lemmatizzazione** (talvolta riferita informalmente come *Lemming*) sono due tecniche complementari che mirano a ridurre le diverse declinazioni e coniugazioni di una parola alla sua radice fondamentale .
 
-
-
 Nello specifico, lo **Stemming** esegue questo processo applicando un insieme di regole di trasformazione della parola che sono strettamente dipendenti dalla lingua in uso. Poiché si tratta di un approccio prettamente algoritmico basato su troncamenti, il risultato può produrre una radice che è lessicalmente scorretta o priva di significato autonomo. Utilizzando il modulo `PorterStemmer` di NLTK, possiamo osservare come la parola al plurale "cars" venga correttamente ridotta al singolare "car" . Tuttavia, applicando lo stesso algoritmo al verbo "was", l'output risultante è il moncone "wa", una parola grammaticalmente inesistente .
 
 Al contrario, la **Lemmatizzazione** adotta un'analisi NLP molto più profonda e, di conseguenza, computazionalmente più costosa. Il suo obiettivo non è troncare, ma ricondurre una parola esattamente alla sua forma da dizionario, il cosiddetto "lemma".
-
-
 
 Implementando l'oggetto `WordNetLemmatizer` di NLTK, notiamo differenze cruciali rispetto allo stemming . La parola "cars" viene nuovamente ridotta a "car" . Quando si valuta la parola "was", l'algoritmo di base restituisce ancora "wa", poiché la lemmatizzazione richiede di conoscere preventivamente la *Part of Speech* (POS), ovvero la categoria grammaticale della parola analizzata. Se infatti forniamo al lemmatizzatore l'informazione aggiuntiva che "was" svolge la funzione di verbo (impostando il parametro `pos='v'`), l'analisi si affina e restituisce correttamente il lemma base "be" (essere) .
 
@@ -341,8 +324,6 @@ Per ovviare a questa grave perdita di significato posizionale, si introduce il c
 
 Questa logica di raggruppamento sequenziale può essere applicata anche a livello sub-lessicale, dando origine ai **Character N-grams** (N-grammi di caratteri). Eseguendo l'algoritmo sulle singole parole anziché sull'intera frase, si scompone il vocabolo in sequenze di lettere. Questa tecnica si rivela estremamente utile per mitigare l'effetto dei refusi e degli errori di battitura (typos). Se si confronta la corretta ortografia "rainbow" con la forma errata "rainbaw" utilizzando dei 3-grammi di caratteri, si otterranno due set di feature in gran parte sovrapponibili . L'intersezione tra i due insiemi dimostrerà infatti che i due termini condividono svariati N-grammi (come `C3G_a_i_n`, `C3G_i_n_b`, e `C3G_r_a_i`), segnalando all'algoritmo una fortissima similarità strutturale nonostante l'errore di digitazione .
 
-QUA ARRIVATA
-
 ### La Legge di Zipf e la Frequenza delle Parole
 
 Analizzando il linguaggio da una prospettiva puramente statistica, emerge un fenomeno universale: la distribuzione delle parole in un qualsiasi testo linguistico non è uniforme, ma segue rigorosamente la **Legge di Zipf**. Questa legge empirica stabilisce che la frequenza di utilizzo di una parola in un testo è inversamente proporzionale al suo rango (la sua posizione) nella classifica globale delle frequenze del documento. In termini matematici, indicando con $r$ il rango (dove 1 spetta alla parola più frequente, 2 alla seconda e così via) e con $f(r)$ la frequenza, si ha la relazione $f(r) \propto 1/r$ . Per dare un'idea dell'impatto di questo squilibrio, basti pensare che in un noto dataset di test, il Reuters 21578, appena 313 vocaboli distinti riescono a coprire da soli la metà dell'intero volume di 500.000 occorrenze totali.
@@ -351,19 +332,19 @@ Questa distribuzione altamente sbilanciata viene teoricamente giustificata dal *
 
 Da questo postulato derivano due leggi correlate altrettanto interessanti: vi è una relazione inversa tra la frequenza d'uso di un termine e la sua lunghezza grafica, e si osserva che anche il numero di significati diversi $m$ associati a una parola obbedisce a una legge inversa rispetto alla sua frequenza ($m \propto 1/f$) .
 
-[INSERIRE IMMAGINE: Grafico a dispersione che illustra la curva decadente della Legge di Zipf, ponendo in relazione il numero di feature sull'asse delle ordinate (in scala logaritmica) e la Document Frequency (DF) sull'asse delle ascisse] .
+
 
 ### L'Ottimizzazione del Vocabolario: Stopwords e Parole Rare
 
 Le conseguenze della Legge di Zipf incidono direttamente su come i sistemi informatici filtrano i testi. Agli estremi della curva troviamo, da un lato, parole onnipresenti, e dall'altro parole uniche. Si osserva che le parole più comuni di una determinata lingua—come gli articoli ("il", "lo", "the", "a"), le preposizioni ("di", "con", "of") o le congiunzioni—non contribuiscono in modo significativo alla reale comprensione semantica del documento in cui si trovano. Questi vocaboli vengono denominati **Stopwords**.
 
-[INSERIRE IMMAGINE: Il medesimo grafico a dispersione della Legge di Zipf, nel quale viene però evidenziata in rosso la sezione in basso a destra, corrispondente ai vocaboli con Document Frequency estrema, etichettandoli come "stopwords"] .
+![](assets/2026-04-12-19-07-57-image.png)
 
 Rimuovere queste Stopwords dal testo abbatte notevolmente il carico computazionale senza comportare una sensibile perdita di informazione. Ad esempio, trasformando la frase originale in `president united states america`, l'intento comunicativo rimane chiarissimo. I pacchetti NLP moderni, come la libreria NLTK, forniscono elenchi predefiniti per numerose lingue; importando `stopwords.words('english')` ed eseguendo una sottrazione insiemistica (`difference`) tra le feature estratte e la lista di Stopwords, i vocaboli accessori vengono automaticamente filtrati via . Tuttavia, l'uso di liste preconfezionate non è sempre raccomandabile per tutti gli scenari applicativi: la lista predefinita del database MySQL, per esempio, include tra le sue stopwords parole come "appreciate" (apprezzare), "serious" (serio) e "unfortunately" (sfortunatamente), vocaboli carichi di significato che si rivelano assolutamente cruciali se lo scopo dell'analisi è eseguire una classificazione del sentimento testuale (Sentiment Analysis) .
 
 All'estremità opposta della curva troviamo le **Parole rare** (Rare features), vocaboli di nicchia che possiedono una frequenza bassissima.
 
-[INSERIRE IMMAGINE: Il consueto grafico a dispersione, dove questa volta viene evidenziata in rosso la sezione in alto a sinistra, che racchiude la grande quantità di termini che possiedono una Document Frequency quasi nulla, indicati come "rare words"] .
+![](assets/2026-04-12-19-08-48-image.png)
 
 I termini che compaiono in pochissimi documenti non apportano un'informazione statistica utile a generalizzare il modello di apprendimento automatico che stiamo addestrando. Se una parola appare raramente nei testi osservati nel passato, con altissima probabilità continuerà a presentarsi raramente anche nei testi futuri, rendendola di scarsa utilità per il processamento di nuovi input . Tali parole compaiono spesso una singola volta e costituiscono una fetta sorprendentemente ampia delle parole distinte in una collezione; esse sono perlopiù frutto di errori di battitura casuali o derivano da identificatori artificiali legati unicamente alla formattazione del documento specifico, come può essere lo slug di un indirizzo web . La potatura sistematica di queste parole rare dal vocabolario rende non solo nettamente più veloce il processamento del testo indicizzato, ma riduce anche drasticamente lo spazio di memoria richiesto dal calcolatore.
 
@@ -371,21 +352,23 @@ I termini che compaiono in pochissimi documenti non apportano un'informazione st
 
 Avendo pulito il testo e normalizzato il vocabolario, l'ultimo gradino della pipeline di strutturazione consiste nel quantificare l'informazione trasformando formalmente l'insieme di parole di ogni documento in un vettore algebrico; questo approccio è il cuore del **Vector Space Model (VSM)**.
 
-[INSERIRE IMMAGINE: Diagramma geometrico bidimensionale che raffigura il Vector Space Model; un piano cartesiano definito dall'asse 'feature 1' e dall'asse 'feature 2', all'interno del quale i documenti testuali (d1="best days of the year", d2="nice weather on the weekend", d3="risk of thunderstorms") sono tracciati come vettori (frecce) orientati a partire dall'origine] .
+![](assets/2026-04-12-19-12-38-image.png)
 
 In questo modello, ogni documento viene mappato come un vettore $v$ definito all'interno di uno spazio a $|F|$ dimensioni, dove $|F|$ rappresenta il numero esatto (la cardinalità) di tutte le feature o token distinti estratti dal corpus analizzato. L'ipotesi geometrica alla base del VSM è affascinante e intuitiva: se i vettori di due documenti nello spazio cartesiano sono orientati l'uno vicino all'altro (ossia presentano un angolo molto ristretto), è estremamente probabile che quei due documenti condividano argomenti simili e siano semanticamente affini.
 
 La transizione dallo spazio testuale a quello vettoriale richiede l'assegnazione di ogni singola feature a una dimensione univoca dello spazio $\mathbb{R}^{|F|}$. Questo si ottiene generando una matrice identità in cui si crea per ciascun token un **one-hot vector**, ossia un vettore che possiede tutti i valori impostati a 0, ad eccezione della singola posizione corrispondente a quella specifica parola, che viene marcata con un 1. In questa struttura basilare, il vocabolo 'I' potrebbe assumere la forma $v('I') = [1, 0, \dots, 0, 0]$, il termine 'you' sarà $v('you') = [0, 1, \dots, 0, 0]$ e così via, per ogni token esistente nel dizionario .
 
-[RIFERIMENTO VISIVO DEL PROFESSORE: Esempio discusso alla lavagna raffigurante la costruzione dei vettori binari partendo da due query in input (Q1: "I love Information Retrieval course" e Q2: "Giovanni hates eat apples"). Viene mostrata la corrispondenza univoca tra ogni termine e un indice numerico (es. 0 per 'Love', 1 per 'Information'...), originando i due vettori finali Q1 <1,1,1,1,0,0,0,0> e Q2 <0,0,0,0,1,1,1,1>] .
+
 
 Una volta definite le dimensioni per i singoli vocaboli, l'intero documento viene espresso analiticamente come la somma pesata dei vettori delle feature che vi sono contenute. La formula formale è:
 
-$$v(d) = \sum_{f \in d} w_{fd} v(f)$$
+![](assets/2026-04-12-19-14-29-image.png)
 
 In questa equazione, il termine $w_{fd}$ rappresenta la rilevanza (il peso) della specifica feature $f$ all'interno del documento $d$ . Pertanto, un breve documento composto dalla frase $d =$ 'you played a good game' si tramuterà nel vettore $v(d) = [0, w_{played,d}, w_{game,d}, 0, \dots, w_{good,d}, 0, \dots, 0, 0]$ .
 
-Da questa composizione emerge immediatamente un aspetto strutturale vitale: la stragrande maggioranza dei valori contenuti in questi vettori è pari a zero, determinando quella che in algebra lineare viene definita **sparsità**. Essendo la lunghezza del vettore pari alla totalità dei termini dell'intero vocabolario e contenendo un singolo documento solo una frazione irrisoria di tutte quelle parole, si ottiene un **vettore sparso**, la cui formula matematica enuncia che la cardinalità degli elementi non nulli del vettore è grandemente inferiore all'intero numero di feature esistenti ($|\{i | v_i(d) \neq 0\}| \ll n$) .
+Da questa composizione emerge immediatamente un aspetto strutturale vitale: la stragrande maggioranza dei valori contenuti in questi vettori è pari a zero, determinando quella che in algebra lineare viene definita **sparsità**. Essendo la lunghezza del vettore pari alla totalità dei termini dell'intero vocabolario e contenendo un singolo documento solo una frazione irrisoria di tutte quelle parole, si ottiene un **vettore sparso**, la cui formula matematica enuncia che la cardinalità degli elementi non nulli del vettore è grandemente inferiore all'intero numero di feature esistenti 
+
+($|\{i | v_i(d) \neq 0\}| \ll n$) .
 
 L'interrogativo cruciale che chiude questa fase di modellizzazione, e che fa da ponte verso gli algoritmi di pesatura avanzati, consiste nello stabilire con quale esatto criterio e valore si debbano impostare questi pesi $w_{fd}$ in modo che riflettano la reale importanza del termine all'interno del corpus testuale.
 
