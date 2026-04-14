@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "IR/Notes_IR 1.md",
+                "file": "IR/Slide 4.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Notes_IR 1"
+              "title": "Slide 4"
             }
           }
         ]
@@ -78,7 +78,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 300,
+    "collapsed": true
   },
   "right": {
     "id": "91903aee59939870",
@@ -94,7 +95,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "IR/Notes_IR 1.md",
+                "file": "IR/Slide 4.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,7 +105,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Riferimenti a Notes_IR 1"
+              "title": "Riferimenti a Slide 4"
             }
           },
           {
@@ -113,12 +114,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "IR/Notes_IR 1.md",
+                "file": "IR/Slide 4.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Collegamenti in uscita da Notes_IR 1"
+              "title": "Collegamenti in uscita da Slide 4"
             }
           },
           {
@@ -156,13 +157,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "IR/Notes_IR 1.md",
+                "file": "IR/Slide 4.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Struttura di Notes_IR 1"
+              "title": "Struttura di Slide 4"
             }
           },
           {
@@ -196,18 +197,23 @@
   },
   "active": "ac3bd5d18cb0750a",
   "lastOpenFiles": [
+    "IR/allegati/Pasted image 20260414121618.png",
+    "IR/allegati/Pasted image 20260414121552.png",
+    "IR/allegati/Pasted image 20260414121428.png",
+    "IR/allegati/Pasted image 20260414121032.png",
+    "IR/allegati/Pasted image 20260414120941.png",
+    "IR/allegati/Pasted image 20260414120711.png",
+    "IR/allegati/Pasted image 20260414120647.png",
+    "IR/allegati/Pasted image 20260414120640.png",
+    "IR/allegati/Pasted image 20260414120517.png",
+    "IR/allegati/Pasted image 20260414120107.png",
+    "IR/allegati/Pasted image 20260414115557.png",
+    "IR/Notes_IR.md",
+    "IR/Slide 4.md",
+    "IR/Slide4.md",
     "IR/Slide3.md",
-    "IR/Notes_IR 1.md",
-    "IR/allegati/Pasted image 20260414114217.png",
-    "IR/allegati/Pasted image 20260414113536.png",
-    "IR/allegati/Pasted image 20260414113131.png",
-    "IR/allegati/Pasted image 20260414112701.png",
-    "IR/allegati/Pasted image 20260414112642.png",
-    "IR/allegati/Pasted image 20260414112539.png",
     "IR/allegati",
-    "Pasted image 20260414112205.png",
     "IR/Slide2.md",
-    "IR/Slide1.md",
-    "IR/Notes_IR.md"
+    "IR/Slide1.md"
   ]
 }
