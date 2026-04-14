@@ -518,13 +518,13 @@ Osservando i primi elementi disponibili, il puntatore della parola "language" si
 
 A questo punto, il sistema sfrutta l'ordine appena creato per accumulare progressivamente i valori di Upper Bound, verificando se il limite teorico superi la soglia di sbarramento τ=2.1. Questa stima permette di capire se valga o meno la pena calcolare il punteggio reale del documento sotto esame.
 
-Si parte dal primo elemento in lista, il documento 10 associato al termine "language". Il sistema si pone la seguente domanda matematica: è possibile che lo score reale del documento 10 per l'intera query (s(Q,10)) sia maggiore della soglia? La formula applicata è τ=2.1<?s(Q,10)≤UB(language)=1.1. Poiché il valore massimo possibile garantito da quell'unica lista (1.1) è nettamente inferiore a 2.1, l'algoritmo salta immediatamente il documento 10 senza eseguire calcoli complessi.
+Si parte dal primo elemento in lista, il documento 10 associato al termine "language". Il sistema si pone la seguente domanda matematica: è possibile che lo score reale del documento 10 per l'intera query (s(Q,10)) sia maggiore della soglia? La formula applicata è τ=2.1<s(Q,10)≤UB(language)=1.1. Poiché il valore massimo possibile garantito da quell'unica lista (1.1) è nettamente inferiore a 2.1, l'algoritmo salta immediatamente il documento 10 senza eseguire calcoli complessi.
 
-Procedendo verso il basso, il puntatore successivo si ferma sul documento 11 della lista "best". Il sistema somma l'UB del termine attuale con quello del termine precedente per stabilire il nuovo limite teorico. La disuguaglianza testata diventa τ=2.1<?s(Q,11)≤UB(language)+UB(best)=1.1+0.3=1.4. Anche in questo caso, la somma massima teorica di 1.4 non è in grado di scalfire il valore di 2.1 stabilito dal documento 8 in memoria. Il documento 11 viene scartato a priori.
+Procedendo verso il basso, il puntatore successivo si ferma sul documento 11 della lista "best". Il sistema somma l'UB del termine attuale con quello del termine precedente per stabilire il nuovo limite teorico. La disuguaglianza testata diventa τ=2.1<s(Q,11)≤UB(language)+UB(best)=1.1+0.3=1.4. Anche in questo caso, la somma massima teorica di 1.4 non è in grado di scalfire il valore di 2.1 stabilito dal documento 8 in memoria. Il documento 11 viene scartato a priori.
 
 +1
 
-L'iterazione avanza intercettando il documento 13 sulla lista "programming". L'accumulazione si estende aggiungendo l'UB del nuovo termine, portando l'operazione a τ=2.1<?s(Q,13)≤UB(language)+UB(best)+UB(programming)=1.1+0.3+0.6=2.0. Sorprendentemente, anche accumulando i tetti massimi delle prime tre parole della query, si raggiunge un limite invalicabile di 2.0, che si mantiene strettamente al di sotto della soglia necessaria di 2.1. Di conseguenza, anche il documento 13 viene sottoposto a potatura logica e ignorato dal motore di ricerca, garantendo un enorme risparmio di risorse computazionali pur mantenendo l'assoluta esattezza del risultato atteso.
+L'iterazione avanza intercettando il documento 13 sulla lista "programming". L'accumulazione si estende aggiungendo l'UB del nuovo termine, portando l'operazione a τ=2.1<s(Q,13)≤UB(language)+UB(best)+UB(programming)=1.1+0.3+0.6=2.0. Sorprendentemente, anche accumulando i tetti massimi delle prime tre parole della query, si raggiunge un limite invalicabile di 2.0, che si mantiene strettamente al di sotto della soglia necessaria di 2.1. Di conseguenza, anche il documento 13 viene sottoposto a potatura logica e ignorato dal motore di ricerca, garantendo un enorme risparmio di risorse computazionali pur mantenendo l'assoluta esattezza del risultato atteso.
 
 +1
 
@@ -552,7 +552,7 @@ Riprendendo il calcolo accumulato nella fase precedente, il motore di ricerca av
 
 [INSERIRE IMMAGINE: Visualizzazione dell'accumulazione finale degli Upper Bound con l'inserimento del termine "rust" e il superamento della soglia limite di 2.1]
 
-Aggiungendo quest'ultimo dato, la formula di verifica cambia drasticamente esito. L'equazione calcolata dal sistema diventa: τ=2.1<?s(Q,13)≤UB(language)+UB(best)+UB(programming)+UB(rust)=1.1+0.3+0.6+2.5=4.5. Poiché il risultato totale di 4.5 supera ampiamente la soglia di sbarramento di 2.1, il sistema perde la certezza matematica che il documento possa essere scartato a priori. Di conseguenza, la potatura dinamica si interrompe e il motore stabilisce la necessità assoluta di valutare il documento completo, segnalando il comando di analizzare il documento 15 ("Need to evaluate document 15!").
+Aggiungendo quest'ultimo dato, la formula di verifica cambia drasticamente esito. L'equazione calcolata dal sistema diventa: τ=2.1<s(Q,13)≤UB(language)+UB(best)+UB(programming)+UB(rust)=1.1+0.3+0.6+2.5=4.5. Poiché il risultato totale di 4.5 supera ampiamente la soglia di sbarramento di 2.1, il sistema perde la certezza matematica che il documento possa essere scartato a priori. Di conseguenza, la potatura dinamica si interrompe e il motore stabilisce la necessità assoluta di valutare il documento completo, segnalando il comando di analizzare il documento 15 ("Need to evaluate document 15!").
 
 +4
 
