@@ -78,7 +78,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 300,
+    "collapsed": true
   },
   "right": {
     "id": "91903aee59939870",
@@ -180,7 +181,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 200
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -194,8 +195,15 @@
       "obsidian-git:Open Git source control": false
     }
   },
-  "active": "b44e8d572a531b2b",
+  "active": "ac3bd5d18cb0750a",
   "lastOpenFiles": [
+    "IR/allegati/Pasted image 20260414114217.png",
+    "IR/allegati/Pasted image 20260414113536.png",
+    "IR/allegati/Pasted image 20260414113131.png",
+    "IR/allegati/Pasted image 20260414112701.png",
+    "IR/allegati/Pasted image 20260414112642.png",
+    "IR/allegati/Pasted image 20260414112539.png",
+    "IR/allegati",
     "Pasted image 20260414112205.png",
     "IR/Slide2.md",
     "IR/Slide3.md",
