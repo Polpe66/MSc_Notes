@@ -78,7 +78,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 300,
+    "collapsed": true
   },
   "right": {
     "id": "91903aee59939870",
@@ -196,6 +197,17 @@
   },
   "active": "ac3bd5d18cb0750a",
   "lastOpenFiles": [
+    "IR/allegati/Pasted image 20260415121817.png",
+    "IR/allegati/Pasted image 20260415121754.png",
+    "IR/allegati/Pasted image 20260415121706.png",
+    "IR/allegati/Pasted image 20260415121651.png",
+    "IR/allegati/Pasted image 20260415121605.png",
+    "IR/allegati/Pasted image 20260415121458.png",
+    "IR/allegati/Pasted image 20260415121444.png",
+    "IR/allegati/Pasted image 20260415121404.png",
+    "IR/allegati/Pasted image 20260415121309.png",
+    "IR/allegati/Pasted image 20260415121139.png",
+    "IR/allegati/Pasted image 20260415121113.png",
     "IR/Slide3.md",
     "IR/Slide2.md",
     "IR/Slide1.md",
@@ -208,16 +220,6 @@
     "IR/Slide6.md",
     "IR/Slide5.md",
     "IR/Slide4.md",
-    "IR/allegati/Pasted image 20260414121618.png",
-    "IR/allegati/Pasted image 20260414121552.png",
-    "IR/allegati/Pasted image 20260414121428.png",
-    "IR/allegati/Pasted image 20260414121032.png",
-    "IR/allegati/Pasted image 20260414120941.png",
-    "IR/allegati/Pasted image 20260414120711.png",
-    "IR/allegati/Pasted image 20260414120647.png",
-    "IR/allegati/Pasted image 20260414120640.png",
-    "IR/allegati/Pasted image 20260414120517.png",
-    "IR/allegati/Pasted image 20260414120107.png",
     "IR/allegati"
   ]
 }

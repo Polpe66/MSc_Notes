@@ -175,12 +175,17 @@ L'approccio TAAT offre dei vantaggi e degli svantaggi ben precisi. Tra i suoi pr
 Tuttavia, i difetti di questa tecnica si fanno sentire pesantemente sulle performance dell'hardware e sull'efficienza di ricerca. Il contro più impattante è l'enorme quantità di "cache misses" (mancanze nella cache) causata dal vasto numero di accumulatori in uso. Poiché l'algoritmo deve aggiornare punteggi sparsi saltando continuamente da un punto all'altro della memoria, il processore fatica a mantenere i dati pronti all'uso. Inoltre, emerge un limite logico critico: il TAAT non offre alcuna possibilità di saltare ("skipping") gli identificativi dei documenti (DocIds) nel caso di query altamente selettive, come quelle che utilizzano l'operatore AND. L'algoritmo è costretto a leggere e processare tutto, perdendo tempo su documenti che potrebbero essere scartati a priori.
 
 
-#QUAAAAAAAAA
 ### Il Modello DAAT e la Risoluzione dell'Operatore OR
 
 Proprio per sopperire all'impossibilità di saltare i documenti inutili, entra in gioco il modello Document-at-a-time (DAAT), il quale analizza le Posting Lists procedendo in parallelo . Quando un utente richiede una query basata sull'operatore OR (ad esempio, cercando "information" OR "retrieval"), il DAAT deve fondamentalmente unire due o più liste. Per compiere questa unione in modo ottimale, il sistema sfrutta lo stesso algoritmo di fusione (merge algorithm) alla base del celebre ordinamento MergeSort .
 
-[INSERIRE IMMAGINE: Diagramma dell'operazione di DAAT OR query, in cui i puntatori scorrono simultaneamente le Posting Lists di "information" e "retrieval" per estrarre e unire i documenti in una lista dei risultati.]
+![[Pasted image 20260415112836.png]]
+
+![[Pasted image 20260415112857.png]]
+
+![[Pasted image 20260415112916.png]]
+
+
 
 Con questa tecnica, il sistema ispeziona contemporaneamente i puntatori in testa a tutte le liste coinvolte, prelevando di volta in volta l'identificativo numericamente più piccolo . Questo procedimento restituisce direttamente una lista dei risultati perfettamente ordinata contenente i documenti in cui è presente almeno una delle parole chiave . Questo approccio porta con sé un beneficio enorme: possedere una lista ordinata nativamente permette di saltare in blocco interi gruppi di DocIds quando si affrontano query molto selettive, risparmiando preziose risorse di calcolo. Di contro, la struttura in parallelo richiesta dal DAAT risulta notevolmente più complessa da implementare, e la necessità di applicare algoritmi di ordinamento continuo porta a un costo computazionale iniziale più elevato per la pura creazione della lista dei risultati .
 
@@ -202,7 +207,7 @@ Con questa tecnica, il sistema ispeziona contemporaneamente i puntatori in testa
 
 Per comprendere a fondo il funzionamento dell'approccio **Document-at-a-time (DAAT)** di fronte a una query disgiuntiva (operatore **OR**), è utile analizzare l'esecuzione pratica dell'algoritmo di unione basato sul **MergeSort** . Immaginiamo di dover processare due **Posting Lists** parallele: la lista per il termine "information", contenente i documenti 1, 5, 8, 11, 13, 20, 35, 40, 42, e la lista per il termine "retrieval", contenente i documenti 1, 5, 6, 8, 11, 15, 17, 50, 60 .
 
-[INSERIRE IMMAGINE: Scorrimento parallelo dei puntatori nelle liste "information" e "retrieval" per formare l'unione dei risultati in una query OR procedendo per ordine numerico crescente]
+![[Pasted image 20260415113008.png]]
 
 Il sistema avvia l'ispezione posizionando un puntatore all'inizio di entrambe le liste. Entrambi i puntatori indicano il documento 1, di conseguenza questo valore viene aggiunto ai risultati . Facendo avanzare entrambi i cursori, si riscontra un'altra corrispondenza sul documento 5, che viene a sua volta inglobato nell'elenco finale . Il comportamento dell'algoritmo cambia quando i valori divergono: il puntatore della lista "information" si ferma sul documento 8, mentre quello di "retrieval" indica il documento 6 . In questo scenario, il sistema seleziona l'identificativo numericamente più piccolo, aggiungendo il 6 ai risultati e facendo avanzare unicamente il puntatore della lista "retrieval" .
 
@@ -211,9 +216,9 @@ Questo processo di avanzamento asimmetrico e inserimento ordinato continua inint
 ### La Selettività delle Query AND e l'Intersezione
 
 Il comportamento del motore di ricerca cambia radicalmente quando l'utente richiede l'uso di un operatore **AND** sempre all'interno del paradigma DAAT. Invece di unire i dati, l'operatore congiuntivo impone una rigida **intersezione delle posting lists** (Intersection of posting lists).
-
-[INSERIRE IMMAGINE: Scorrimento dei puntatori per l'intersezione logica delle liste "information" e "retrieval" in una query AND, dove avanzano solo in caso di discrepanza]
-
+![[Pasted image 20260415113248.png]]
+![[Pasted image 20260415113257.png]]
+![[Pasted image 20260415113305.png]]
 Riprendendo in esame le medesime liste ("information" e "retrieval"), il sistema inizia la scansione parallelamente dal documento 1 . Essendo l'identificativo presente in ambedue i registri, la condizione logica è soddisfatta e il documento diventa un candidato valido per i risultati. Entrambi i puntatori avanzano quindi al documento 5, confermando un'altra corrispondenza .
 
 L'efficienza dell'intersezione si palesa quando si presenta una discrepanza numerica. Quando il puntatore superiore indica l'8 e quello inferiore indica il 6, il sistema comprende istantaneamente che il documento 6 non possiede entrambi i termini richiesti. Di conseguenza, il motore scarta il documento 6 e fa avanzare esclusivamente il puntatore che si trova sul valore inferiore, portandolo a pareggiare o superare l'altro cursore per cercare una nuova corrispondenza. Questa metodica garantisce una forte selettività e impedisce l'aggiunta di documenti irrilevanti alla lista finale.
@@ -238,8 +243,8 @@ Questa sezione esplora come i motori di ricerca ottimizzano le query restrittive
 
 Come anticipato, la valutazione di una query AND nel modello DAAT si traduce operativamente nell'**intersezione delle posting lists**. A livello di codice, questo procedimento viene gestito da una funzione dedicata (spesso descritta come `intersect(p1, p2)`) che inizializza due puntatori all'inizio delle rispettive liste . L'algoritmo scorre le liste in un ciclo continuo, confrontando i valori presenti nelle celle correnti . Se l'identificativo del documento corrisponde in entrambe le liste, questo viene aggiunto ai risultati finali e ambedue i puntatori avanzano di un singolo passo ($i+=1$; $j+=1$) . Nel caso in cui vi sia una discrepanza numerica, il sistema si limita a far avanzare di un solo passo il puntatore associato al valore più piccolo, nel tentativo di riallinearlo con la lista opposta .
 
-[INSERIRE IMMAGINE: Pseudocodice dell'algoritmo di intersezione lineare (intersect) che mostra il ciclo while e l'avanzamento unitario dei puntatori i e j]
-
+![[Pasted image 20260415113230.png]]
+![[Pasted image 20260415113337.png]]
 ### Comandi e Operazioni di Base sulle Posting Lists
 
 Per permettere al sistema di interagire fisicamente con questi registri, è stato definito un set di operazioni di base che comandano lo spostamento del puntatore all'interno della **Posting List** .
@@ -251,24 +256,20 @@ Per permettere al sistema di interagire fisicamente con questi registri, è stat
 - L'operazione più complessa è il **$nextGEQ_t(d)$** (Next Greater or Equal): questo comando ordina al puntatore di scavalcare i dati e fermarsi sul primo DocId che risulti essere strettamente maggiore o uguale al parametro $d$ fornito.
 
 Inoltre, per estrapolare i dati effettivi durante queste manovre, il motore utilizza le funzioni **$docId_t()$**, che restituisce l'ID del documento attualmente puntato, e **$position_t()$**, che restituisce l'indice numerico di posizione del puntatore all'interno dell'array .
-
-[INSERIRE IMMAGINE: Esempio visivo dello stato di un puntatore su una posting list dopo l'esecuzione dei comandi first() e next(), con l'aggiornamento dei valori docId e position]
-
+![[Pasted image 20260415113404.png]]
 ### Implementare i Salti: Ricerca Binaria vs Skip Pointers
 
 L'operazione **$nextGEQ$** è il vero motore dell'ottimizzazione, ma la sua implementazione pratica pone delle sfide . Un primo approccio puramente matematico si affida alla **Ricerca Binaria (o Esponenziale)**. Sebbene questa tecnica garantisca un tempo di esecuzione teorico pari a $\Theta(\log(n/t))$ per eseguire una serie di salti, nella pratica informatica si rivela inefficace a causa della grandezza imprevedibile dei salti e, soprattutto, risulta incompatibile con la maggior parte degli algoritmi di compressione che non supportano l'accesso casuale in memoria .
 
 La soluzione adottata in ambito ingegneristico è l'uso degli **Skip Pointers** (Puntatori di Salto). Questi costituiscono delle vere e proprie "scorciatoie" fisiche inserite a intervalli regolari all'interno della lista, progettate per far saltare al cursore un numero prefissato $k$ di elementi. Questo approccio si sposa perfettamente con le necessità di stoccaggio moderne: permette infatti di comprimere interi blocchi di dati, applicando ad esempio la codifica di compressione **Elias-Fano** direttamente ai valori dei salti per minimizzare lo spazio occupato su disco .
 
-[INSERIRE IMMAGINE: Diagramma di una posting list dotata di Skip Pointers, rappresentati come archi rossi che collegano elementi distanti per permettere salti diretti bypassando blocchi di documenti]
-
+![[Pasted image 20260415113520.png]]
 ### L'Intersezione DAAT Ottimizzata con nextGEQ
 
 Integrando il comando di salto rapido all'interno della logica DAAT, l'algoritmo di elaborazione della query AND subisce un'evoluzione drastica (identificata spesso dalla funzione `intersect_nextGEQ(p1, p2)`). La logica di base rimane l'intersezione, ma cambia la reazione del sistema in caso di mancata corrispondenza: invece di far avanzare il cursore più arretrato di una sola casella ($i+=1$), l'algoritmo lo costringe a compiere un salto dinamico calcolato.
 
 Se il valore nella lista 1 è inferiore a quello della lista 2 ($p1[i] < p2[j]$), il sistema invoca direttamente il comando **$nextGEQ$** sulla prima lista, imponendo al puntatore di raggiungere istantaneamente un documento maggiore o uguale all'identificativo trovato nella seconda lista ($i = nextGEQ(p1, p2[j])$) . In questo modo, l'algoritmo aggira completamente la lettura, il confronto e la valutazione di decine o centinaia di documenti intermedi non rilevanti, restituendo la lista dei risultati in tempi enormemente più brevi.
 
-[RIFERIMENTO VISIVO DEL PROFESSORE: Sequenza di scorrimento logico in cui un puntatore fermo sul documento 1 usa il comando nextGEQ per schizzare direttamente verso il documento 5 o l'8, riallineandosi con la seconda lista senza valutare i documenti in mezzo.]
 
 ---
 
@@ -284,15 +285,14 @@ Se il valore nella lista 1 è inferiore a quello della lista 2 ($p1[i] < p2[j]$)
 
 ---
 
-## Elaborazione delle Query e Architettura dei Sistemi di Information Retrieval
-
-Il presente capitolo affronta le metodologie di elaborazione delle query all'interno dei sistemi di recupero dell'informazione. Esploreremo nel dettaglio le tecniche logiche di intersezione delle liste di posting, la gestione complessa delle query testuali esatte e l'architettura complessiva a strati che gestisce e classifica i documenti all'interno di un moderno motore di ricerca.
-
 ### DAAT: Query AND e la funzione nextGEQ
 
 L'elaborazione di una query testuale che impone la presenza simultanea dei termini, ovvero di tipo **AND**, calcolata secondo l'approccio **DAAT** (Document-At-A-Time), sfrutta la navigazione parallela delle liste invertite dei termini. Prendendo come caso di studio l'intersezione delle liste associate alle parole "information" e "retrieval", analizziamo i dati in ingresso. La posting list del termine "information" comprende gli identificativi di documento 1, 5, 8, 11, 13, 20, 35, 40 e 42. Contestualmente, la lista per il termine "retrieval" include i documenti 1, 5, 6, 8, 11, 15, 17, 50 e 60.
 
-[INSERIRE IMMAGINE: Scorrimento parallelo e intersezione delle due posting list "information" e "retrieval", con frecce che evidenziano i riscontri coincidenti sui documenti 5 e 8]
+![[Pasted image 20260415113834.png]]
+
+
+![[Pasted image 20260415113819.png]]
 
 Per individuare i documenti che soddisfano entrambi i termini, l'algoritmo ricorre alla funzione descritta nello pseudocodice `intersect_nextGEQ(p1, p2)`. Il processo inizia azzerando i cursori di scorrimento `i` e `j` e inizializzando una lista vuota `r` destinata a contenere l'output finale. Il cuore dell'operazione è un ciclo `while` che continua a operare finché entrambi gli indici non eccedono le dimensioni delle rispettive liste `p1` e `p2`. Nel momento in cui il documento puntato dal primo cursore coincide con quello del secondo cursore (`p1[i] == p2[j]`), l'identificativo viene aggiunto alla lista dei risultati `r`, e di conseguenza ambedue i cursori vengono incrementati di uno prima di ricominciare l'iterazione. Qualora si presenti una discrepanza, per cui l'elemento nella prima lista risulti minore del corrispettivo nella seconda (`p1[i] < p2[j]`), il sistema non avanza linearmente ma esegue un salto calcolato riassegnando l'indice `i` tramite l'operatore **nextGEQ** (Greater or EQual), ricercando nella lista `p1` il primo valore maggiore o uguale all'elemento in `p2[j]`. All'opposto, se il valore in `p1` è maggiore, è l'indice `j` a compiere il salto adoperando la funzione `nextGEQ(p2, p1[i])`. Concluso l'esame incrociato, la funzione restituisce i documenti comuni raccolti in `r`.
 
@@ -300,40 +300,44 @@ Per individuare i documenti che soddisfano entrambi i termini, l'algoritmo ricor
 
 Un differente paradigma di calcolo per le query testuali **AND** con uso dell'operatore **nextGEQ** è rappresentato dalla metodologia **TAAT** (Term-At-A-Time). Questo approccio ottimizza il calcolo dell'intersezione prendendo in carico le posting list partendo obbligatoriamente da quella più corta per poi procedere gradualmente fino all'inclusione di quella più lunga, restringendo progressivamente lo spazio di ricerca.
 
-[INSERIRE IMMAGINE: Diagramma a blocchi in cui rettangoli di diversa larghezza, rappresentanti le posting list, vengono intersecati a cascata ordinati dalla più breve alla più lunga]
+![[Pasted image 20260415114003.png]]
 
 ### Risultati Sperimentali: Query AND
 
 L'efficienza pratica delle query booleane **AND** (in comparazione anche alle strategie OR) si manifesta in maniera eterogenea a seconda delle combinazioni algoritmiche adottate per il salto tra i documenti. I tempi di valutazione effettivi vengono misurati in millisecondi per singola query. La tabella seguente riassume l'esito di sperimentazioni oggettive su dataset documentali di varia entità (TREC 05, TREC 06, ClueWeb09, Gov2), illustrando le discrepanze prestazionali.
 
-| **Metodo**    | **TREC 05** | **TREC 06**  | **ClueWeb09** | **Gov2**     |
-| ------------- | ----------- | ------------ | ------------- | ------------ |
-| EF single     | 2.1 (+10%)  | 4.7 (+1%)    | 13.6 (-5%)    | 15.8 (-9%)   |
-| EF uniform    | 2.1 (+9%)   | 5.1 (+10%)   | 15.5 (+8%)    | 18.9 (+9%)   |
-| EF optimal    | 1.9         | 4.6          | 14.3          | 17.4         |
-| Interpolative | 7.5 (+291%) | 20.4 (+343%) | 55.7 (+289%)  | 76.5 (+341%) |
-| OptPFD        | 2.2 (+14%)  | 5.7 (+24%)   | 16.6 (+16%)   | 21.9 (+26%)  |
-| Varint-G8IU   | 1.5 (-20%)  | 4.0 (-13%)   | 11.1 (-23%)   | 14.8 (-15%)  |
-
+![[Pasted image 20260415114138.png]]
 ### Indici Posizionali per Query a Frase
 
-Il recupero di porzioni di testo non si esaurisce con la semplice ricerca dell'operatore booleano sui termini sparsi; sorge la necessità di risolvere le query a frase dove si esige la precisa sequenza "information retrieval" invece della semplice precondizione logica "information AND retrieval". Per assecondare questa richiesta contestuale, l'infrastruttura dell'indice invertito viene estesa in modo da memorizzare le precise posizioni di ciascuna occorrenza per ogni singolo documento. Analizziamo il comportamento nel documento numero 1, supponendo che la parola "information" ricorra nelle posizioni assolute 10, 40, 55 e 80. All'interno dello stesso elaborato testuale, la parola "retrieval" compare nelle posizioni 30, 45 e 56. Lo scopo della ricerca posizionale è individuare un'occorrenza della prima parola, "information", ad una determinata posizione generica $p$, verificando in contemporanea che una tra le occorrenze di "retrieval" si collochi istantaneamente dopo, nella posizione $p^{+1}$. Passando in rassegna i dati dell'esempio, l'algoritmo segnalerà un riscontro esatto confermando che l'occorrenza di "information" in posizione 55 trova il suo naturale prosieguo sequenziale con il lemma "retrieval" allocato alla posizione 56.
+IRecuperare un testo non significa solo cercare parole sparse qua e là con i classici operatori logici. Spesso abbiamo bisogno di risolvere una query a frase, dove pretendiamo che i termini appaiano in una sequenza precisa, come nel caso di "information retrieval", e non semplicemente che siano presenti entrambi nel documento. Per soddisfare questa richiesta contestuale, l'infrastruttura dell'indice invertito viene estesa per memorizzare la posizione esatta di ogni singola parola.
 
-[INSERIRE IMMAGINE: Dettaglio del funzionamento dell'indice posizionale nel documento 1, evidenziando il puntamento e la condizione di adiacenza soddisfatta dai blocchi che segnano le posizioni 55 e 56]
+Possiamo vedere come funziona nel documento numero 1 immaginando che la parola "information" compaia alle posizioni 10, 40, 55 e 80. All'interno dello stesso testo, la parola "retrieval" si trova invece alle posizioni 30, 45 e 56. Lo scopo della ricerca posizionale è quindi quello di individuare un'occorrenza della prima parola in una posizione generica $p$ e verificare allo stesso tempo che una delle occorrenze della seconda si trovi subito dopo, ovvero nella posizione $p+1$. Analizzando i dati del nostro esempio, l'algoritmo segnalerà un riscontro esatto proprio perché l'occorrenza di "information" al posto 55 trova il suo naturale proseguimento con il termine "retrieval" posizionato al numero 56.
+
+![[Pasted image 20260415114515.png]]
 
 ### L'Architettura dell'Elaborazione della Query
 
-Dietro le interfacce interattive dei motori di ricerca opera una complessa architettura a doppio binario, scissa in un flusso "Offline" dedicato alla preparazione strutturale dei dati e un parallelo flusso "Online" predisposto alla soddisfazione immediata delle richieste dell'utente. Nel corso delle operazioni offline in background, la massa primaria di dati, costituita dalla collezione dei documenti ("Document Collection"), viene riversata in un processo di indicizzazione ("Indexing") da cui viene distillato l'indice invertito ("Inverted Index"). Un elaboratore parallelo, il "Feature Processor", agisce a livello documentale popolando una riserva di informazioni detta "Document Features Repository". Simmetricamente, l'infrastruttura estrae dati di addestramento ("Training Data") alimentando il meccanismo di machine learning ("Training") per calibrare uno specifico modello denominato "Learning-to-rank Model".
+Dietro le interfacce dei motori di ricerca lavora un'architettura divisa in due parti: una fase Offline, che prepara i dati, e una fase Online, che risponde alle ricerche in tempo reale.
 
-[INSERIRE IMMAGINE: Architettura di sistema di un motore di ricerca con chiara separazione orizzontale tra l'attività di background offline dei dati e i flussi processuali online verso l'interfaccia utente]
+Durante le operazioni Offline che avvengono in background, l'intera collezione di documenti viene analizzata attraverso un processo di indicizzazione per creare l'indice invertito. Contemporaneamente, un elaboratore chiamato Feature Processor estrae le caratteristiche dei testi e le salva in un archivio dedicato. In questo stesso flusso, il sistema preleva dei dati di addestramento per istruire un algoritmo di machine learning, così da calibrare il modello di Learning-to-rank che servirà a ordinare i risultati.
 
-La modalità operativa online innesca la sequenza nel momento in cui l'utente lancia la stringa desiderata ("Query") che, prima di impattare sui dati, viene sottoposta a una fase di estensione linguistica o semantica ("Expanded Query"). Solo allora entra nel blocco vitale denominato "Query Processing", il quale va ad interpellare l'indice invertito generato precedentemente. Il cammino decisionale procede verso la computazione delle caratteristiche e il loro recupero ("Feature Lookup and Computation"), ricollegandosi al repository documentale offline. L'epilogo tecnico dell'architettura si materializza nella funzione di categorizzazione intelligente appresa dal sistema ("Learned Ranking Function"), basata sul modello Learning-to-rank, da cui scaturisce l'effettivo ordine degli URL restituiti sul monitor dell'utente.
+![[Pasted image 20260415114613.png]]
 
-Per minimizzare lo spreco prestazionale mantenendo coerenza, il motore processa l'universo documentale scalando la propria capacità di astrazione per gradi. Alla base di questa gerarchia filtrante, dovendo analizzare miliardi di documenti testuali ("1,000,000,000s of documents"), interviene l'elaborazione prettamente Logico-Booleana, dedita a chiarire se, alla luce della stringa di input, i termini interpellati ricorrano effettivamente all'interno dei record o meno, applicando operatori standard come l'AND e l'OR. Dal pool emergente costituito da migliaia di papabili candidati ("1,000s of documents"), agisce il livello intermedio denominato "Simple Ranking" con l'obiettivo di discernere con metodologie primarie, come la formula probabilistica BM25, un set più ristretto di elementi che ospita la stragrande maggioranza dei documenti effettivamente utili. L'eccellenza in termini di perfezionamento dei risultati è demandata alla fase apicale per una porzione drasticamente limata, come gli apripista della classifica ("20 docs"); qui il motore di ricerca si spinge in uno stadio di **Re-Ranking** tramite l'uso del **LEARNING TO RANK**, prodigandosi intensivamente ("Try really hard to get the top of the ranking correct") nel vagliare il comportamento su un altissimo numero di sfaccettature contestuali ("using many signals (features)") e riordinare meticolosamente i vertici della SERP prima di riconsegnarla.
+
+La fase online si attiva non appena scrivi una query, la quale viene subito arricchita con sinonimi o espansioni semantiche per capire meglio cosa stai cercando. A questo punto entra in gioco il cuore del sistema, il Query Processing, che interroga l'indice invertito creato in precedenza. Il percorso prosegue recuperando le caratteristiche specifiche dei documenti dal database offline e si conclude con l'intervento del modello di Learning-to-rank, che decide l'ordine finale degli indirizzi da mostrarti sullo schermo.
+
+Per gestire miliardi di pagine senza rallentare, il motore lavora a imbuto riducendo gradualmente il numero di documenti da analizzare. Si parte dalla base della piramide, dove su miliardi di testi viene applicata una semplice logica Booleana per verificare, tramite operatori come AND oppure OR, se le parole cercate sono presenti o meno. Da questa prima scrematura emergono alcune migliaia di candidati su cui interviene il livello di Simple Ranking; qui si usano formule probabilistiche come la BM25 per isolare un gruppo ancora più ristretto di documenti potenzialmente utili.
+
+L'ultimo passo riguarda solo i primissimi risultati della classifica, solitamente i primi venti, sui quali il sistema effettua un Re-Ranking intensivo. In questa fase apicale il motore utilizza il Learning-to-rank per analizzare una quantità enorme di segnali e dettagli contestuali, impegnandosi al massimo per garantire che la cima della lista sia il più precisa possibile prima di presentarti i risultati definitivi.
 
 ### L'Obiettivo del Top-k Retrieval Esatto
 
-La conclusione delle dinamiche analizzate risiede in gran parte nell'ambito della procedura **Exact Top-k Retrieval**, l'operazione che funge da cerniera tra i semplici indici e il rating di rilevanza finale. L'assunto primario, a fronte dell'interrogazione dell'utente e stabilendo preliminarmente una tolleranza numerica di uscita definita come un parametro discreto $k$ (ad esempio circoscritto a $k=1000$), prevede l'estrazione matematicamente precisa dei **primi $k$ risultati ottimali**. Questi vengono valutati operando sulle diramazioni più indulgenti dell'operatore logico OR, estraendo così i vertici del raggruppamento seguendo funzioni di assegnazione rigorose, di cui il metodo BM25 rappresenta la declinazione più iconica e utilizzata.
+A conclusione di tutto questo processo troviamo la procedura di **Exact Top-k Retrieval**, che fa da ponte tra gli indici di base e il punteggio di rilevanza finale. Il principio è semplice: una volta ricevuta la ricerca dell'utente, il sistema stabilisce un limite numerico chiamato **parametro k**, che serve a decidere quanti risultati estrarre, ad esempio i migliori 1000.
+
+Per selezionare questi elementi, il motore interroga l'indice in modo più flessibile usando l'operatore logico OR, così da non escludere potenziali candidati validi. In questa fase, i documenti vengono valutati attraverso funzioni di calcolo molto rigorose che ne misurano l'importanza: tra queste, la più famosa e utilizzata è sicuramente la formula **BM25**, che permette di identificare con precisione matematica i risultati che meritano di finire in cima alla lista.
+![[Pasted image 20260415114937.png]]
+
+---
 
 **Glossario / Concetti Chiave**
 
@@ -349,9 +353,6 @@ La conclusione delle dinamiche analizzate risiede in gran parte nell'ambito dell
 
 ---
 
-## Strategie di Recupero per i Top-k Risultati
-
-Questa sezione approfondisce le metodologie utilizzate dai motori di ricerca per selezionare in modo efficiente un sottoinsieme limitato di documenti rilevanti da mostrare all'utente, partendo da una vasta collezione di candidati.
 
 ### Recupero Esatto dei Top-k (Exact Top-k Retrieval)
 
@@ -359,13 +360,11 @@ L'obiettivo fondamentale dell'**Exact Top-k Retrieval** è quello di individuare
 
 La strategia più semplice per gestire questa operazione consiste nell'utilizzare una struttura dati specifica: il **Min-Heap**. Durante la valutazione della query OR, il Min-Heap viene impiegato per mantenere traccia dei $k$ risultati con il punteggio più elevato riscontrati fino a quel momento. La scelta del Min-Heap è motivata dalla necessità di accedere rapidamente al punteggio più basso presente tra i migliori risultati attuali (la radice del heap), facilitando il confronto con i nuovi documenti esaminati.
 
----
-
 ### Gestione dei Valori più Grandi in una Sequenza
 
 Per illustrare il funzionamento del Min-Heap nel contesto del recupero dei $k$ valori più grandi, consideriamo una sequenza di punteggi composta dai valori 2.5, 1.5, 3.0 e 0.5. In questo esempio, l'obiettivo è mantenere i **Top-3** risultati.
 
-[INSERIRE IMMAGINE: Rappresentazione di un Min-Heap con tre nodi contenenti i valori iniziali 2.1 alla radice, e 2.3 e 3.1 come figli]
+![[Pasted image 20260415115250.png]]
 
 Immaginiamo che lo stato iniziale del nostro Min-Heap contenga i valori 2.1, 2.3 e 3.1. Il valore alla radice del heap rappresenta la soglia attuale, indicata con **$\tau$** (tau). In questa configurazione, $\tau = 2.1$.
 
@@ -377,7 +376,7 @@ Quando il sistema incontra il punteggio 2.5 nella sequenza, esegue un confronto 
 
 - Di conseguenza, l'algoritmo esegue l'operazione di **estrazione del minimo** (rimuovendo 2.1) e l'**inserimento** del nuovo valore 2.5 nel heap.
 
-[INSERIRE IMMAGINE: Diagramma che mostra l'aggiornamento del heap: l'uscita del valore 2.1 e l'ingresso del valore 2.5, con il conseguente riordinamento dei nodi]
+![[Pasted image 20260415115320.png]]
 
 Dopo questa operazione, il Min-Heap si riorganizza e la nuova soglia $\tau$ diventa il nuovo valore minimo presente tra i primi tre, ovvero $\tau = 2.3$.
 
@@ -404,11 +403,6 @@ Questo meccanismo permette di processare un'intera sequenza di $n$ documenti man
 - **Complessità $O(n \log k)$**: Efficienza temporale dell'algoritmo basato su Min-Heap, dove $n$ è il numero totale di documenti e $k$ è il numero di risultati richiesti.
 
 ---
-
-## Esecuzione Pratica del Top-k Retrieval: Valutazione Query OR
-
-Questo capitolo illustra operativamente come un sistema di Information Retrieval gestisce una query testuale disgiuntiva, ovvero di tipo OR, combinando l'uso della struttura dati Min-Heap con la scansione parallela delle liste invertite. Osserveremo passo dopo passo come i punteggi parziali dei documenti si sommano e come la soglia di sbarramento si aggiorna dinamicamente.
-
 ### Complessità Computazionale del Min-Heap
 
 A completamento di quanto visto nella gestione della coda di priorità per il mantenimento dei migliori documenti, è fondamentale definire il costo operativo di questa strategia. L'efficienza temporale dell'algoritmo basato su Min-Heap, in cui si scartano sistematicamente i valori inferiori alla soglia $\tau$ corrente, garantisce una complessità computazionale pari a $O(n \log k)$ tempo. In questa notazione, $n$ rappresenta il numero totale di documenti esaminati durante lo scorrimento delle liste, mentre $k$ indica la capienza massima del Min-Heap, ovvero la quantità di risultati desiderati dall'utente.
@@ -417,28 +411,28 @@ A completamento di quanto visto nella gestione della coda di priorità per il ma
 
 Per comprendere le meccaniche di valutazione, analizziamo un caso pratico in cui il sistema deve elaborare una query OR composta da quattro termini specifici: "rust", "best", "programming" e "language". Il motore di ricerca recupera dall'indice invertito le quattro liste di posting associate. In questo scenario, ogni elemento della lista non contiene solo l'identificativo del documento (docId), ma è accoppiato al suo punteggio parziale (score) precalcolato per quel termine. Di seguito è riportata la struttura dei dati estratti:
 
-| **Termine**     | **Elementi della Posting List (docId, score)** |
-| --------------- | ---------------------------------------------- |
-| **rust**        | 15, 2.5 \| 16, 1.5 \| 25, 2.0 \| 45, 1.5       |
-| **best**        | 11, 0.3 \| 12, 0.1 \| 13, 0.1 \| 15, 0.2       |
-| **programming** | 13, 0.5 \| 15, 1.0 \| 19, 1.0 \| 21, 1.0       |
-| **language**    | 10, 0.5 \| 13, 0.9 \| 25, 0.8 \| 29, 1.1       |
 
-[INSERIRE IMMAGINE: Rappresentazione dell'allineamento orizzontale delle quattro posting list per i termini della query, con frecce rosse che indicano l'allineamento dei puntatori sui primi documenti disponibili]
+![[Pasted image 20260415115445.png]]
 
 ### Inizializzazione e Avanzamento dei Puntatori (DAAT)
 
 Il sistema è configurato per eseguire un Exact Top-k Retrieval con l'obiettivo di trovare il singolo documento migliore in assoluto, impostando quindi il parametro di ricerca su un **Top-1**. Supponiamo che, in una fase precedente dell'elaborazione, il sistema abbia già individuato e salvato nel Min-Heap il documento identificato dal numero 8 ($d = 8$), il quale possiede uno score complessivo pari a 2.1. Questo valore stabilisce la soglia di sbarramento attuale: $\tau = 2.1$.
 
-Adottando una strategia Document-At-A-Time (DAAT), il motore inizia a scorrere parallelamente le liste analizzando i documenti in ordine numerico crescente. Il sistema valuta inizialmente il documento 10 dalla lista "language" (score 0.5) , poi i documenti 11 e 12 dalla lista "best" (score rispettivamente di 0.3 e 0.1). Nessuno di questi, preso singolarmente, ha un punteggio in grado di impensierire l'attuale soglia di 2.1. Procedendo, il sistema aggrega i punteggi per il documento 13, che compare simultaneamente nelle liste "best" (0.1), "programming" (0.5) e "language" (0.9). La somma per il documento 13 risulta essere 1.5, che è ancora inferiore a $\tau = 2.1$, motivo per cui anche questo documento viene ignorato e il Min-Heap rimane invariato.
+Adottando una strategia Document-At-A-Time (DAAT) in OR, il motore inizia a scorrere parallelamente le liste analizzando i documenti in ordine numerico crescente. Il sistema valuta inizialmente il documento 10 dalla lista "language" (score 0.5) , poi i documenti 11 e 12 dalla lista "best" (score rispettivamente di 0.3 e 0.1). Nessuno di questi, preso singolarmente, ha un punteggio in grado di impensierire l'attuale soglia di 2.1. Procedendo, il sistema aggrega i punteggi per il documento 13, che compare simultaneamente nelle liste "best" (0.1), "programming" (0.5) e "language" (0.9). 
+![[Pasted image 20260415115617.png]]
+![[Pasted image 20260415115632.png]]
+![[Pasted image 20260415115649.png]]
+![[Pasted image 20260415115709.png]]
 
-[INSERIRE IMMAGINE: Scorrimento progressivo in diagonale dei puntatori sulle liste invertite, che evidenzia lo spostamento dalle prime posizioni fino al blocco sul documento 15]
+La somma per il documento 13 risulta essere 1.5, che è ancora inferiore a $\tau = 2.1$, motivo per cui anche questo documento viene ignorato e il Min-Heap rimane invariato.
 
+![[Pasted image 20260415115756.png]]
 ### L'Aggiornamento della Soglia Top-1
 
 L'elaborazione continua fino a quando i puntatori si allineano sul documento identificato dal numero 15. Il sistema rileva la presenza di questo documento su tre differenti liste: "rust" fornisce un contributo significativo con uno score di 2.5 , "best" aggiunge un parziale di 0.2 e "programming" contribuisce con 1.0. Accumulando questi valori ($2.5 + 0.2 + 1.0$), si ottiene uno score globale per il documento 15 pari a 3.7.
 
 A questo punto, l'algoritmo confronta il nuovo score totale con la soglia di sbarramento. Poiché 3.7 è nettamente superiore a 2.1, il documento 8 viene sfrattato dal Min-Heap. Il nuovo detentore della posizione Top-1 diventa il documento 15 ($d = 15$). Di conseguenza, la soglia di sbarramento globale per i futuri documenti analizzati viene innalzata rigorosamente al nuovo limite di $\tau = 3.7$. Questa meccanica, sebbene garantisca l'esattezza matematica del risultato, evidenzia come il costo computazionale rimanga strettamente proporzionale alla lunghezza totale delle liste esaminate, introducendo la necessità per sistemi futuri di metodi di scarto (pruning) più aggressivi.
+![[Pasted image 20260415115823.png]]
 
 ---
 
@@ -453,20 +447,13 @@ A questo punto, l'algoritmo confronta il nuovo score totale con la soglia di sba
 - **DAAT con Accumulatore:** Il processo con cui il motore si sofferma su un singolo identificativo (es. il documento 15) per sommare verticalmente tutti i suoi score parziali prima di passare all'identificativo successivo.
 
 ---
-
-## L'Inefficienza del Modello Base e l'Introduzione della Strategia WAND
-
-Questo capitolo analizza i limiti di calcolo dell'approccio standard per il recupero dei documenti e introduce tecniche avanzate di potatura dinamica (pruning), indispensabili per ottimizzare i tempi di risposta dei motori di ricerca moderni senza sacrificare la precisione dei risultati.
-
 ### I Limiti dell'Approccio Lineare
 
 Come osservato precedentemente nella valutazione di una query OR, l'obiettivo formale dell'Exact Top-k Retrieval è quello di trovare gli esatti Top-k risultati (ad esempio impostando il parametro k = 1000) basandosi su punteggi generati da funzioni di ranking note, come il BM25. La strategia base si affida all'uso di un Min-Heap per conservare i punteggi più alti man mano che si scorrono i dati. Nonostante il sistema riesca ad aggiornare con successo la classifica (come dimostrato dall'avanzamento dei puntatori fino a eleggere un nuovo documento Top-1 con uno score di 3.7), questo metodo si rivela profondamente inefficiente. Il motivo risiede nel fatto che il costo computazionale cresce in maniera direttamente proporzionale al numero totale di posting presenti in tutte le liste associate ai termini della query. In sostanza, il motore è costretto a ispezionare un numero eccessivo e insostenibile di identificativi documentali.
 
-[INSERIRE IMMAGINE: Scorrimento in profondità dei puntatori sulle quattro liste invertite fino all'allineamento sul documento 15, evidenziando il salto della soglia tau a 3.7]
-
 ### L'Algoritmo WAND (Weak AND)
 
-Per superare questo ostacolo prestazionale, nel 2003 i ricercatori Andrei Z. Broder, David Carmel, Michael Herscovici, Aya Soffer e Jason Y. Zien hanno presentato alla conferenza CIKM lo studio intitolato "Efficient query evaluation using a two-level retrieval process". In questo contesto accademico prende forma l'algoritmo **WAND** (Weak AND). Si tratta di una strategia di potatura dinamica (dynamic pruning) strutturata specificamente per autorizzare il sistema a saltare (skip) la valutazione di numerosi identificativi documentali. La grande forza innovativa di WAND risiede nella sua promessa: l'algoritmo garantisce matematicamente di restituire gli esatti risultati Top-k, pur ignorando volontariamente e massicciamente una vasta porzione dei posting. L'idea operativa fondante è logica e rigorosa: data la soglia di sbarramento corrente, indicata dalla variabile $\tau$, il sistema salta l'elaborazione di tutti quei documenti per i quali vi è la certezza matematica che otterranno un punteggio strettamente inferiore a $\tau$.
+In questo contesto accademico prende forma l'algoritmo **WAND** (Weak AND). Si tratta di una strategia di potatura dinamica (dynamic pruning) strutturata specificamente per autorizzare il sistema a saltare (skip) la valutazione di numerosi identificativi documentali. La grande forza innovativa di WAND risiede nella sua promessa: l'algoritmo garantisce matematicamente di restituire gli esatti risultati Top-k, pur ignorando volontariamente e massicciamente una vasta porzione dei posting. L'idea operativa fondante è logica e rigorosa: data la soglia di sbarramento corrente, indicata dalla variabile $\tau$, il sistema salta l'elaborazione di tutti quei documenti per i quali vi è la certezza matematica che otterranno un punteggio strettamente inferiore a $\tau$.
 
 ### Upper Bound e Stima dei Punteggi
 
@@ -477,7 +464,10 @@ Per poter prevedere a priori se un documento supererà o meno la soglia senza do
 Per visualizzare l'applicazione pratica della logica WAND, riprendiamo l'esempio del recupero Exact Top-k per la query OR formata dai termini "rust", "best", "programming" e "language". Modifichiamo l'interfaccia di analisi aggiungendo una colonna apposita per ospitare gli UB. Il nostro scenario di riferimento punta a estrarre un solo documento vincente (Top-1), e supponiamo di avere attualmente in memoria il documento 8 con una soglia di sbarramento fissata a $\tau = 2.1$.
 Il primo passo del sistema è calcolare il tetto massimo per la prima parola della query. Ispezionando la lista associata a "rust", il motore legge in sequenza i punteggi 2.5, 1.5, 2.0 e 1.5. Individuato il picco massimo tra questi elementi, il sistema stabilisce in modo definitivo che l'Upper Bound per il termine "rust" è pari a 2.5. Questa informazione garantisce che nessun documento potrà mai ricevere un contributo superiore a 2.5 proveniente da questa specifica lista.
 
-[INSERIRE IMMAGINE: Visualizzazione della lista di posting per il termine "rust", con un indicatore visivo che estrapola il punteggio massimo 2.5 e lo inserisce nella colonna separata dedicata all'Upper Bound]
+![[Pasted image 20260415120209.png]]
+![[Pasted image 20260415120233.png]]
+![[Pasted image 20260415120243.png|697]]
+
 
 **Glossario / Concetti Chiave**
 
@@ -488,10 +478,6 @@ Il primo passo del sistema è calcolare il tetto massimo per la prima parola del
 - **Dynamic Pruning:** Meccanica di ottimizzazione informatica che scarta (pota) dinamicamente rami di calcolo improduttivi basandosi sul confronto preventivo con una soglia limite.
 
 ---
-
-# L'Ordinamento e la Valutazione Dinamica nell'Algoritmo WAND
-
-Questo capitolo prosegue l'esame dell'algoritmo WAND (Weak AND) per il recupero esatto dei Top-k documenti. Dopo aver compreso il concetto teorico di limite massimo, analizzeremo nel dettaglio la meccanica operativa con cui il sistema organizza le liste di posting e accumula i punteggi per scartare rapidamente i documenti irrilevanti.
 
 ### Mappatura degli Upper Bound (UB)
 
@@ -512,21 +498,23 @@ Il vero motore logico di WAND entra in azione riorganizzando la sequenza di valu
 
 Osservando i primi elementi disponibili, il puntatore della parola "language" si trova sul documento 10, quello di "best" sul documento 11, per "programming" sul documento 13 e infine per "rust" sul documento 15. Ordinando queste liste in senso crescente in base a questo parametro posizionale, la struttura dati si riallinea presentando prima "language", seguita da "best", "programming" e per ultima "rust".
 
-[INSERIRE IMMAGINE: Rappresentazione visiva delle quattro posting list riordinate dall'alto verso il basso in base al primo docId disponibile: 10, 11, 13 e 15]
+![[Pasted image 20260415120338.png]]
+
 
 ### Valutazione delle Soglie e Potatura (Pruning) dei Documenti
 
 A questo punto, il sistema sfrutta l'ordine appena creato per accumulare progressivamente i valori di Upper Bound, verificando se il limite teorico superi la soglia di sbarramento τ=2.1. Questa stima permette di capire se valga o meno la pena calcolare il punteggio reale del documento sotto esame.
 
 Si parte dal primo elemento in lista, il documento 10 associato al termine "language". Il sistema si pone la seguente domanda matematica: è possibile che lo score reale del documento 10 per l'intera query (s(Q,10)) sia maggiore della soglia? La formula applicata è τ=2.1<s(Q,10)≤UB(language)=1.1. Poiché il valore massimo possibile garantito da quell'unica lista (1.1) è nettamente inferiore a 2.1, l'algoritmo salta immediatamente il documento 10 senza eseguire calcoli complessi.
+![[Pasted image 20260415120434.png]]
 
 Procedendo verso il basso, il puntatore successivo si ferma sul documento 11 della lista "best". Il sistema somma l'UB del termine attuale con quello del termine precedente per stabilire il nuovo limite teorico. La disuguaglianza testata diventa τ=2.1<s(Q,11)≤UB(language)+UB(best)=1.1+0.3=1.4. Anche in questo caso, la somma massima teorica di 1.4 non è in grado di scalfire il valore di 2.1 stabilito dal documento 8 in memoria. Il documento 11 viene scartato a priori.
 
-+1
+![[Pasted image 20260415120445.png]]
 
-L'iterazione avanza intercettando il documento 13 sulla lista "programming". L'accumulazione si estende aggiungendo l'UB del nuovo termine, portando l'operazione a τ=2.1<s(Q,13)≤UB(language)+UB(best)+UB(programming)=1.1+0.3+0.6=2.0. Sorprendentemente, anche accumulando i tetti massimi delle prime tre parole della query, si raggiunge un limite invalicabile di 2.0, che si mantiene strettamente al di sotto della soglia necessaria di 2.1. Di conseguenza, anche il documento 13 viene sottoposto a potatura logica e ignorato dal motore di ricerca, garantendo un enorme risparmio di risorse computazionali pur mantenendo l'assoluta esattezza del risultato atteso.
-
-+1
+L'iterazione avanza intercettando il documento 13 sulla lista "programming". L'accumulazione si estende aggiungendo l'UB del nuovo termine, portando l'operazione a τ=2.1<s(Q,13)≤UB(language)+UB(best)+UB(programming)=1.1+0.3+0.6=2.0. 
+Sorprendentemente, anche accumulando i tetti massimi delle prime tre parole della query, si raggiunge un limite invalicabile di 2.0, che si mantiene strettamente al di sotto della soglia necessaria di 2.1. Di conseguenza, anche il documento 13 viene sottoposto a potatura logica e ignorato dal motore di ricerca, garantendo un enorme risparmio di risorse computazionali pur mantenendo l'assoluta esattezza del risultato atteso.
+![[Pasted image 20260415120508.png]]
 
 ---
 
@@ -547,51 +535,33 @@ Questo capitolo conclude l'esempio applicativo dell'algoritmo WAND, illustrando 
 ### La Valutazione Obbligatoria in WAND
 
 Riprendendo il calcolo accumulato nella fase precedente, il motore di ricerca aveva sommato gli Upper Bound (UB) dei primi tre termini ordinati ("language", "best", "programming"), raggiungendo un limite teorico di 2.0. Questo valore non era sufficiente a superare la soglia τ di 2.1 stabilita dal documento temporaneamente in prima posizione (documento 8). Il processo iterativo di WAND, tuttavia, prevede l'aggiunta dell'ultimo termine rimanente, ovvero "rust". Questo specifico termine possiede un Upper Bound decisamente elevato, quantificato in 2.5.
-
-+4
-
-[INSERIRE IMMAGINE: Visualizzazione dell'accumulazione finale degli Upper Bound con l'inserimento del termine "rust" e il superamento della soglia limite di 2.1]
+![[Pasted image 20260415120632.png]]
 
 Aggiungendo quest'ultimo dato, la formula di verifica cambia drasticamente esito. L'equazione calcolata dal sistema diventa: τ=2.1<s(Q,13)≤UB(language)+UB(best)+UB(programming)+UB(rust)=1.1+0.3+0.6+2.5=4.5. Poiché il risultato totale di 4.5 supera ampiamente la soglia di sbarramento di 2.1, il sistema perde la certezza matematica che il documento possa essere scartato a priori. Di conseguenza, la potatura dinamica si interrompe e il motore stabilisce la necessità assoluta di valutare il documento completo, segnalando il comando di analizzare il documento 15 ("Need to evaluate document 15!").
-
-+4
+![[Pasted image 20260415120728.png]]
 
 ### MaxScore: Una Strategia Alternativa di Pruning Dinamico
 
-Oltre a WAND, il mondo dell'Information Retrieval si avvale di altre metodologie per velocizzare l'esecuzione delle query. Tra queste spicca **MaxScore**, definita come un'ulteriore strategia di potatura dinamica. Esattamente come il suo predecessore, questo algoritmo garantisce il calcolo dei risultati Top-k esatti, permettendo al contempo di ignorare (saltare) un vasto numero di posting improduttivi. Le basi teoriche di MaxScore sono state delineate e pubblicate nel 1995 da Howard Turtle e James Flood, all'interno del saggio "Query evaluation: Strategies and optimizations" sulla rivista Information Processing & Management.
-
-+2
+Oltre a WAND, il mondo dell'Information Retrieval si avvale di altre metodologie per velocizzare l'esecuzione delle query. Tra queste spicca **MaxScore**, definita come un'ulteriore strategia di potatura dinamica. Esattamente come il suo predecessore, questo algoritmo garantisce il calcolo dei risultati Top-k esatti, permettendo al contempo di ignorare (saltare) un vasto numero di posting improduttivi. 
 
 L'intuizione alla base di MaxScore si discosta dal concetto di accumulo visto in WAND. Data la consueta soglia corrente τ, questo algoritmo opera una spaccatura, suddividendo le liste di posting in due insiemi separati: le liste **essenziali** (essential) e quelle **non essenziali** (non-essential). Le liste considerate non essenziali sono quelle associate agli Upper Bound più piccoli. Questa separazione avviene assicurandosi che la somma dei massimali delle liste non essenziali si mantenga ad un livello tale da non impensierire la soglia di sbarramento, permettendo al motore di evitare calcoli su documenti che non figurano nelle liste principali.
-
-+2
-
 ### Ordinamento e Dati in MaxScore
 
 Per comprendere l'applicazione pratica di MaxScore, analizziamo i dati in ingresso. Il sistema mantiene come obiettivo l'estrazione del Top-1 assoluto. Il documento 8 in memoria continua a imporre una soglia τ pari a 2.1. Nella tabella seguente, elaborata per questo specifico test, si nota che i punteggi della lista "programming" presentano un Upper Bound ricalcolato pari a 1.0 (mentre nell'esempio WAND precedente si attestava a 0.6).
 
-+3
-
-| Termine         | Elementi della Posting List (docId, score) | UB  |
-| --------------- | ------------------------------------------ | --- |
-| **rust**        | 15, 2.5 \| 16, 1.5 \| 25, 2.0 \| 45, 1.5   | 2.5 |
-| **best**        | 11, 0.3 \| 12, 0.1 \| 13, 0.1 \| 15, 0.2   | 0.3 |
-| **programming** | 13, 0.5 \| 15, 1.0 \| 19, 1.0 \| 21, 1.0   | 1.0 |
-| **language**    | 10, 0.5 \| 13, 0.9 \| 25, 0.8 \| 29, 1.1   | 1.1 |
+![[Pasted image 20260415121113.png]]
 
 L'approccio operativo iniziale di MaxScore differisce sensibilmente da WAND. Se in precedenza le liste venivano ordinate osservando l'identificativo del documento, l'algoritmo MaxScore impone invece che il blocco di dati venga riordinato rigorosamente in base al valore dell'Upper Bound ("Sort by UB"). Questa mossa strutturale è un prerequisito fondamentale per riuscire a isolare correttamente i termini essenziali da quelli non essenziali.
 
-+2
+![[Pasted image 20260415121139.png]]
+
+---
 
 **Glossario / Concetti Chiave**
 
 - **Valutazione Obbligatoria (Evaluate):** In WAND, l'azione imposta al sistema quando l'accumulo dei massimali teorici di punteggio supera la soglia τ, costringendo il calcolo reale dello score del documento.
-  
-  +1
 
 - **MaxScore:** Tecnica di potatura dinamica formalizzata da Turtle e Flood (1995) che aggira l'elaborazione dei documenti partizionando logicamente le posting list.
-  
-  +1
 
 - **Liste Essenziali e Non Essenziali:** Le due macro-categorie in cui MaxScore divide i termini di ricerca. Le liste con gli UB più bassi compongono l'insieme non essenziale.
 
@@ -599,39 +569,34 @@ L'approccio operativo iniziale di MaxScore differisce sensibilmente da WAND. Se 
 
 ---
 
-# Il recupero esatto Top-k: L'algoritmo MaxScore
 
-Questa sezione introduce il funzionamento base dell'algoritmo MaxScore per l'operazione di "Exact Top-k Retrieval", ovvero il recupero esatto dei migliori $k$ documenti pertinenti a una ricerca. L'algoritmo ottimizza il calcolo dei punteggi dividendo i termini della query e le loro occorrenze in due categorie distinte.
-
-### Slide 1: Stato iniziale e parametri di base
+### Stato iniziale e parametri di base
 
 Il processo di recupero si basa sull'uso di liste invertite, le quali contengono le coppie di identificatori del documento e il relativo punteggio di pertinenza. Per ottimizzare il processo, per ogni termine della query viene precalcolato un limite superiore, definito **UB** (Upper Bound), che rappresenta il punteggio massimo assoluto che quel termine può generare.
 
 I dati di partenza per la query di esempio, composta dai termini "rust", "language", "programming" e "best", sono i seguenti:
 
-| **Termine**     | **Liste Invertite (docId, punteggio)**     | **UB** |
-| --------------- | ------------------------------------------ | ------ |
-| **rust**        | (15, 2.5), (16, 1.5), (25, 2.0), (45, 1.5) | 2.5    |
-| **language**    | (10, 0.5), (13, 0.9), (25, 0.8), (29, 1.1) | 1.1    |
-| **programming** | (13, 0.5), (15, 1.0), (19, 1.0), (21, 1.0) | 1.0    |
-| **best**        | (11, 0.3), (12, 0.1), (13, 0.1), (15, 0.2) | 0.3    |
+
 
 L'obiettivo di questa esecuzione è trovare il singolo documento più pertinente, operando quindi in modalità **Top-1**. Le condizioni iniziali impostano il documento corrente in esame a $d = 8$ e stabiliscono una soglia minima di sbarramento $\tau = 2.1$.
 
-### Slide 2-4: Liste essenziali e non essenziali
+### Liste essenziali e non essenziali
 
-[INSERIRE IMMAGINE: Diagramma che mostra le quattro liste invertite allineate, separate da una linea tratteggiata, con una freccia rossa direzionale che attraversa verticalmente i primi documenti di ciascuna lista.]
+[![[Pasted image 20260415121309.png]]
 
 L'algoritmo MaxScore accelera la ricerca suddividendo strategicamente le liste in due gruppi. Nell'esempio, i termini "rust" e "language" sono classificati come **liste essenziali** , mentre "programming" e "best" costituiscono le **liste non essenziali**. La direttiva operativa fondamentale è quella di processare le liste essenziali seguendo l'approccio *Document-at-a-Time* (Daat) con operatore logico OR. Ad ogni passo di questa scansione, il sistema effettua un controllo per verificare se sia possibile ignorare il documento corrente senza doverne calcolare il punteggio esatto.
 
-### Slide 5-7: Valutazione del documento 10
+### Valutazione del documento 10
 
 Durante la progressione, il sistema analizza il documento identificato con il numero 10, che appare nella lista del termine "language". Il calcolo verifica se il punteggio teorico massimo del documento 10 per l'intera query, indicato come $s(Q,10)$, possa superare l'attuale soglia $\tau = 2.1$. Di conseguenza, si somma l'Upper Bound delle liste non essenziali al punteggio effettivo che il documento possiede nella lista essenziale in cui è stato trovato. La formula di controllo è: $\tau=2.1<?s(Q,10)\le UB(programming)+UB(best)+s(1anguage,10)$ Sostituendo i valori ricavati dalla tabella iniziale si ottiene l'equazione $1.0 + 0.3 + 0.5 = 1.8$. Poiché il limite superiore totale di 1.8 è inferiore alla soglia richiesta di 2.1, il documento 10 non ha alcuna possibilità matematica di entrare nella classifica Top-1 e viene immediatamente scartato.
+![[Pasted image 20260415121404.png]]
 
-### Slide 8-10: Valutazione del documento 13
+###  Valutazione del documento 13
 
 Il controllo successivo si sposta sul documento 13, anch'esso reperito nella lista essenziale del termine "language". Si riapplica la stessa logica di sbarramento per vedere se il punteggio potenziale massimo del documento $s(Q,13)$ superi la soglia $\tau = 2.1$. La formula si aggiorna con il punteggio specifico del nuovo documento: $\tau=2.1<?s(Q,13)\le UB(programming)+UB(best)+s(language,13)$ Il calcolo aggiornato produce $1.0 + 0.3 + 0.9 = 2.2$. In questo caso, la soglia di 2.1 è strettamente minore del punteggio massimo potenziale di 2.2. Questo significa che il documento 13 potrebbe potenzialmente essere il miglior candidato e, di conseguenza, il sistema non può scartarlo ma dovrà valutare anche le altre occorrenze per calcolarne il punteggio finale.
+![[Pasted image 20260415121458.png]]
 
+---
 ### Concetti Chiave
 
 - **Algoritmo MaxScore**: Tecnica per ottimizzare l'Exact Top-k Retrieval, riducendo i calcoli necessari attraverso il partizionamento dei termini.
@@ -644,34 +609,28 @@ Il controllo successivo si sposta sul documento 13, anch'esso reperito nella lis
 
 ---
 
-# L'algoritmo MaxScore: Calcolo dei punteggi e Risultati Sperimentali
-
-Questa sezione conclude l'analisi dell'esecuzione dell'algoritmo MaxScore, mostrando come viene completata la valutazione dei documenti candidati e presentando un confronto prestazionale con altri metodi di recupero.
 
 ### Il calcolo effettivo per il documento 13
 
 Come visto nel passaggio precedente, il documento $d = 13$ aveva superato il controllo preliminare, poiché il suo limite superiore teorico di 2.2 era maggiore della soglia $\tau = 2.1$. Questo rende necessario calcolare il punteggio esatto accumulato dal documento in tutte le liste. Dalla disamina delle liste invertite, il documento 13 riceve 0.9 punti da "language" , 0.5 punti da "programming" e 0.1 punti da "best". Sommando questi contributi reali, si ottiene un punteggio totale effettivo pari a 1.5. Dato che questo valore (1.5) non supera l'attuale soglia di 2.1, l'algoritmo non aggiorna la soglia e scarta l'ipotesi di rendere il documento 13 il nuovo candidato Top-1.
-
+![[Pasted image 20260415121605.png]]
 ### Valutazione del documento 15
 
 Il processo procede nell'esplorazione e il prossimo identificatore incontrato nelle liste essenziali è il documento 15, situato nella lista del termine "rust". Si riapplica immediatamente il test di sbarramento per verificare se vale la pena calcolarne il punteggio complessivo. La formula confronta la solita soglia $\tau$ (2.1) con il limite superiore specifico per il documento 15. In questo caso, il calcolo somma l'Upper Bound delle liste non essenziali (1.0 per "programming" e 0.3 per "best") al punteggio esatto che il documento possiede nella lista in cui è stato trovato, ovvero 2.5 per "rust". L'equazione diviene quindi $1.0 + 0.3 + 2.5 = 3.8$. Poiché il punteggio potenziale di 3.8 è ampiamente superiore alla soglia di 2.1, il documento 15 si rivela un candidato eccellente e l'algoritmo dovrà procedere con il calcolo del suo punteggio esatto.
-
+![[Pasted image 20260415121651.png]]
+![[Pasted image 20260415121706.png]]
+![[Pasted image 20260415121754.png]]
 ### Prestazioni e Confronto Sperimentale
 
-[INSERIRE IMMAGINE: Due grafici a barre affiancati che illustrano la disposizione e la dimensione di vari blocchi, con linee tratteggiate e valori numerici (es. 4, 8, 7, 2, 1) sopra le colonne].
+![[Pasted image 20260415121817.png]]
 
 La parte finale della lezione sposta l'attenzione sull'efficienza di questi algoritmi, analizzando i risultati sperimentali per un recupero di tipo Top-10 sul dataset Gov2 Trec05. L'analisi si concentra sul tempo medio in millisecondi per query e sullo spazio aggiuntivo richiesto. Nelle esecuzioni sono state testate configurazioni con 5 blocchi, sia di dimensione fissa (pari a 3) che di dimensione variabile.
 
 Il seguente prospetto riassume le prestazioni all'aumentare dei termini di ricerca:
 
-| **Algoritmo** | **2 termini** | **3 termini** | **4 termini** | **5 termini** | **6+ termini** | **Avg (Gov2 Trec05)** | **Space** |
-| ------------- | ------------- | ------------- | ------------- | ------------- | -------------- | --------------------- | --------- |
-| **RankedOR**  | 23.6          | 76.5          | 147.9         | 235.4         | 418.7          | 106.7                 | 0.00      |
-| **WAND**      | 5.1           | 5.9           | 7.0           | 8.8           | 17.8           | 7.0                   | 0.22      |
-| **MaxScore**  | 4.7           | 6.0           | 7.1           | 9.2           | 14.2           | 6.6                   | 0.22      |
-
 I dati dimostrano in modo inequivocabile che MaxScore e WAND dominano rispetto a RankedOR. Mentre RankedOR vede i suoi tempi esplodere linearmente con l'aggiunta di termini alla query (raggiungendo i 418.7 millisecondi per 6 o più termini), MaxScore si mantiene estremamente performante, con un tempo medio generale di soli 6.6 millisecondi e un costo spaziale minimo di 0.22. Questo evidenzia la straordinaria capacità delle euristiche con soglia di tagliare rami di calcolo superflui.
 
+---
 ### Concetti Chiave
 
 - **Calcolo del punteggio effettivo**: Il passaggio in cui, superato il controllo dell'Upper Bound, si sommano i valori reali del documento in tutte le liste invertite.
