@@ -8,8 +8,7 @@ L'architettura di un motore di ricerca moderno prevede una netta separazione tra
 
 Nella fase online, il flusso parte dalla query dell'utente, che viene prima espansa e poi passata al sistema di processamento delle query. I risultati parziali interrogati sull'indice invertito passano al blocco di recupero e calcolo delle feature, per essere infine ordinati dalla funzione di ranking appresa e restituiti sotto forma di risultati di ricerca finali. L'infrastruttura sottostante a questo ecosistema è formata da immense server farm che contengono e processano l'indice e i dati di training.
 
-[INSERIRE IMMAGINE: Diagramma dell'architettura di un motore di ricerca, divisa in blocchi logici online e offline, mostrando il flusso dalla query dell'utente fino alla Learned Ranking Function e ai database sottostanti]
-
+![[Pasted image 20260415122206.png]]
 ### La Necessità dello Sharding
 
 Per gestire moli di dati così imponenti e garantire un'elevata reattività alle query, i motori di ricerca si affidano a una tecnica chiamata **Sharding**. Lo sharding permette di distribuire i dati frammentati su molteplici nodi fisici anziché mantenerli su un unico server centrale. L'adozione di questa tecnica è spinta da tre necessità fondamentali:
@@ -18,23 +17,26 @@ In primo luogo, garantisce la **scalabilità**: man mano che la collezione di do
 
 Di conseguenza, se l'indice invertito dovesse allargarsi, si dovranno incrementare gli **shard** (frammenti di dati). Se ad aumentare è invece il traffico di interrogazioni da parte degli utenti, sarà necessario aumentare il numero delle **repliche**. In ambedue gli scenari, la scalabilità viene raggiunta aumentando le macchine fisiche a disposizione.
 
-[INSERIRE IMMAGINE: Struttura di rete dello Sharding: una query viene ricevuta da un broker che smista la richiesta a varie repliche parallele, le quali contengono i diversi shard ($s_1, \dots, s_k$) all'interno dei server indice]
+![[Pasted image 20260415122302.png]]
 
 ### Il Modello Base della Compressione e lo Space-Time Tradeoff
 
-La compressione dei dati si fonda su un modello concettuale basilare: una stringa di bit in ingresso, definita $B$, viene elaborata da un algoritmo **Compressore** che la riduce, restituendo una stringa compressa in uscita denominata $C(B)$. L'operazione opposta è ovviamente affidata a un **Decompressore**. In base alle necessità, questa tecnologia può essere *lossy* (ammettendo una certa perdita di informazioni) o *lossless* (senza perdita di dettagli). Il metro di valutazione primario dell'algoritmo è il **rateo di compressione**, calcolato tramite la formula $CR = \frac{|B|}{|C(B)|}$. Se il valore ottenuto è $CR = r$, significa che lo spazio occupato dall'output compresso $|C(B)|$ è $r$ volte inferiore rispetto alla dimensione dell'input originale $|B|$. Applicazioni storiche e comuni di questi principi includono utility da riga di comando come *gzip* e *bzip2*.
+La compressione dei dati si fonda su un modello concettuale basilare: una stringa di bit in ingresso, definita $B$, viene elaborata da un algoritmo **Compressore** che la riduce, restituendo una stringa compressa in uscita denominata $C(B)$. L'operazione opposta è ovviamente affidata a un **Decompressore**. 
+In base alle necessità, questa tecnologia può essere *lossy* (ammettendo una certa perdita di informazioni) o *lossless* (senza perdita di dettagli). 
+Il metro di valutazione primario dell'algoritmo è il **rateo di compressione**, calcolato tramite la formula $CR = \frac{|B|}{|C(B)|}$. Se il valore ottenuto è $CR = r$, significa che lo spazio occupato dall'output compresso $|C(B)|$ è $r$ volte inferiore rispetto alla dimensione dell'input originale $|B|$. Applicazioni storiche e comuni di questi principi includono utility da riga di comando come *gzip* e *bzip2*.
 
-Questi algoritmi sono strettamente legati a un compromesso architetturale, noto come **Space-Time Tradeoff**. Il rateo di compressione finale dipende infatti dalla velocità desiderata per le operazioni di compressione e decompressione, le quali impattano sul consumo energetico e sulla potenza di calcolo richiesta alla CPU. Spesso occorre bilanciare lo spazio di archiviazione risparmiato dalla struttura dati compressa e l'efficienza delle operazioni che vi devono essere eseguite sopra. Non a caso, tool come *gzip* offrono 9 livelli di compressione distinti, dove il livello 1 è estremamente rapido ma offre risultati di compressione peggiori, mentre il livello 9 restituisce la miglior compressione al costo di tempistiche di calcolo più dilatate. Nel panorama attuale dell'Information Retrieval, questo tradeoff assume un'importanza capitale: non è più tollerabile l'ingenuo paradigma del "decomprimi prima di calcolare". L'obiettivo finale dei sistemi moderni è quello di poter effettuare operazioni di computazione operando direttamente sui dati già compressi.
+Questi algoritmi sono strettamente legati a un compromesso architetturale, noto come **Space-Time Tradeoff**. Il rateo di compressione finale dipende infatti dalla velocità desiderata per le operazioni di compressione e decompressione, le quali impattano sul consumo energetico e sulla potenza di calcolo richiesta alla CPU. Spesso occorre bilanciare lo spazio di archiviazione risparmiato dalla struttura dati compressa e l'efficienza delle operazioni che vi devono essere eseguite sopra. 
+Non a caso, tool come *gzip* offrono 9 livelli di compressione distinti, dove il livello 1 è estremamente rapido ma offre risultati di compressione peggiori, mentre il livello 9 restituisce la miglior compressione al costo di tempistiche di calcolo più dilatate. Nel panorama attuale dell'Information Retrieval, questo tradeoff assume un'importanza capitale: non è più tollerabile l'ingenuo paradigma del "decomprimi prima di calcolare". L'obiettivo finale dei sistemi moderni è quello di poter effettuare operazioni di computazione operando direttamente sui dati già compressi.
 
 ### Codifica di Interi e l'Ottimizzazione dei D-Gaps
 
 Scendendo nello specifico dell'indicizzazione, ci troviamo davanti al problema dei codificatori di interi: dato un intero $x > 0$, è necessario progettare un codice capace di rappresentare quel numero usando meno bit possibili. La stringa di bit risultante in uscita è definita **codeword** di $x$, indicata con $C(x)$. Elaborando un'intera sequenza $S$ di $n$ interi, la codifica finale avviene concatenando linearmente i singoli codeword: $C(x_1) \cdot\cdot\cdot C(x_n)$. I codici che si analizzano inizialmente sono definiti **statici**, poiché assegnano immancabilmente la stessa codeword a un determinato intero a prescindere dalla specifica sequenza processata.
 
 Nel contesto delle Posting List (che memorizzano ad esempio gli ID dei documenti in cui appare il termine "information" disposti in ordine crescente), si sfrutta una particolare tecnica denominata **d-gaps** per pre-trattare i dati. Anziché salvare numeri via via più grandi, i d-gaps permettono di salvare semplicemente la differenza numerica tra la cella attuale e la cella precedente. Di conseguenza, una lista come $[1, 5, 8, 11]$ viene ridotta agli scarti $[1, 4, 3, 3]$, mantenendo valori molto più piccoli e per natura più facili da comprimere.
-
+![[Pasted image 20260415122454.png]]
 ### La Rappresentazione Binaria e il Fallimento dell'Ambiguità (Epic Fail)
 
-Un primo approccio alla scrittura in bit dei d-gaps potrebbe essere l'utilizzo di una stringa binaria di lunghezza fissa. Sappiamo che $k$ bit sono in grado di rappresentare efficacemente qualsiasi intero nell'intervallo $0 \le x < 2^k$. Definendo $bin(x)$ come la pura rappresentazione binaria di $x$, il numero di bit necessari per formarla è pari a $\lceil log_{2}(x+1)\rceil$ bit. Avendo stabilito di lavorare con interi strettamente positivi ($x > 0$), la codeword basilare viene indicata come $B(x) = bin(x-1)$. Questo definisce formalmente un limite matematico inferiore: la grandezza di un codeword generico $C(x)$ deve sempre sottostare alla disequazione $|C(x)| > \lceil log_{2}(x)\rceil = |bin(x-1)| [cite_start]= |B(x)|$.
+Un primo approccio alla scrittura in bit dei d-gaps potrebbe essere l'utilizzo di una stringa binaria di lunghezza fissa. Sappiamo che $k$ bit sono in grado di rappresentare efficacemente qualsiasi intero nell'intervallo $0 \le x < 2^k$. Definendo $bin(x)$ come la pura rappresentazione binaria di $x$, il numero di bit necessari per formarla è pari a $\lceil log_{2}(x+1)\rceil$ bit. Avendo stabilito di lavorare con interi strettamente positivi ($x > 0$), la codeword basilare viene indicata come $B(x) = bin(x-1)$. Questo definisce formalmente un limite matematico inferiore: la grandezza di un codeword generico $C(x)$ deve sempre sottostare alla disequazione ![[Pasted image 20260415122526.png]]
 
 Possiamo osservare la tabella delle associazioni elementari per i primi numeri:
 
@@ -51,7 +53,7 @@ Possiamo osservare la tabella delle associazioni elementari per i primi numeri:
 
 Tuttavia, provando a concatenare linearmente le codifiche risultanti dai valori d-gaps di una lista testuale, emerge un errore architetturale fatale definito come un vero e proprio "Epic Fail". Poiché i codeword binari hanno lunghezze disuguali e nessuna indicazione interna di troncamento, la sequenza diviene un agglomerato privo di spaziature logiche, come la stringa `0111010111011101001`.
 
-[INSERIRE IMMAGINE: Grafo ad albero rovesciato che mostra un esempio di decodifica ambigua in cui la stringa binaria può generare sia la corretta sequenza [1, 4, 3...] che un'errata sequenza alternativa [1, 8, 1...]]
+![[Pasted image 20260415122603.png]]
 
 Al momento della decompressione, l'algoritmo non è più in grado di ripristinare in modo certo la lista d'origine e genererà risultati contraddittori e ambigui. La natura di questa ambiguità è data dal fatto che determinati codeword fungono accidentalmente da prefisso per codeword più lunghe appartenenti ad altri valori. Per risolvere questo difetto strutturale e operare in totale sicurezza, i motori di ricerca si affidano esclusivamente a codici univocamente decodificabili in cui vige la proprietà **Prefix-free**: in questi sistemi non esistono mai situazioni in cui un codeword sia l'esatto inizio (prefisso) di un codeword più lungo.
 
@@ -69,9 +71,7 @@ Al momento della decompressione, l'algoritmo non è più in grado di ripristinar
 
 ---
 
-## Codifiche Prefix-Free e Compressione di Liste
-
-In questa sezione approfondiremo i criteri per rendere i codici binari decodificabili in modo univoco e analizzeremo diverse tecniche di compressione per interi singoli e per intere liste, valutandone l'efficienza rispetto ai limiti teorici.
+#QUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa
 
 ### Decodificabilità Univoca e Codici Prefix-Free
 
