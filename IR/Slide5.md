@@ -70,26 +70,39 @@ Al momento della decompressione, l'algoritmo non è più in grado di ripristinar
 - **Codice Ambiguo:** Un paradigma di compressione malformato dove, in assenza di un rigido formato prefix-free, diviene impossibile stabilire una separazione netta e deterministica delle sequenze decodificabili.
 
 ---
-
-#QUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa
-
 ### Decodificabilità Univoca e Codici Prefix-Free
 
-Il problema principale riscontrato con la codifica binaria semplice è l'ambiguità: un codice può risultare un prefisso di un altro, rendendo impossibile distinguere i singoli numeri in una sequenza continua di bit. Per risolvere questo limite, ci concentriamo sui **codici prefix-free** (o codici a prefisso), definiti come codici in cui nessuna codeword è il prefisso di un'altra. Questa proprietà garantisce che, durante la lettura del flusso di bit, non appena viene riconosciuta una sequenza corrispondente a un simbolo, essa possa essere decodificata immediatamente senza incertezze. L'obiettivo fondamentale è dunque progettare codici decodificabili il cui ingombro in termini di spazio sia il più vicino possibile alla rappresentazione binaria teorica $|B(x)|$.
+Il problema principale riscontrato con la codifica binaria semplice è l'ambiguità: un codice può risultare un prefisso di un altro, rendendo impossibile distinguere i singoli numeri in una sequenza continua di bit. Per risolvere questo limite, ci concentriamo sui **codici prefix-free** (o codici a prefisso), definiti come codici in cui nessuna codeword è il prefisso di un'altra. Questa proprietà garantisce che, durante la lettura del flusso di bit, non appena viene riconosciuta una sequenza corrispondente a un simbolo, essa possa essere decodificata immediatamente senza incertezze.
 
+![[Pasted image 20260417112120.png]]
+
+L'obiettivo fondamentale è dunque progettare codici decodificabili il cui ingombro in termini di spazio sia il più vicino possibile alla rappresentazione binaria teorica $|B(x)|$.
 ### Il Codice Unario
 
-La tecnica più semplice per garantire la proprietà prefix-free è il **codice unario**. L'idea alla base è quella di utilizzare il bit $1$ per rappresentare i dati e il bit $0$ come delimitatore di fine numero. Formalmente, un intero $x > 0$ viene rappresentato come una sequenza di $x-1$ volte il bit $1$, seguita da uno $0$, indicata come $U(x) = 1^{x-1}0$. Di conseguenza, la lunghezza del codice è pari al valore stesso dell'intero ($|U(x)| = x$). Sebbene sia molto inefficiente per numeri grandi, il codice unario rappresenta un elemento costruttivo essenziale per codifiche più complesse ed è estremamente efficace per piccoli interi.
+La tecnica più semplice per garantire la proprietà prefix-free è il **codice unario**. L'idea alla base è quella di utilizzare il bit $1$ per rappresentare i dati e il bit $0$ come delimitatore di fine numero. Formalmente, un intero $x > 0$ viene rappresentato come una sequenza di $x-1$ volte il bit $1$, seguita da uno $0$, indicata come $U(x) = 1^{x-1}0$. 
+
+Di conseguenza, la lunghezza del codice è pari al valore stesso dell'intero ($|U(x)| = x$). Sebbene sia molto inefficiente per numeri grandi, il codice unario rappresenta un elemento costruttivo essenziale per codifiche più complesse ed è estremamente efficace per piccoli interi.
+
+![[Pasted image 20260417112246.png]]
 
 ### Codifiche di Elias: Gamma e Delta
 
-Per migliorare l'efficienza su interi più grandi, si utilizzano le codifiche di Elias, che rendono la rappresentazione binaria $bin(x)$ decodificabile anteponendo informazioni sulla sua lunghezza. La **codifica Elias Gamma** ($\gamma$) rappresenta la lunghezza della stringa binaria di $x$ utilizzando il codice unario, seguita dalla rappresentazione binaria di $x$ privata del bit più significativo (che è sempre $1$ per $x > 0$ e quindi ridondante). Ad esempio, per codificare il numero $6$, la cui rappresentazione binaria è $110$ (lunghezza $3$), scriveremo il $3$ in unario ($110$) e aggiungeremo i restanti bit del binario ($10$), ottenendo $11010$.
+Per migliorare l'efficienza su interi più grandi, si utilizzano le codifiche di Elias, che rendono la rappresentazione binaria $bin(x)$ decodificabile anteponendo informazioni sulla sua lunghezza ($l$). La **codifica Elias Gamma** ($\gamma$) rappresenta la lunghezza della stringa binaria di $x$ utilizzando il codice unario, seguita dalla rappresentazione binaria di $x$ privata del bit più significativo (che è sempre $1$ per $x > 0$ e quindi ridondante). Ad esempio, per codificare il numero $6$, la cui rappresentazione binaria è $110$ (lunghezza $3$), scriveremo il $3$ in unario ($110$) e aggiungeremo i restanti bit del binario ($10$), ottenendo $11010$.
+
+Formula: $\gamma$(x)= $U(l) * bin(x)$
+
+
+![[Pasted image 20260417112345.png]]
 
 La **codifica Elias Delta** ($\delta$) segue un principio simile ma cerca di comprimere ulteriormente l'informazione sulla lunghezza. Invece di usare il codice unario, la lunghezza $|bin(x)|$ viene a sua volta codificata utilizzando Elias Gamma. Anche in questo caso, si aggiunge poi la parte finale di $bin(x)$ senza il bit più significativo. Questa struttura gerarchica rende la codifica Delta più vantaggiosa della Gamma per interi molto elevati.
 
+Formula: $\delta(x)= \gamma(l)*bin(x)$
+
+![[Pasted image 20260417112559.png]]
 ### Variable Byte Code
 
 Un approccio differente è quello del **Variable Byte (VB) code**, che privilegia la velocità di esecuzione e la semplicità di implementazione allineando le codeword ai byte anziché ai singoli bit. In questo sistema, ogni byte è diviso in due parti: $7$ bit sono dedicati alla rappresentazione dei dati dell'intero $x$, mentre l'ultimo bit (chiamato bit di controllo o di continuazione) segnala se la sequenza continua nel byte successivo o se il numero termina lì. Se l'intero richiede più di $7$ bit, viene distribuito su più byte; il bit di controllo sarà impostato a $1$ per tutti i byte tranne l'ultimo, che avrà lo $0$ come terminatore. Sebbene questo possa comportare un leggero spreco di spazio rispetto a codifiche bit-aligned, la velocità di accesso ai dati è notevolmente superiore.
+![[Pasted image 20260417113242.png]]
 
 ### Compressione di Liste e Limite Inferiore Combinatorio
 
@@ -97,6 +110,7 @@ Quando passiamo dalla codifica di singoli interi a quella di intere liste strett
 
 Esiste un limite teorico alla compressione di queste liste, noto come **Limite Inferiore Combinatorio**. Poiché esistono $\binom{U}{n}$ modi diversi di scegliere $n$ interi distinti in un universo di dimensione $U$, il numero minimo di bit necessari per rappresentare una lista qualsiasi è dato da $\lceil \log_2 \binom{U}{n} \rceil$. Utilizzando l'approssimazione di Stirling, questo valore è circa $n \log_2(U/n) + 1.44n$ bit.
 
+![[Pasted image 20260417113328.png]]
 ### Regolarità e Distribuzione dei Gap
 
 L'efficienza reale di un compressore dipende da quanto riesce a superare il limite inferiore sfruttando le regolarità dei dati. Una sequenza che presenta valori molto raggruppati (**clustered**) è molto più comprimibile di una sequenza con distribuzione casuale, anche se hanno la stessa lunghezza $n$ e lo stesso universo $U$.
@@ -140,7 +154,8 @@ Ad esempio, se il selettore è impostato su `0000`, significa che la word conter
 
 ### Patched Frame of Reference (PFor)
 
-Quando si analizzano blocchi di gap, la presenza di un singolo valore numerico anomalo può vanificare la compressione. Se in un blocco di numeri piccoli si presenta un valore come 8247, la larghezza binaria di tutti i numeri nel blocco dovrà essere forzata a $\lceil \log_2 8247 \rceil = 14$ bit, sprecando memoria per interi che normalmente ne richiederebbero solo uno. La tecnica **Patched Frame of Reference (PFor)** aggira l'ostacolo definendo un valore di base $b$ e un parametro $k > 0$ calcolati in modo tale che la stragrande maggioranza degli interi (ad esempio il 90%) ricada comodamente nel range $[b, b+2^k-1)$. Ogni intero appartenente a questo intervallo viene codificato semplicemente sottraendo la base, registrando il delta $x-b$ in esattamente $k$ bit, un metodo noto come PForDelta. Tutti i valori eccezionali che superano la soglia ($x \ge b+2^k-1$) ricevono una codeword speciale di eccezione pari a $2^k-1$ e vengono spostati e codificati all'interno di una lista separata.
+Quando si analizzano blocchi di gap, la presenza di un singolo valore numerico anomalo può vanificare la compressione. Se in un blocco di numeri piccoli si presenta un valore come 8247, la larghezza binaria di tutti i numeri nel blocco dovrà essere forzata a $\lceil \log_2 8247 \rceil = 14$ bit, sprecando memoria per interi che normalmente ne richiederebbero solo uno. 
+La tecnica **Patched Frame of Reference (PFor)** aggira l'ostacolo definendo un valore di base $b$ e un parametro $k > 0$ calcolati in modo tale che la stragrande maggioranza degli interi (ad esempio il 90%) ricada comodamente nel range $[b, b+2^k-1)$. Ogni intero appartenente a questo intervallo viene codificato semplicemente sottraendo la base, registrando il delta $x-b$ in esattamente $k$ bit, un metodo noto come PForDelta. Tutti i valori eccezionali che superano la soglia ($x \ge b+2^k-1$) ricevono una codeword speciale di eccezione pari a $2^k-1$ e vengono spostati e codificati all'interno di una lista separata.
 
 ### Codifica Binaria Interpolativa (Binary Interpolative Coding)
 
@@ -148,7 +163,7 @@ Questa tecnica spicca per la sua abilità di dedurre dinamicamente i bit necessa
 
 Il processo viene quindi reiterato ricorsivamente per le due metà rimanenti della sequenza, aggiornando intelligentemente i limiti per restringere il campo: la porzione inferiore $L[1..m-1]$ riceverà i nuovi limiti $(l, L[m]-1)$, mentre quella superiore $L[m+1..n]$ userà $(L[m]+1, h)$. L'aspetto fondamentale che rende l'Interpolative Coding estremamente potente per sequenze ravvicinate ("clustered") è che, qualora la lunghezza di un intervallo di analisi $r$ risulti uguale alla differenza $h-l$, il sistema rileva un blocco ininterrotto di interi consecutivi, permettendo di omettere del tutto la scrittura di bit per la loro codifica.
 
-[INSERIRE IMMAGINE: Grafo ad albero rovesciato che mostra l'esempio di Binary Interpolative Coding sulla sequenza L=[3,4,7,13,14,15,21,25,36,38,54,62]. Mostra la divisione ricorsiva basata su n, m, l, h e i casi in fondo in cui non è necessaria alcuna codifica]
+![[Pasted image 20260417113615.png]]
 
 ### Interrogazioni Rapide: Rank e Select
 
@@ -156,17 +171,21 @@ Per esplorare istantaneamente le sequenze di dati compressi si ricorre a operato
 
 Da un punto di vista dell'ottimizzazione, il pregio di queste interrogazioni è il tempo di esecuzione istantaneo e costante pari a $O(1)$. A livello di archiviazione, queste strutture dati domandano un sovrapprezzo spaziale contenuto a $n + o(n)$ bit per il Rank e a $cn + o(n)$ bit per il Select. Per mantenere tempi di query così reattivi, il sistema fa affidamento su array ausiliari (indicati come $B'$ e $B''$) popolati con un quantitativo di metadati pari a $O(n/\log n)$. In questi indici, i valori pre-calcolati sono fissati a scatti di $\log n$ bit, tracciando delle scorciatoie matematiche che scongiurano la scansione lineare e accelerano le operazioni.
 
-[INSERIRE IMMAGINE: Schema concettuale delle interrogazioni Rank e Select. Alla base troviamo l'array B in bit, sovrastato da blocchi di memoria B' e B'' che immagazzinano contatori di scarto intervallati ogni log n salti, evidenziando il tempo O(1)]
+![[Pasted image 20260417113707.png]]
+![[Pasted image 20260417113742.png]]
+![[Pasted image 20260417113753.png]]
 
 ### La Rappresentazione Elias-Fano
 
-La struttura **Elias-Fano** rappresenta un'evoluzione architetturale volta a gestire una sequenza $S$ composta da $n$ interi positivi, crescenti e strettamente limitati fino a un tetto massimo definito $U$ (dove, come specificato, $U = (\max n \in S) + 1$). Questa rappresentazione vanta performance teoriche di massimo livello: lo spazio totale occupato in bit si assesta sull'equazione $n \log(U/n) + 2n$. Anche i tempi di ispezione brillano: l'esecuzione della query strutturale $Access(i)$ costa un tempo elementare $O(1)$, mentre la ricerca avanzata $NextGEQ(x)$ impiega appena un tempo algoritmico $O(\log(U/n))$.
+La struttura **Elias-Fano** rappresenta un'evoluzione architetturale volta a gestire una sequenza $S$ composta da $n$ interi positivi, crescenti e strettamente limitati fino a un tetto massimo definito $U$ (dove, come specificato, $U = (\max n \in S) + 1$). Questa rappresentazione vanta performance teoriche di massimo livello: lo spazio totale occupato in bit si assesta sull'equazione $n \log(U/n) + 2n$. 
+
+Anche i tempi di ispezione brillano: l'esecuzione della query strutturale $Access(i)$ costa un tempo elementare $O(1)$, mentre la ricerca avanzata $NextGEQ(x)$ impiega appena un tempo algoritmico $O(\log(U/n))$.
 
 La creazione dell'indice prevede di scrivere in verticale (dal basso verso l'alto) la rappresentazione binaria totale. L'innovazione si fonda nel partizionare i $\log U$ bit che descrivono i dati in due tronconi netti. La parte più bassa è formata dai bit espliciti di lunghezza $\log(U/n)$, mentre la porzione alta conta esattamente $\log n$ bit. I bit superiori si interfacciano con un sistema di raggruppamento (bucket), fissando il numero di bucket massimi possibili alla formula $2^{\log n} = n$.
 
 Per rendere fruibile l'indice viene prodotto l'array di navigazione strutturale $H$. Questo traccia quanti elementi gravitano in un bucket scrivendo semplicemente le loro cardinalità mediante il codice unario. Praticamente l'array pone un bit `1` come contatore per ogni singolo intero che vive nella sequenza originaria $S$, e al massimo un bit `0` per tracciare la conclusione di ciascun bucket in memoria. Da questo intreccio deriva l'incremento di soli $2n$ bit. Nel momento in cui giungono richieste $NextGEQ$, il sistema è capace di navigare a colpo sicuro nei raggruppamenti decomprimendo non tutto il database, ma unicamente la ristretta manciata di interi confinati in quello specifico bucket.
 
-[INSERIRE IMMAGINE: Costruzione della struttura Elias-Fano con l'esempio S=[2, 3, 5, 7, 11, 13, 14, 24]. Si distinguono due aree principali sovrapposte che tagliano verticalmente il codice binario in segmenti log(n) per i bucket in verde, log(U/n) trasparente, e la serie finale dell'array unario H in basso]
+![[Pasted image 20260417113938.png]]
 
 ---
 

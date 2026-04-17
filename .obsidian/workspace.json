@@ -78,7 +78,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 300,
+    "collapsed": true
   },
   "right": {
     "id": "91903aee59939870",
@@ -194,21 +195,21 @@
       "obsidian-git:Open Git source control": false
     }
   },
-  "active": "b41c9f85cecde6bb",
+  "active": "ac3bd5d18cb0750a",
   "lastOpenFiles": [
-    "IR/allegati/Pasted image 20260415122603.png",
-    "IR/allegati/Pasted image 20260415122526.png",
-    "IR/allegati/Pasted image 20260415122454.png",
-    "IR/allegati/Pasted image 20260415122302.png",
-    "IR/allegati/Pasted image 20260415122206.png",
+    "IR/allegati/Pasted image 20260417113938.png",
+    "IR/allegati/Pasted image 20260417113753.png",
+    "IR/allegati/Pasted image 20260417113742.png",
+    "IR/allegati/Pasted image 20260417113707.png",
+    "IR/allegati/Pasted image 20260417113615.png",
+    "IR/allegati/Pasted image 20260417113328.png",
+    "IR/allegati/Pasted image 20260417113242.png",
+    "IR/allegati/Pasted image 20260417112559.png",
+    "IR/allegati/Pasted image 20260417112345.png",
+    "IR/allegati/Pasted image 20260417112246.png",
+    "IR/allegati/Pasted image 20260417112120.png",
     "IR/Slide4.md",
     "IR/Slide5.md",
-    "IR/allegati/Pasted image 20260415121817.png",
-    "IR/allegati/Pasted image 20260415121754.png",
-    "IR/allegati/Pasted image 20260415121706.png",
-    "IR/allegati/Pasted image 20260415121651.png",
-    "IR/allegati/Pasted image 20260415121605.png",
-    "IR/allegati/Pasted image 20260415121458.png",
     "IR/Slide3.md",
     "IR/Slide2.md",
     "IR/Slide1.md",
