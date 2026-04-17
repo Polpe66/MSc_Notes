@@ -10,29 +10,33 @@ Nella fase offline, si parte da una **Document Collection** che viene sottoposta
 
 Nella fase online, ovvero quando il sistema è in esecuzione per l'utente, il flusso inizia con l'inserimento di una **Query**. Questa viene inizialmente trasformata in una **Expanded Query** per migliorarne l'efficacia. Il passo successivo è il **Query Processing**, che interroga direttamente l'**Inverted Index** precedentemente costruito. Una volta individuati i documenti candidati, il sistema esegue una **Feature Lookup and Computation**, attingendo le caratteristiche necessarie dal **Document Features Repository**. Infine, queste feature vengono passate alla **Learned Ranking Function** (guidata dal modello addestrato) per calcolare il punteggio finale e produrre la pagina dei risultati mostrata a schermo.
 
-[INSERIRE IMMAGINE: Diagramma di flusso dell'architettura di un motore di ricerca. Mostra le componenti "Online" (Query -> Expanded Query -> Query Processing -> Feature Lookup -> Learned Ranking Function) e "Offline" (Inverted Index, Document Features Repository, Learning-to-rank Model addestrato sui Training Data).]
+![[Pasted image 20260417114521.png]]
 
 ### Decomposizione delle Funzioni di Ranking e Modelli Bag-of-Words
 
-Per comprendere a fondo come operano le **General ranking functions**, possiamo utilizzare una decomposizione basata sulle rappresentazioni (una schematizzazione adattata dal lavoro di Guo et al., pubblicato nel 2020 su *Information Processing & Management*). In questo modello teorico, abbiamo una **Query q** che viene elaborata in una **Query representation** $\phi$, e un **Document d** che genera una **Document representation** $\psi$. Inoltre, l'interazione diretta tra i due produce una **Query-document representation $\eta$**. Queste tre rappresentazioni alimentano insieme una **Aggregation function f**, la quale calcola e restituisce il **Relevance score $s(q,d)$**.
+Per comprendere a fondo come operano le **General ranking functions**, possiamo utilizzare una decomposizione basata sulle rappresentazioni.
+In questo modello teorico, abbiamo una **Query q** che viene elaborata in una **Query representation** $\phi$, e un **Document d** che genera una **Document representation** $\psi$. Inoltre, l'interazione diretta tra i due produce una **Query-document representation $\eta$**. Queste tre rappresentazioni alimentano insieme una **Aggregation function f**, la quale calcola e restituisce il **Relevance score $s(q,d)$**.
 
 Questo schema si semplifica drasticamente quando si analizzano le **BOW ranking functions**, ovvero le classiche funzioni basate sui modelli Bag-of-Words. In queste architetture, query e documenti sono rappresentati unicamente come vettori sparsi (**sparse BOW vectors**), trattati essenzialmente come multi-insiemi di parole. Di conseguenza, **non ci sono query-document features**; la componente relativa alla **Query-document representation $\eta$** viene completamente scartata dal processo di calcolo. Esempi classici di questa specifica funzione di aggregazione $f$ sono il **cosine** similarity e l'algoritmo **BM25**. Queste rappresentazioni sparse sono fisicamente archiviate negli inverted index, che costituiscono la vera e propria spina dorsale (**backbone**) dei motori di ricerca web commerciali (**commercial Web search engine**).
 
-[INSERIRE IMMAGINE: Diagramma della decomposizione basata sulle rappresentazioni per i modelli BOW. La casella centrale "Query-document representation" è sbarrata da una grande X rossa, a indicare l'assenza di feature combinate.]
+![[Pasted image 20260417114644.png]]
 
 ### Estensione del Framework e Integrazione di Nuovi Segnali
 
 Constatato che finora query e documenti sono stati considerati come meri multi-insiemi di parole, è naturale chiedersi se esistano altre istanze applicabili al nostro framework generale per superare questo limite. La risposta è affermativa: esiste infatti una grande quantità di altri potenziali segnali da poter utilizzare.
 
-Quali potrebbero essere queste idee aggiuntive?. Lato documento, si può sfruttare il fatto che esso può avere dei campi strutturati, può essere suddiviso in zone o, ancora, può essere arricchito con dati testuali esterni, come ad esempio il testo dei link in ingresso (**anchors**). Si rivelano preziose anche informazioni aggiuntive di natura strutturale e comportamentale, come i link in entrata (**In-Links**), i link in uscita (**Out-Links**), il valore di **PageRank**, il numero di **clicks** ricevuti o i **social links**. Lato query, invece, si possono integrare segnali quali il numero di termini inseriti (**# terms**), la popolarità della ricerca nei log del motore (**popularity in query logs**) o le informazioni estratte dal profilo dell'utente (**user profile info**). Reintroducendo tutti questi dati nel modello, il framework torna a sfruttare a pieno tutte le sue componenti, reintegrando attivamente la **Query-document representation $\eta$** nel calcolo della funzione di aggregazione.
+Quali potrebbero essere queste idee aggiuntive?
+Lato documento, si può sfruttare il fatto che esso può avere dei campi strutturati, può essere suddiviso in zone o, ancora, può essere arricchito con dati testuali esterni, come ad esempio il testo dei link in ingresso (**anchors**). Si rivelano preziose anche informazioni aggiuntive di natura strutturale e comportamentale, come i link in entrata (**In-Links**), i link in uscita (**Out-Links**), il valore di **PageRank**, il numero di **clicks** ricevuti o i **social links**. Lato query, invece, si possono integrare segnali quali il numero di termini inseriti (**# terms**), la popolarità della ricerca nei log del motore (**popularity in query logs**) o le informazioni estratte dal profilo dell'utente (**user profile info**). Reintroducendo tutti questi dati nel modello, il framework torna a sfruttare a pieno tutte le sue componenti, reintegrando attivamente la **Query-document representation $\eta$** nel calcolo della funzione di aggregazione.
 
-[INSERIRE IMMAGINE: Diagramma del General framework completo. Nessuna componente è sbarrata; Query representation, Document representation e Query-document representation contribuiscono congiuntamente all'Aggregation function f.]
+![[Pasted image 20260417114750.png]]
 
 ### L'Apprendimento della Funzione tramite Machine Learning
 
-L'inclusione di tutti questi segnali porta a un interrogativo critico: **possiamo imparare f?**. Imparare questa complessa funzione di aggregazione significa affidarsi alle tecniche di **Machine Learning**.
+L'inclusione di tutti questi segnali porta a un interrogativo critico: **possiamo imparare f?**
+Imparare questa complessa funzione di aggregazione significa affidarsi alle tecniche di **Machine Learning**.
 
-Secondo la definizione di Wikipedia, il Machine learning è un campo dell'informatica che utilizza tecniche statistiche per consentire ai sistemi informatici di apprendere. Questo si traduce nella capacità di migliorare progressivamente le prestazioni su un compito specifico attingendo dai dati, senza dover programmare il sistema in modo esplicito. Questo approccio metodologico implica necessariamente due precondizioni fondamentali: la disponibilità e l'esistenza di dati (**Existence of data**), e la definizione formale di un problema di ottimizzazione (**Optimization problem**), che richiede di stabilire un task specifico e una metrica di misurazione (**task? measure?**).
+Secondo la definizione di Wikipedia, il Machine learning è un campo dell'informatica che utilizza tecniche statistiche per consentire ai sistemi informatici di apprendere. Questo si traduce nella capacità di migliorare progressivamente le prestazioni su un compito specifico attingendo dai dati, senza dover programmare il sistema in modo esplicito. Questo approccio metodologico implica necessariamente due precondizioni fondamentali: la disponibilità e l'esistenza di dati 
+(**Existence of data**), e la definizione formale di un problema di ottimizzazione (**Optimization problem**), che richiede di stabilire un task specifico e una metrica di misurazione (**task? measure?**).
 
 A seconda che al sistema venga fornito o meno un "segnale" di apprendimento o un "feedback", le attività di Machine Learning si dividono in due ampie categorie:
 
@@ -56,9 +60,9 @@ A seconda che al sistema venga fornito o meno un "segnale" di apprendimento o un
 
 Un tipico task di apprendimento supervisionato mappa gli input verso gli output desiderati. Un esempio classico, seppur distante dai motori di ricerca, è fornire al sistema immagini per fargli imparare a distinguere tra un cane e un gatto.
 
-[INSERIRE IMMAGINE: Esempio visivo di classificazione supervisionata con le foto di un gatto e di un cucciolo di cane associati alle rispettive etichette testuali "cat" e "dog"].
+All'interno di un dataset, ogni singolo elemento da analizzare viene definito **osservazione** o **istanza** (**observation** o **instance**). Queste istanze sono descritte e caratterizzate da un insieme di **feature**, ovvero proprietà specifiche misurabili. 
 
-All'interno di un dataset, ogni singolo elemento da analizzare viene definito **osservazione** o **istanza** (**observation** o **instance**). Queste istanze sono descritte e caratterizzate da un insieme di **feature**, ovvero proprietà specifiche misurabili. Nell'apprendimento supervisionato, ogni istanza è accompagnata da un'etichetta, definita **label**, che rappresenta la "soluzione" o il valore da prevedere. Sfruttando lo spazio di queste feature e la supervisione delle label, i problemi di Machine Learning si dividono in due rami principali: i task di **Regression** (regressione), dove l'obiettivo è prevedere una specifica quantità numerica reale, e i task di **Classification** (classificazione), in cui si assegnano etichette discrete a istanze di dati la cui categoria non è conosciuta in anticipo.
+Nell'apprendimento supervisionato, ogni istanza è accompagnata da un'etichetta, definita **label**, che rappresenta la "soluzione" o il valore da prevedere. Sfruttando lo spazio di queste feature e la supervisione delle label, i problemi di Machine Learning si dividono in due rami principali: i task di **Regression** (regressione), dove l'obiettivo è prevedere una specifica quantità numerica reale, e i task di **Classification** (classificazione), in cui si assegnano etichette discrete a istanze di dati la cui categoria non è conosciuta in anticipo.
 
 Tutte queste attività di apprendimento (sia supervisionate che non) si strutturano in due fasi temporali e logiche ben distinte. La prima è la **training phase** (fase di addestramento), che avviene tipicamente offline. In questo momento il modello viene costruito, o per usare il gergo tecnico, si esegue il "fit a model on a given set of data". La seconda è la **testing phase** (fase di test), generalmente eseguita online direttamente per l'utente , in cui il modello precedentemente addestrato viene impiegato per effettuare le previsioni vere e proprie, ovvero "to predict class/label of a given set of data".
 
@@ -66,21 +70,22 @@ Tutte queste attività di apprendimento (sia supervisionate che non) si struttur
 
 Per comprendere intuitivamente questo processo di calibrazione degli algoritmi, possiamo fare un parallelismo con i classici giochi di enigmistica per bambini.
 
-[RIFERIMENTO VISIVO DEL PROFESSORE: La copertina di un libro di puzzle e giochi logici per bambini, affiancata da piccoli labirinti e bilance, usata come metafora per spiegare l'allenamento della mente rispetto a quello di una rete neurale].
 
 Per ogni puzzle, abbiamo a disposizione il problema stesso e, in fondo al libro, la sua soluzione corretta. Di fronte alla sfida, il nostro cervello produce inizialmente un tentativo di soluzione e, in un secondo momento, lo confrontiamo con quella esatta. Osservando le differenze tra la nostra risposta e quella reale, riusciamo a sintonizzare il nostro pensiero e ad apprendere la logica corretta. Ripetendo questa operazione ("ad libitum") per molti giochi, diventiamo sempre più bravi.
 
 Traducendo questa semplice metafora nel framework formale del Machine Learning, un'istanza di addestramento derivante dall'ambiente (**Environment**) viene presentata al sistema di apprendimento (**Learning system**). L'algoritmo produce quindi in uscita una previsione sul momento, ovvero un **Actual output**. Contemporaneamente, una sorta di "Teacher" (Insegnante) fornisce l'output desiderato. La differenza matematica tra la previsione appena calcolata e l'etichetta reale dell'istanza viene elaborata da un sommatore (**Adder**) e prende il nome di **loss** o **error** (errore). L'importanza vitale della loss sta nel fatto che viene "restituita" all'algoritmo e utilizzata per aggiornare i parametri interni del suo modello. Questo meccanismo ciclico viene ripetuto per tutte le istanze che compongono il dataset di addestramento. Quando l'intero dataset viene processato, diciamo di aver completato un ciclo; e poiché il processo intero viene ripetuto svariate volte per ottimizzare l'algoritmo, misuriamo questo scorrere del tempo in **learning iterations** o **training epochs** (epoche di addestramento).
 
-[INSERIRE IMMAGINE: Diagramma a blocchi del framework generale di apprendimento supervisionato. Mostra il flusso partendo dall'Environment verso il Learning system (che produce l'Actual output) e verso il Teacher (che fornisce il Desired output). Entrambi gli output convergono in un nodo Adder circolare, che calcola l'Error (Loss) e lo ritrasmette retroattivamente al Learning system per guidarne l'aggiornamento].
+![[Pasted image 20260417115910.png]]
 
 ### Il Task del Learning to Rank (LtR)
 
 Cosa succede quando applichiamo queste dinamiche al recupero delle informazioni? L'obiettivo del **Learning to Rank (LtR)** è produrre e ottimizzare le liste ordinate dei risultati. Per fare ciò, la fase di addestramento necessita di un training set di grandi dimensioni, composto da interrogazioni degli utenti affiancate all'ordinamento ideale dei documenti rispetto ad esse.
 
-[RIFERIMENTO VISIVO DEL PROFESSORE: Un esempio di query "qa" seguita da una sequenza di coppie documento-rilevanza, come d4 valutato ya0, e d2 valutato ya1, per mostrare come i dati in ingresso indichino al sistema quali documenti posizionare in cima].
+![[Pasted image 20260417115945.png]]
 
 Invece di processare singole parole, il sistema gestisce l'interazione tra la query "q" e un documento "d" rappresentandola come uno specifico **Feature vector** (ad esempio denotato come $<q,d> = <f0, f1...>$), che funge da input per il modello. Questo modello matematico funziona operativamente come una scatola nera (**Black Box**) che riceve query e vari documenti, restituendo infine una singola **ranked list**. Per guidare questa "scatola nera" durante il training, si usano etichette numeriche "y" che indicano il grado di pertinenza reale; un esempio tipico sfrutta una scala a cinque valori, che va da 0 (documento del tutto irrilevante) fino a 4 (documento perfettamente rilevante). È cruciale evidenziare una dinamica controintuitiva ma fondamentale del Learning to Rank: benché i modelli di intelligenza artificiale addestrati agiscano tecnicamente come regressori che assegnano un punteggio numerico a ogni singolo candidato, lo scopo ultimo e misurabile del sistema resta esclusivamente quello di indovinare l'ordinamento generale della lista, non di replicare precisamente quelle specifiche etichette numeriche.
+
+![[Pasted image 20260417120029.png]]
 
 ### Le Feature nei Sistemi di Ranking Moderni
 
@@ -88,7 +93,7 @@ Il successo di un sistema basato su feature vector dipende da quanti e quali seg
 
 Tutte queste innumerevoli feature vengono categorizzate concettualmente dal framework in tre grandi macrogruppi. Il primo è formato dalle **query-only features**: si tratta di caratteristiche che assumono lo stesso valore per ogni documento analizzato in quella sessione, essendo legate esclusivamente alla tipologia o alla lunghezza della query dell'utente. Il secondo raggruppamento è quello delle **query-independent features**, che raggruppa le caratteristiche intrinseche al documento il cui valore rimane costante a prescindere da chi o cosa stia cercando in quel momento. Ne sono classici esempi il PageRank della pagina e la lunghezza del suo URL. Infine, le più dinamiche sono le **query-dependent features**: sono quelle metriche generate in tempo reale dall'interazione tra la richiesta e il documento, come il punteggio BM25, la frequenza della query in grassetto e le statistiche dei click passati per quella specifica correlazione query-URL.
 
-[INSERIRE IMMAGINE: Ripresa del diagramma ad albero relativo alla scomposizione di una funzione di ranking, ora arricchito con le definizioni dei tre tipi di feature. Evidenzia che la Query representation riceve le query-only features, la Document representation assimila le query-independent features e la Query-document representation centrale elabora le query-dependent features].
+![[Pasted image 20260417120217.png]]
 
 ### Glossario e Concetti Chiave
 
@@ -110,7 +115,7 @@ Dal punto di vista operativo, l'integrazione di un modello di Learning to Rank a
 
 Questa architettura a due stadi è dettata da stringenti vincoli infrastrutturali. Le considerazioni sul budget, inteso in termini di tempo e risorse di calcolo, sono estremamente importanti per i motori di ricerca commerciali (**commercial WSEs**). Il costo computazionale dei modelli LtR, essendo sensibilmente più elevato rispetto a funzioni semplici, deve essere rigorosamente inserito nel budget di tempo disponibile per elaborare il flusso di query in entrata (**incoming stream**). Questo fattore impatta direttamente sul **throughput** (la capacità di smaltimento) del sistema, motivo per cui la comunità accademica dell'Information Retrieval ha iniziato solo di recente a studiare ottimizzazioni a basso livello per ridurre i tempi di esecuzione di specifiche famiglie di ranker LtR.
 
-[INSERIRE IMMAGINE: Diagramma della "Learning to Rank pipeline". Mostra il First step con il Base Ranker e il Document Index che estraggono "N docs", seguiti dal Second step con il Top Ranker, le Features e l'algoritmo LtR che raffinano la lista in "K docs" per la pagina dei risultati]
+![[Pasted image 20260417120317.png]]
 
 ### Un Esempio Pratico: Classificazione per l'Ad Hoc IR
 
@@ -130,9 +135,10 @@ La tabella seguente illustra un esempio di questo set di dati:
 | $\Phi_6$    | 2094      | device driver          | 0.03               | 2                    | relevant     |
 | $\Phi_7$    | 3191      | device driver          | 0.027              | 5                    | nonrelevant  |
 
-Per discriminare i documenti, possiamo definire una **funzione di punteggio lineare** espressa dall'equazione $Score(d,q) = a\alpha + b\omega$. Trattandosi di un problema simile alla text classification, il classificatore lineare dovrà determinare in autonomia i pesi dei parametri $a$ e $b$, oltre a una soglia limite **$\Theta$**. Il sistema deciderà quindi di etichettare la coppia come rilevante se il risultato dell'equazione supera tale soglia ($Score(d,q) > \Theta$) o come irrilevante in caso contrario ($Score(d,q) \le \Theta$).
+Per discriminare i documenti, possiamo definire una **funzione di punteggio lineare** espressa dall'equazione $Score(d,q) = a\alpha + b\omega$. Trattandosi di un problema simile alla text classification, il classificatore lineare dovrà determinare in autonomia i pesi dei parametri $a$ e $b$, oltre a una soglia limite **$\Theta$**. Il sistema deciderà quindi di etichettare la coppia come rilevante se il risultato dell'equazione supera tale soglia ($Score(d,q) > \Theta$) o come irrilevante in caso contrario 
+($Score(d,q) \le \Theta$).
 
-[INSERIRE IMMAGINE: Grafico cartesiano che mostra una "Decision surface" definita dalla retta dell'equazione lineare. L'asse X rappresenta la "Term proximity", l'asse Y il "cosine score". I punti "R" (rilevanti) e "N" (non rilevanti) sono separati linearmente da questa soglia decisionale]
+![[Pasted image 20260417120600.png]]
 
 ### Le Tre Famiglie di Approcci al Learning to Rank
 
@@ -158,11 +164,12 @@ $$F_t = \frac{f_{t,d}}{1 - b + b \cdot l_d / L}$$
 
 In questo frangente, $f_{t,d}$ è la frequenza grezza del termine $t$ nel documento $d$, mentre al denominatore avviene un processo di **Pivoted length normalization** (normalizzazione imperniata sulla lunghezza). Qui, $l_d$ indica la lunghezza specifica del documento in esame e $L$ denota la lunghezza media dei documenti nell'intera collezione (**average doc length**, o **avdl**). Il parametro **$b$** ha lo scopo di stabilire quanta importanza dare alla penalizzazione della lunghezza. Questo perché i testi più lunghi contengono statisticamente più parole e avrebbero naturalmente un vantaggio ingiusto nel combinarsi con qualsiasi query. Se impostiamo $b > 0$, il denominatore agisce penalizzando i documenti che superano la media ($> avdl$) e premiando quelli più concisi ($< avdl$).
 
-[INSERIRE IMMAGINE: Grafico cartesiano della "Pivoted length normalization" per il calcolo del BM25. Sull'asse X c'è la lunghezza del documento $|d|$, sull'asse Y il valore del normalizzatore. Mostra tre rette per b=0, b>0 e b>>0, illustrando come i valori inferiori alla lunghezza media (avdl) ricevano un "Reward", e quelli superiori una "Penalization"]
+[![[Pasted image 20260417121437.png]]
+
 
 Per mitigare ulteriormente l'impatto esplosivo di frequenze molto elevate per un singolo termine, il risultato $F_t$ non viene utilizzato puro, ma processato da una **funzione di saturazione** $\tau(F_t) = \frac{F_t}{k + F_t}$. Questa dinamica introduce una non-linearità fondamentale nel contributo della frequenza. Qualora non si volesse passare per un processo di ottimizzazione personalizzato, il BM25 prevede due iperparametri di default solitamente molto stabili: $k$ impostato tra 1.2 e 2, e $b = 0.75$.
 
-[INSERIRE IMMAGINE: Grafico delle curve della funzione di saturazione per il BM25. Le linee curve mostrano come il valore y aumenti rapidamente per bassi valori della frequenza x, ma tenda ad appiattirsi (saturare) asintoticamente man mano che x diventa molto grande, dimostrando l'effetto dell'iperparametro k]
+![[Pasted image 20260417121516.png]]
 
 ### L'Estensione ai Campi Strutturati: Il Modello BM25F
 
@@ -174,7 +181,8 @@ $$BM25F(d,q) = \sum_{t} IDF_t \tau(F_t)$$
 
 $$F_t = \sum_{s} \frac{w_s \cdot f_{t,s}}{1 - b_s + b_s \cdot l_s / L_s}$$
 
-In questa variante, le frequenze vengono calcolate a livello del singolo segmento semantico. La variabile $f_{t,s}$ rappresenta la frequenza del termine nel campo specifico $s$, valutata in relazione alla lunghezza di tale campo $l_s$ e alla media globale delle lunghezze per la stessa tipologia di campo $L_s$. Rispetto al modello di base, viene introdotto un nuovo moltiplicatore cruciale: **$w_s$**, che assegna un peso variabile e definisce l'importanza relativa del campo $s$ rispetto agli altri. Questa estensione genera un'esplosione dei parametri da configurare. Mentre il BM25 classico possedeva solo 2 parametri liberi ($b$ e $k$), il BM25F richiede di gestire ben **$2S + 1$** parametri (dove $S$ indica il numero totale dei campi analizzati), ossia i pesi $w_s$, le penalizzazioni $b_s$ per ogni campo, più la costante di saturazione globale $k$. Questa mole di variabili rende impossibile una calibrazione manuale e costringe ad affidarsi proprio alle metodologie del **Learning to Rank** per individuare la combinazione ottimale.
+In questa variante, le frequenze vengono calcolate a livello del singolo segmento semantico. La variabile $f_{t,s}$ rappresenta la frequenza del termine nel campo specifico $s$, valutata in relazione alla lunghezza di tale campo $l_s$ e alla media globale delle lunghezze per la stessa tipologia di campo
+$L_s$. Rispetto al modello di base, viene introdotto un nuovo moltiplicatore cruciale: **$w_s$**, che assegna un peso variabile e definisce l'importanza relativa del campo $s$ rispetto agli altri. Questa estensione genera un'esplosione dei parametri da configurare. Mentre il BM25 classico possedeva solo 2 parametri liberi ($b$ e $k$), il BM25F richiede di gestire ben **$2S + 1$** parametri (dove $S$ indica il numero totale dei campi analizzati), ossia i pesi $w_s$, le penalizzazioni $b_s$ per ogni campo, più la costante di saturazione globale $k$. Questa mole di variabili rende impossibile una calibrazione manuale e costringe ad affidarsi proprio alle metodologie del **Learning to Rank** per individuare la combinazione ottimale.
 
 ### Sfide nell'Ottimizzazione Listwise e Tecniche Adottate
 
@@ -184,7 +192,7 @@ $$DCG_p = \sum_{i=1}^{p} \frac{2^{rel_i} - 1}{log(1+i)}$$
 
 Questa equazione scala l'importanza del documento in modo esponenziale rispetto alla sua etichetta di partenza: un documento con relevance 0 porta un incremento di 0 punti, mentre uno con punteggio massimo (4) inietta ben 17 punti di scarto ($2^4 - 1$).
 
-Posti l'obiettivo di apprendere un modello $h$ (ovvero un modello BM25F governato dal set di parametri $\Theta$) per ordinare un set di documenti ($D = \{d_1, d_2, ...\}$), incontriamo un grave ostacolo teorico per gli approcci Listwise puri. metriche come l'NDCG dipendono intrinsecamente dalle posizioni finali occupate dai risultati e non dai semplici punteggi numerici calcolati. In altre parole, l'operazione di ordinamento globale (**sort $\{h(d_1), h(d_2), ...\}$**) gioca un ruolo centrale. Purtroppo, l'operazione di ordinamento (sort) non costituisce una funzione continua né derivabile. Non potendo calcolare un gradiente dell'ordinamento, l'ottimizzazione tramite Gradient Descent diviene strutturalmente inapplicabile in modo diretto (un problema ampiamente analizzato da M. Taylor e H. Zaragoza nell'articolo *Optimisation Methods for Ranking Functions with Multiple Parameters*, CIKM-06).
+Posti l'obiettivo di apprendere un modello $h$ (ovvero un modello BM25F governato dal set di parametri $\Theta$) per ordinare un set di documenti ($D = \{d_1, d_2, ...\}$), incontriamo un grave ostacolo teorico per gli approcci Listwise puri. metriche come l'NDCG dipendono intrinsecamente dalle posizioni finali occupate dai risultati e non dai semplici punteggi numerici calcolati. In altre parole, l'operazione di ordinamento globale (**sort $\{h(d_1), h(d_2), ...\}$**) gioca un ruolo centrale. Purtroppo, l'operazione di ordinamento (sort) non costituisce una funzione continua né derivabile. Non potendo calcolare un gradiente dell'ordinamento, l'ottimizzazione tramite Gradient Descent diviene strutturalmente inapplicabile in modo diretto.
 
 Per bypassare questa difficoltà, l'Information Retrieval adotta vie traverse:
 
@@ -192,7 +200,7 @@ Per bypassare questa difficoltà, l'Information Retrieval adotta vie traverse:
 
 - Si fa ricorso a soluzioni molto più efficaci, come il **Lambda-MART**, un algoritmo strutturato attorno a una funzione di costo modificata che riesce ad approssimare pseudo-gradienti utili per ottimizzare le metriche NDGC in via indiretta. Il MART, conosciuto anche come **Gradient Boosted Regression Tree (GBRT)**, utilizza insiemi di alberi di regressione, e librerie specializzate come **LightGBM** permettono di sfruttare oggi agilmente questa tecnologia.
 
-[INSERIRE IMMAGINE: Grafico che illustra l'andamento discorde tra l'ottimizzazione Pairwise e il guadagno metrico reale durante le epoche di training. Viene confrontata la curva blu, che mostra la costante diminuzione della loss Pairwise (fino a convergere), e la curva rossa estremamente instabile dell'NDCG@5, che non subisce reali benefici dopo una prima fase iniziale, a dimostrazione dello scollamento tra le due misure].
+![[Pasted image 20260417121826.png]]
 
 Questa problematica evidenzia infatti il più grande difetto dell'approccio Pairwise puro applicato all'Information Retrieval. Questo metodo si impegna a minimizzare il volume totale delle coppie classificate scorrettamente nel sistema. Tuttavia, nel mondo reale e per ottimizzare correttamente l'NDCG, l'ordinamento accurato dei primi risultati mostrati (**top result pairs**) assume un'importanza enormemente superiore rispetto alla perfezione dell'ordine nelle posizioni periferiche o basse dell'elenco. Per tale motivo, quantificare genericamente le violazioni delle coppie di documenti senza pesarle posizionalmente non produrrà mai un indicatore affidabile per massimizzare le valutazioni NDCG destinate agli utenti.
 

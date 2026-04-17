@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "IR/Slide5.md",
+                "file": "IR/Slide7.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Slide5"
+              "title": "Slide7"
             }
           }
         ]
@@ -197,19 +197,20 @@
   },
   "active": "ac3bd5d18cb0750a",
   "lastOpenFiles": [
-    "IR/allegati/Pasted image 20260417113938.png",
-    "IR/allegati/Pasted image 20260417113753.png",
-    "IR/allegati/Pasted image 20260417113742.png",
-    "IR/allegati/Pasted image 20260417113707.png",
-    "IR/allegati/Pasted image 20260417113615.png",
-    "IR/allegati/Pasted image 20260417113328.png",
-    "IR/allegati/Pasted image 20260417113242.png",
-    "IR/allegati/Pasted image 20260417112559.png",
-    "IR/allegati/Pasted image 20260417112345.png",
-    "IR/allegati/Pasted image 20260417112246.png",
-    "IR/allegati/Pasted image 20260417112120.png",
-    "IR/Slide4.md",
+    "IR/allegati/Pasted image 20260417123012.png",
+    "IR/allegati/Pasted image 20260417122739.png",
+    "IR/allegati/Pasted image 20260417122652.png",
+    "IR/allegati/Pasted image 20260417122504.png",
+    "IR/Slide6.md",
+    "IR/allegati/Pasted image 20260417121826.png",
+    "IR/allegati/Pasted image 20260417121516.png",
+    "IR/allegati/Pasted image 20260417121437.png",
+    "IR/allegati/Pasted image 20260417120600.png",
+    "IR/allegati/Pasted image 20260417120521.png",
+    "IR/allegati/Pasted image 20260417120317.png",
+    "IR/allegati/Pasted image 20260417120217.png",
     "IR/Slide5.md",
+    "IR/Slide4.md",
     "IR/Slide3.md",
     "IR/Slide2.md",
     "IR/Slide1.md",
@@ -219,7 +220,6 @@
     "IR/Slide9.md",
     "IR/Slide8.md",
     "IR/Slide7.md",
-    "IR/Slide6.md",
     "IR/allegati"
   ]
 }
