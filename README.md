@@ -11,8 +11,8 @@ The notes are divided into folders based on the specific course or exam.
 ## 🛠️ Tools & Workflow
 
 * Written entirely in **Markdown**.
-* Primary editor: [MarkText](https://marktext.app/).
-* Managed and synchronized via **Linux terminal**.
+* Primary editor: Obsidian.
+* Managed and synchronized via Obsidian git plugin.
 
 ---
 
