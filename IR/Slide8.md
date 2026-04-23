@@ -6,19 +6,23 @@ Questa sezione esplora il delicato equilibrio tra l'accuratezza dei risultati di
 
 Il processo base per calcolare la rilevanza di un documento per una data query si articola in una serie di passaggi sequenziali. Inizialmente, un estrattore di feature elabora i token del documento (di lunghezza $m$) e della query (di lunghezza $n$) per produrre un vettore di feature estratte manualmente. Questo vettore, che modella la rilevanza della specifica coppia query-documento, viene poi fornito in input al modello di ranking (Ranking Model) insieme alle relative etichette (labels), il quale infine emette un punteggio di rilevanza finale $s_{q,d}$. Attualmente, l'approccio *state-of-the-art* si basa su foreste composte da migliaia di alberi di regressione: sebbene garantiscano un'alta qualità dei risultati, il loro impiego risulta computazionalmente molto oneroso.
 
-[INSERIRE IMMAGINE: Diagramma di flusso dell'Online Computation, che illustra il percorso dal documento e la query attraverso il Feature Extractor e il Ranking Model fino allo score di rilevanza.]
+![[Pasted image 20260423150433.png]]
 
 ### Efficienza nel Machine Learning per l'IR
 
 I modelli basati sul *machine learning* pensati per un ranking orientato alla precisione si fondano prevalentemente su ensemble di alberi, noti come **Tree forests** (ad esempio GBRT, LambdaMART, Random Forest e Oblivious Trees). Questi sistemi operano unendo l'output di un insieme di *weak learners*, dove ciascun albero contribuisce al punteggio totale con un punteggio parziale. La formula che definisce il punteggio complessivo $s(d)$ di un documento è data dalla somma dei punteggi parziali di ogni albero $T_i$: $s(d)=\sum_{i=1}^{n}s_{i}$. Il costo computazionale deriva dal fatto che, al momento dello *scoring*, ogni albero deve essere elaborato in modo del tutto indipendente. Per dare un'idea dell'onere, supponendo di avere 1.000 documenti per singola query e un modello con 3.000 alberi con una profondità di 10 nodi, il sistema deve eseguire 30.000 test per ogni documento ($3.000 \times 10$), traducendosi nell'impressionante cifra di 30 milioni di test per singola query.
+![[Pasted image 20260423151126.png]]
 
 ### Anatomia di un Albero di Decisione
 
 Strutturalmente, questi modelli ad albero valutano la rilevanza attraverso due componenti principali. I nodi interni rappresentano delle condizioni booleane specifiche sulle feature $f$, applicando una certa soglia (threshold). Le foglie (nodi terminali), invece, contengono la vera e propria predizione del valore di rilevanza. Come anticipato, il punteggio finale di rilevanza assegnato a una coppia query-documento equivale alla somma di tutte le singole predizioni generate dagli alberi del modello. I pesi e i tagli di questi nodi (come si evince dall'addestramento, ad esempio su feature come $F_1, F_2, F_3, F_4, F_6, F_8$) determinano come gli alberi vengono adattati (fitted) ai dati.
+![[Pasted image 20260423151402.png]]
 
 ### Architettura a Cascata dei Motori di Ricerca
 
 Per gestire l'immensa mole di dati, i moderni motori di ricerca suddividono il lavoro in due stadi principali mediante un'architettura a cascata. Il **Primo Stadio (Stage 1)** si basa su un approccio orientato alla *recall* (Recall-oriented Ranking). Ricevendo la query dell'utente, un Base Ranker accede a un Inverted Index per recuperare rapidamente un ampio set iniziale di $N$ documenti pertinenti (Matching Docs). Successivamente, il **Secondo Stadio (Stage 2)** prende in carico i top-N documenti e applica un approccio più sofisticato orientato alla *precisione* (Precision-oriented Ranking). In questa fase interviene il Top Ranker, che sfruttando funzionalità avanzate (Features) e algoritmi di Learning to Rank (LtR), seleziona un sottoinsieme estremamente ristretto di $K$ documenti finali, costituendo la pagina dei risultati mostrata all'utente.
+![[Pasted image 20260423151427.png]]
+![[Pasted image 20260423151506.png]]
 
 ### Linee di Ricerca sul Trade-off Efficienza/Efficacia
 
@@ -32,7 +36,7 @@ $$EET(Q)=\frac{(1+\beta^{2})\cdot(\gamma(Q)(\sigma(Q))}{(\beta^{2}\cdot)\gamma(Q
 
 Il lavoro si concentra su funzioni di ranking lineari basate su feature e introduce nuove metriche di valutazione dell'efficienza con andamenti a decadimento costante, a gradino (step function), e a decadimento esponenziale. Addestrando i modelli con questa tecnica, gli autori hanno dimostrato una drastica e significativa diminuzione dei tempi medi di esecuzione delle query.
 
-[INSERIRE IMMAGINE: Grafico del modello di Wang et al., che mostra le curve della metrica di Efficienza rispetto al Tempo di Ranking (ms) per le diverse funzioni di decadimento.]
+![[Pasted image 20260423151710.png]]
 
 ### Cost-sensitive Tree Induction per GBRT (AL13)
 
@@ -68,7 +72,7 @@ Sulla scia dell'ottimizzazione degli ensemble, nel 2018 Lucchese, Nardini, Orlan
 
 Il sistema riutilizza le medesime strategie di potatura del precedente metodo CLEAVER, ma l'impatto architetturale è radicalmente diverso. Gli esperimenti, condotti su dataset pubblici di riferimento come MSN30K-1 e Istella-S, hanno evidenziato che eseguire il pruning e il re-weighting *durante* l'apprendimento risulta nettamente più efficace rispetto all'applicazione di un singolo step di ottimizzazione *post-learning*. Di conseguenza, X-CLEAVER permette di addestrare foreste ancora più compatte garantendo al contempo nessuna perdita in termini di prestazioni globali.
 
-[INSERIRE IMMAGINE: Grafico delle performance di testing di X-CLEAVER, che confronta la metrica NDCG@10 rispetto alle dimensioni dell'ensemble tra il modello X-CLEAVER e un modello $\lambda$-MART tradizionale.]
+![[Pasted image 20260423152019.png]]
 
 ### DART: Il Dropout incontra i Regression Trees
 
@@ -76,15 +80,14 @@ Nel 2015, i ricercatori Rashmi e Gilad-Bachrach hanno introdotto l'algoritmo **D
 
 DART differisce dal tradizionale MART per due meccanismi fondamentali. In primo luogo, durante la fase in cui il modello sta imparando a costruire un nuovo albero, un sottoinsieme casuale dell'intera struttura viene "silenziato" (*muted*). In secondo luogo, viene applicato uno step di normalizzazione nel momento in cui il nuovo albero viene aggiunto al sistema, così da prevenire il fenomeno dell'**overshooting**. Valutato sul dataset MSLR-Web10K focalizzandosi sulla metrica NDCG@3, DART ha fatto registrare notevoli miglioramenti prestazionali rispetto allo standard LambdaMART.
 
-[INSERIRE IMMAGINE: Grafico della predizione media rispetto all'indice dell'albero, che illustra visivamente il comportamento di DART rispetto a un modello MART standard con e senza shrinkage.]
-
+![[Pasted image 20260423152056.png]]
 ### X-DART: Fusione tra Dropout e Pruning
 
 Partendo dal successo di DART, Lucchese, Nardini, Orlando, Perego e Trani hanno proposto **X-DART** alla conferenza ACM SIGIR del 2017. Questa evoluzione fonde elegantemente le logiche del dropout con le pratiche di pruning durante l'addestramento. In maniera analoga a DART, anche in X-DART determinati alberi vengono temporaneamente silenziati, ma la peculiarità risiede nel fatto che questo set di nodi viene successivamente rimosso del tutto dopo la fase di *fitting*, qualora ritenuto non necessario.
 
 Questo approccio comporta due importanti vantaggi architetturali. Il primo è che X-DART genera modelli ancora più compatti di DART stesso. Il secondo vantaggio, derivante direttamente dalle ridotte dimensioni del modello, consiste in una minore propensione all'overfitting, il che sblocca il potenziale per raggiungere livelli di efficacia nettamente superiori. Per gestire il processo di rimozione, X-DART prevede tre diverse strategie di potatura: **Ratio**, **Fixed** e **Adaptive**. Le sperimentazioni sui dataset MSLR-Web30K e Istella-S hanno confermato che la variante X-DART (adaptive) fornisce miglioramenti statisticamente significativi rispetto al DART originale, riuscendo a impiegare fino al 20% di alberi in meno. Ancora più impressionante è la capacità del modello di eguagliare la medesima efficacia di DART utilizzando un monte alberi decurtato fino al 40%.
 
-[INSERIRE IMMAGINE: Grafico che analizza l'andamento dell'NDCG@10 al variare della dimensione dell'ensemble, mettendo a confronto l'efficacia dei modelli DART rispetto alle diverse strategie di pruning (Ratio, Fixed, Adaptive) del modello X-DART.]
+![[Pasted image 20260423152121.png]]
 
 ### Calcolo Approssimato dello Score e Cascate Efficienti
 
@@ -92,7 +95,7 @@ Oltre all'ottimizzazione degli alberi stessi, un filone di ricerca parallelo mir
 
 La logica dietro a questa strategia del "cortocircuito" in fase di calcolo (*short-circuiting*) si basa su considerazioni empiriche relative all'Information Retrieval. Per ogni singola query sottomessa, esiste solitamente solo una manciata di documenti realmente molto rilevanti, annegati in una moltitudine di risultati totalmente irrilevanti; inoltre, è noto che la stragrande maggioranza degli utenti non si spinge mai oltre la consultazione delle primissime pagine dei risultati. Di conseguenza, è superfluo processare tutti i documenti attraverso l'intero modello matematico. Per risolvere questa inefficienza, Cambazoglu et al. hanno introdotto ensemble additivi capaci di abortire il calcolo preventivamente. Questa interruzione intelligente è governata da quattro specifiche tecniche di soglia: soglie basate sul punteggio (**Score**), sulla capacità (**Capacity**), sul rango (**Rank**) o sulla prossimità (**Proximity**). Implementate all'interno di una piattaforma di machine learning all'avanguardia dotata di alberi GBRT , le ottimizzazioni tramite *early exit* hanno permesso al sistema di operare fino a quattro volte più velocemente rispetto all'algoritmo standard, il tutto senza riscontrare alcuna perdita qualitativa nei risultati proposti all'utente finale.
 
-[INSERIRE IMMAGINE: Diagramma concettuale dell'Early Exit che illustra il percorso di un documento $d_i$ attraverso l'esecuzione sequenziale delle funzioni dell'ensemble ($f_1, f_2, f_3, f_4$), mostrando la possibilità di un'uscita anticipata dal calcolo contrassegnata come $e_2$.]
+![[Pasted image 20260423152144.png]]
 
 ---
 
