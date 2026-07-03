@@ -12,14 +12,14 @@
             "id": "ac3bd5d18cb0750a",
             "type": "leaf",
             "state": {
-              "type": "markdown",
+              "type": "split-diff-view",
               "state": {
-                "file": "IR/Slide3.md",
-                "mode": "source",
-                "source": false
+                "aFile": "Esami/Esame A.md",
+                "bFile": "Esami/Esame A.md",
+                "aRef": ""
               },
-              "icon": "lucide-file",
-              "title": "Slide3"
+              "icon": "diff",
+              "title": "Diff: Esame A  (Working Tree)"
             }
           }
         ]
@@ -98,8 +98,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300,
-    "collapsed": true
+    "width": 300
   },
   "right": {
     "id": "91903aee59939870",
@@ -217,8 +216,13 @@
   },
   "active": "ac3bd5d18cb0750a",
   "lastOpenFiles": [
-    "Slide Lezioni/03-07-WeightingModels.pdf",
     "IR/Slide3.md",
+    "Esami/Esame E.md",
+    "Esami/Esame D.md",
+    "Esami/Esame C.md",
+    "Esami/Esame B.md",
+    "Esami/Esame A.md",
+    "Slide Lezioni/03-07-WeightingModels.pdf",
     "Slide Lezioni/02-NaturalLanguage.pdf",
     "IR/Slide2.md",
     "Slide Lezioni/01-Evaluation.pdf",
@@ -253,10 +257,6 @@
     "IR/Slide11.md",
     "IR/Notes_IR.md",
     "IR/Slide9.md",
-    "IR/Slide8.md",
-    "IR/Slide7.md",
-    "IR/Slide6.md",
-    "IR/Slide5.md",
     "P2P/slideRicci/8_260328_094427.pdf",
     "IR/allegati"
   ]
