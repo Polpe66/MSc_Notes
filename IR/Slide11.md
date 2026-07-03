@@ -1,348 +1,445 @@
-# Slide 11: L'Utilizzo di BERT nell'Information Retrieval
+# Efficient k-Approximated Nearest Neighbors Retrieval (kANN)
 
-**Introduzione** Il panorama dell'elaborazione del linguaggio naturale ha subito una trasformazione radicale a partire dal 2018, segnando l'inizio di una nuova era dominata dai modelli basati su architettura Transformer. In questa sezione esploreremo come i modelli linguistici avanzati, e in particolare BERT, siano stati adattati e integrati con successo nei sistemi di Information Retrieval (IR) per migliorare significativamente la pertinenza e la qualità delle ricerche, analizzando i metodi di calcolo offline e le strategie di interazione online.
 
-### Il Punto di Svolta nel Natural Language Processing
+### Similarity Search ed Embeddings
 
-L'anno 2018 ha rappresentato un vero e proprio punto di svolta per il Natural Language Processing (NLP). In questo periodo sono emersi modelli innovativi che hanno ridefinito lo stato dell'arte, come ad esempio **ULM-FiT**, **ELMo**, **OpenAI GPT** (definito anche come OpenAI Transformer) e, soprattutto, **BERT**. Al centro di questa rivoluzione vi è l'architettura denominata **The Transformer**, la quale ha fornito la base strutturale per questi potenti strumenti di comprensione linguistica.
+Il processo di ricerca per similarità inizia con la trasformazione di dati di natura eterogenea in un formato computazionalmente gestibile. File testuali, tracce audio, immagini e file video vengono processati in ingresso attraverso i vari strati di una rete neurale. Questa architettura estrae le caratteristiche fondamentali dei dati e le mappa all'interno di uno spazio vettoriale, dove ogni elemento multimediale viene infine rappresentato visivamente come uno specifico punto azzurro su un piano cartesiano bidimensionale.
 
-### L'Architettura e i Fondamenti di BERT
+![[Pasted image 20260430104938.png]]
 
-L'acronimo **BERT** sta per *Bidirectional Encoder Representations from Transformers*. Si tratta di un modello linguistico che, fondamentalmente, definisce una distribuzione di probabilità su sequenze di parole. La sua caratteristica principale risiede nella capacità di catturare il contesto di una parola analizzando l'ambiente circostante in modo bidirezionale, guardando sia a sinistra che a destra del termine stesso. Questo modello apprende tramite due compiti principali: il **Masked Language Model** (MLM) e la **Next Sentence Prediction**.
+### k-Nearest Neighbour Search
 
-Per gestire correttamente gli input, BERT impiega alcuni token speciali. Il token **[CLS]** è un token di classificazione utilizzato come operatore di pooling per ottenere un singolo vettore rappresentativo per l'intera sequenza testuale. Il token **[MASK]** viene impiegato specificamente nel task di Masked Language Model per indicare al modello la parola nascosta da predire. Infine, il token **[SEP]** viene usato per separare distintamente le diverse frasi fornite in input. A livello strutturale, l'input finale che il modello elabora (ad esempio per una stringa come "I love search engines") è dato dalla somma di tre componenti: i *Token Embeddings*, i *Segment Embeddings* e i *Position Embeddings*. Questo approccio innovativo è stato descritto in dettaglio nello studio di Delvin et al. al convegno NAACL-HLT del 2019.
+Nel momento in cui il sistema riceve una **Query**, indicata negli schemi con un punto interrogativo, questa subisce il medesimo processo di trasformazione. La query viene fatta passare attraverso la rete neurale e proiettata nello spazio vettoriale preesistente, assumendo la forma di un punto rosso. A questo punto, il sistema esegue una ricerca dei vicini più prossimi (k-Nearest Neighbour), individuando un sottoinsieme di punti azzurri racchiusi all'interno di un'area di prossimità delimitata da un cerchio tratteggiato verde attorno alla query. 
+![[Pasted image 20260430105140.png]]
 
-[INSERIRE IMMAGINE: Diagramma dell'architettura dell'input di BERT che mostra la somma di Token Embeddings, Segment Embeddings e Position Embeddings per la frase "I love search engines"]
+### Approximated KNN e Forward Index
 
-### Il Meccanismo di Self-Attention e Multi-Headed Attention
+Per gestire la ricerca vettoriale a livello strutturale, il sistema si appoggia a un **Forward Index**. Questo indice archivia le coordinate esatte di ogni documento elaborato, permettendo la successiva fase di interrogazione approssimata ("Approximated KNN") per garantire una maggiore efficienza computazionale. Di seguito è riportato il contenuto del Forward Index estratto per i documenti $d_{1}$, $d_{2}$ e $d_{n}$:
 
-L'unità fondamentale su cui si basa l'architettura Transformer è il meccanismo di **Self-Attention**. Questa tecnica permette al modello di imparare autonomamente quali porzioni o frammenti di una sequenza testuale siano i più importanti per portare a termine un determinato compito.
+|**Documento**|**Coordinate Vettoriali**|
+|---|---|
+|$d_{1}$|1.23 3.12 2.21 9.10 2.22 0.65 3.22|
+|$d_{2}$|2.22 2.44 5.21 8.22 6.66 7.21 4.26|
+|$d_{n}$|4.22 2.55 8.35 6.28 2.99 1.00 6.43|
 
-[RIFERIMENTO VISIVO DEL PROFESSORE: L'immagine mostra come la parola "it" concentri la sua attenzione sul termine "animal" nella frase "The animal didn't cross the street because it was too tired"]
+Quando viene sottomessa una nuova query caratterizzata dallo specifico vettore 7.99 2.65 8.23 9.23 9.23 3.11 3.23, il sistema deve confrontarla con le righe del Forward Index. L'obiettivo matematico della ricerca, supponendo di voler cercare i primi 10 risultati (come indicato dall'esempio $k=10$), è trovare l'argomento minimo rispetto all'insieme dei documenti $D$, espresso dalla formula $argmin_{v\in D} s(q,v)$.
 
-Come documentato nello studio "Attention Is All You Need" di Vaswani et al. (NeurIPS 2017), questo meccanismo calcola il contributo di ogni elemento contestuale per definire la semantica della parola analizzata. Per catturare sfumature diverse e relazioni contestuali multiple all'interno della stessa frase, il meccanismo di base viene replicato attraverso la **Multi-headed Attention**. In questo modo, diverse "teste" di attenzione (attention heads) operano in parallelo, permettendo al modello di mappare connessioni complesse tra le parole in modo simultaneo.
-
-[INSERIRE IMMAGINE: Grafico della Multi-headed Attention che mostra molteplici linee colorate (le diverse attention heads) che collegano la parola "it" a varie altre parole della frase per catturare contesti differenti]
-
-### L'Addestramento di BERT: Dal Pre-training al Fine-Tuning
-
-Il processo di formazione di BERT si articola in due step fondamentali per adattarlo a compiti specifici (ad-hoc tasks). Il primo passo consiste nell'**Apprendimento Semi-supervisionato**. In questa fase, il modello viene addestrato su enormi quantità di testo grezzo, come ad esempio i dataset di Wikipedia o ampie raccolte di libri (Books). L'obiettivo principale qui è predirre la parola mascherata (language modeling), permettendo al modello di cogliere e interiorizzare i pattern profondi del linguaggio. Al termine di questo processo, BERT possiede solide capacità di elaborazione linguistica in grado di potenziare i modelli che verranno costruiti successivamente.
-
-Il secondo passo è l'**Apprendimento Supervisionato**, ovvero il fine-tuning. In questa fase si prende il modello pre-addestrato e lo si allena su un compito specifico utilizzando un dataset etichettato. Ad esempio, per creare un classificatore di e-mail, il modello viene addestrato con messaggi classificati al 75% come Spam e al 25% come Non Spam. Fornendo in input messaggi come "Buy these pills" o "Win cash prizes", il modello impara a classificarli come Spam, mentre riconosce testi come "Dear Mr. Atreides, please find attached..." come messaggi legittimi (Not Spam).
-
-### Approcci Neurali per l'Information Retrieval
-
-L'applicazione delle reti neurali all'Information Retrieval si divide principalmente in due categorie metodologiche, a seconda di come query e documenti interagiscono.
-
-La prima categoria comprende i **Metodi basati sulla Rappresentazione** (Representation-based methods). In questo paradigma, ogni documento e la query vengono rappresentati separatamente come **vettori densi** (dense vectors). Questo avviene attraverso una sequenza di calcoli neurali che, per ragioni di efficienza, vengono eseguiti offline per tutti i documenti (Offline Computation) e online solamente per la query in ingresso. Il modello utilizza un'architettura di tipo Siamese, dove le reti neurali usate per elaborare documento e query sono identiche. Il punteggio di rilevanza finale ($S_{q,d}$) si ottiene calcolando la similarità tra i due vettori rappresentativi, tipicamente attraverso un semplice prodotto scalare (dot product).
-
-[INSERIRE IMMAGINE: Diagramma del flusso dei Metodi basati sulla Rappresentazione (Offline Computation), che mostra Documento e Query processati separatamente da Reti Neurali Siamesi per generare vettori densi prima del prodotto scalare]
-
-La seconda categoria racchiude i **Metodi basati sull'Interazione** (Interaction-based methods). A differenza del metodo precedente, qui l'interazione avviene a un livello più granulare. La similarità a livello di singola parola o di termine tra una query e un documento viene esplorata direttamente online costruendo una **matrice di interazione**, basata sui vettori di embedding iniziali. Successivamente, questa complessa matrice viene data in pasto a un'ulteriore sequenza di calcolo neurale (una Neural Network addizionale) che si occupa di generare il punteggio di rilevanza finale per stilare il ranking.
-
-[INSERIRE IMMAGINE: Diagramma del flusso dei Metodi basati sull'Interazione (Online Computation), illustrando la Query e il Documento che formano una Matrice di Interazione, passata poi a una Rete Neurale per il punteggio]
-
-### L'Implementazione Pratica: MonoBERT
-
-Un'implementazione diretta dei metodi di interazione è rappresentata da **MonoBERT**, basato sulla versione vanilla del modello. L'idea alla base di questo approccio è che la query e il documento vengano codificati congiuntamente in modo incrociato (jointly cross-encoded). Il formato di input fornito alla rete è strutturato unendo i testi: `[CLS] query [SEP] documento [SEP]`. In questo contesto congiunto, l'embedding contestuale associato al token iniziale `[CLS]` funge da punteggio di rilevanza aggregato per l'intera coppia query-documento, punteggio che costituisce l'output finale del modello e che viene utilizzato in maniera diretta per il ranking, come formalizzato dagli studi di Nogueira et al. nel 2019.
+La funzione di similarità $s(q,v)$ può basarsi su metriche differenti. 
+Il primo approccio calcola la **Euclidean Distance** (Distanza Euclidea), definita dall'equazione $s(q,v)=\sqrt{\sum_{i=1}^{d}(q_{i}-v_{i})^{2}}$. In alternativa, è possibile utilizzare il **Dot Product** (Prodotto Scalare), la cui formula è $s(q,v)=\sum_{i=1}^{d}(q_{i}\cdot v_{i})$. Di conseguenza, se si utilizza il prodotto scalare per determinare la similarità, la regola decisionale cambia: non si cerca più di minimizzare il risultato, bensì di massimizzarlo, passando quindi all'operazione di argmax.
 
 ---
 
-### Glossario dei Concetti Chiave
+### Glossario / Concetti Chiave
 
-- **Bidirectional Context (Contesto Bidirezionale)**: La capacità del modello BERT di analizzare una parola considerando simultaneamente le parole che la precedono e quelle che la seguono, ottenendo una comprensione semantica profonda.
-
-- **Self-Attention**: Il meccanismo interno ai Transformer che permette al modello di pesare dinamicamente l'importanza di ogni singola parola rispetto alle altre all'interno della medesima sequenza.
-
-- **Architettura Siamese**: Una tipologia di rete neurale utilizzata nei metodi di rappresentazione, in cui due modelli identici e con gli stessi pesi processano separatamente la query e il documento per generarne i vettori densi.
-
-- **Metodi Basati sull'Interazione**: Approccio in cui la relazione testuale viene valutata creando una matrice di interazione precoce tra i termini della query e quelli del documento, processata successivamente da un modello neurale.
-
-- **MonoBERT**: Modello di ranking in cui query e documento vengono inseriti insieme nella rete in formato congiunto, sfruttando il token [CLS] per generare il punteggio di rilevanza della coppia.
-
+- **Similarity Search**: Processo che trasforma dati multimediali in vettori tramite reti neurali per valutarne la somiglianza geometrica all'interno di uno spazio vettoriale.
+    
+- **Forward Index**: Struttura dati fondamentale che memorizza i documenti ($d_{1} \dots d_{n}$) e le rispettive sequenze di coordinate numeriche per permetterne la successiva estrazione.
+    
+- **Euclidean Distance vs Dot Product**: Metriche per quantificare la similarità tra il vettore della query $q$ e i vettori dei documenti $v$; la prima richiede di trovare il valore minimo (argmin), la seconda il valore massimo (argmax).
 ---
+### Il Caso Monodimensionale (1D)
 
-## Metodologie Avanzate di Fine-Tuning e Rappresentazioni Dense nell'Information Retrieval
+Consideriamo il caso base in cui abbiamo $n$ punti disposti in uno spazio monodimensionale, ovvero dove la dimensionalità è $d=1$. Immaginiamo di avere un insieme specifico di punti, corrispondenti ai valori -5.4, -2.1, 0.5, 1.2, 2.2, 3.6, 4.5, 5.1 e 7.1. Il nostro obiettivo algoritmico in questo scenario è trovare il risultato **Top-1**, ovvero l'elemento più pertinente rispetto a una determinata ricerca.
 
-**Introduzione**
+Se decidiamo di valutare la vicinanza calcolando il Top-1 con la **Distanza Euclidea**, la funzione di similarità tra una query $q$ e un punto $v$ dello spazio è definita rigorosamente dalla formula $s(q,v)=\sqrt{(q-v)^{2}}=|q-v|$. Ipotizzando che la nostra query sia il valore 2.4, il processo per individuare il punto più vicino risulta essere estremamente efficiente. Essendo i punti disposti su una singola linea, è sufficiente eseguire una ricerca binaria (binary search) per trovare il predecessore della query. Questa specifica operazione richiede un tempo logaritmico pari a $\Theta(\log n)$ e occupa uno spazio lineare in memoria. Di conseguenza, il risultato Top-1 esatto sarà sempre, ed esclusivamente, o il predecessore o il successore della query stessa all'interno della sequenza ordinata.
 
-L'evoluzione dell'Information Retrieval ha subito una forte accelerazione grazie all'introduzione di modelli linguistici di grandi dimensioni. In questo capitolo, esploreremo in dettaglio come il modello BERT venga affinato per compiti specifici di ranking, per poi addentrarci nei metodi basati sulla rappresentazione densa dei documenti. Analizzeremo le metriche di apprendimento, le architetture di rete neurale adottate e le strategie di selezione dei dati per ottimizzare i risultati di ricerca.
+In alternativa, possiamo definire la ricerca del Top-1 utilizzando il **prodotto scalare** (dot product), la cui funzione si esprime come $s(q,v)=q\cdot v$. In questo caso, determinare il risultato corretto diventa un'operazione banale (super easy): la soluzione corrisponde al valore massimo (Max) presente nell'insieme se la query ha segno positivo, oppure al valore minimo (Min) se la query ha segno negativo.
 
-### Il Fine-Tuning di MonoBERT per il Ranking
+### L'Estensione al Caso Bidimensionale (2D)
 
-Come precedentemente introdotto, il modello base di BERT, noto anche come Vanilla BERT, viene pre-addestrato nativamente su due compiti fondamentali: il Masked Language Model e la Next Sentence Prediction. Per adattare efficacemente questo modello di base a uno scenario specifico di ranking, è necessario ricorrere a un processo di fine-tuning. Nello specifico, l'approccio descritto da Nogueira et al. (pubblicato su arXiv nel 2019) impiega un modello di tipo Point-wise abbinato a un approccio di addestramento Pair-wise. Questo significa che il modello valuta la pertinenza di documenti positivi e negativi rispetto a una singola query, calcolando il relativo Positive Score e Negative Score. Per ottimizzare questi punteggi e addestrare la rete, viene utilizzata una funzione di perdita basata sull'entropia incrociata, ovvero la Cross-entropy loss. Matematicamente, la funzione di perdita di questo modello, denominata $L_{mono}$, è definita dalla seguente equazione matematica:
+Aumentando il livello di complessità, analizziamo la situazione in cui gestiamo $n$ punti all'interno di uno spazio bidimensionale, caratterizzato quindi da $d=2$. In questo contesto geometrico, la tecnica standard prevede il partizionamento dello spazio attraverso l'utilizzo del **Diagramma di Voronoi**.
 
-$$L_{mono}=-\sum_{j\in J_{pos}}log(s_{j})-\sum_{j\in J_{neg}}log(1-s_{j})$$
+![[Pasted image 20260430150750.png]]
 
-[INSERIRE IMMAGINE: Diagramma del processo di fine-tuning di MonoBERT. Raffigura una Query che viene processata insieme a un Positive Document e a un Negative Document all'interno del Vanilla BERT. Vengono generati rispettivamente un Positive Score ($s^{+}$) e un Negative Score ($s^{-}$), i quali confluiscono nel calcolo finale della Cross-entropy loss]
+In un Diagramma di Voronoi, il numero totale dei vertici e dei bordi (edges) si mantiene proporzionale al numero di punti, possedendo una complessità asintotica pari a $\Theta(n)$.
 
-### Le Straordinarie Performance di MonoBERT
+![[Pasted image 20260430150821.png]]
 
-I risultati ottenuti applicando il fine-tuning a BERT sono notevoli. È stato dimostrato che un modello linguistico di uso generale (general purpose), se adeguatamente affinato esclusivamente sul task specifico di interesse, è in grado di superare le soluzioni che in precedenza rappresentavano lo stato dell'arte (SOTA). Di fatto, le prestazioni di MonoBERT sono sbalorditive anche con una quantità di dati ridotta. Sono sufficienti appena 100.000 coppie di addestramento (training pairs), che rappresentano solamente lo 0,3% dei dati di training completi, per ottenere risultati superiori ai modelli precedenti. Questo set di addestramento ridotto è stato generato a partire da 10.000 query, per ognuna delle quali sono stati estratti 10 passaggi rilevanti utilizzando l'algoritmo classico BM25. Nonostante questa limitata base di partenza, BERT si dimostra fin da subito superiore alle soluzioni SOTA preesistenti.
+Per individuare il Top-1 in questo spazio, il sistema deve localizzare fisicamente la cella di Voronoi a cui appartiene la query in questione. Questo processo è un classico problema di **2D point location** (localizzazione di un punto in 2D), il quale può essere risolto mantenendo le stesse complessità asintotiche del caso monodimensionale: richiede infatti un tempo di $\Theta(\log n)$ e uno spazio lineare. Tuttavia, è fondamentale notare che, sebbene le complessità di tempo e spazio rimangano identiche a quelle del caso 1D, l'implementazione pratica non è più semplice e presenta sfide computazionali decisamente maggiori (more challenge).
 
-[RIFERIMENTO VISIVO DEL PROFESSORE: Il grafico a linee mostra l'andamento della metrica MRR@10 in funzione del numero di coppie di addestramento. Si nota chiaramente come la curva del modello BERT Large superi la linea tratteggiata orizzontale, che rappresenta il precedente modello SOTA "IR-NET", non appena raggiunge la soglia delle 100k coppie, per poi stabilizzarsi a valori ancora più alti con 1M e 10M di coppie]
+### La Maledizione della Dimensionalità
 
-Per contestualizzare questo balzo in avanti, la tabella seguente, tratta dallo studio di Nogueira et al. del 2019, riassume le performance di vari modelli valutati sui dataset MS MARCO (metrica MRR@10) e TREC-CAR (metrica MAP):
+I metodi esatti basati sul partizionamento spaziale incontrano un limite teorico critico non appena si tenta di applicarli a modelli con molte dimensioni. Questa problematica è universalmente nota come **La Maledizione della Dimensionalità** (The Curse of Dimensionality).
 
-| **Method**                         | **MS MARCO MRR@10 Dev** | **MS MARCO MRR@10 Eval** | **TREC-CAR MAP Test** |
-| ---------------------------------- | ----------------------- | ------------------------ | --------------------- |
-| BM25 (Lucene, no tuning)           | 16.7                    | 16.5                     | 12.3                  |
-| BM25 (Anserini, tuned)             |                         | 15.3                     |                       |
-| Co-PACRR* (MacAvaney et al., 2017) |                         | 14.8                     |                       |
-| KNRM (Xiong et al., 2017)          | 21.8                    | 19.8                     |                       |
-| Conv-KNRM (Dai et al., 2018)       | 29.0                    | 27.1                     |                       |
-| IRNet                              | 28.1                    | 27.8                     |                       |
-| BERT Base                          | 34.7                    |                          | 31.0                  |
-| BERT Large                         | 35.8                    | 36.5                     | 33.5                  |
 
-### Metodi Basati sulla Rappresentazione (Representation-based Methods)
+Il partizionamento tramite Diagrammi di Voronoi non scala bene all'aumentare della dimensionalità dello spazio. Matematicamente, la dimensione strutturale di un diagramma di Voronoi cresce in modo esplosivo fino a raggiungere una grandezza di $n^{\frac{d}{2}}$. Di conseguenza, l'operazione esatta di _point location_ in spazi multi-dimensionali finirebbe per richiedere un tempo di calcolo impraticabile pari a $\Theta((d+\log n)^{c})$, consumando al contempo uno spazio di memoria immenso pari a $\Theta(n^{d})$.
 
-Tra le metodologie neurali adottate per l'IR (studiate anche presso l'HPC Lab dell'ISTITUTO DI SCIENZA E TECNOLOGIE DELL'INFORMAZIONE "A. FAEDO" del Consiglio Nazionale delle Ricerche), spiccano i metodi basati sulla rappresentazione, noti come Representation-based methods. In questa architettura, ogni singolo documento $d$ (composto da $m$ token) e ogni query $q$ (composta da $n$ token) vengono elaborati e rappresentati in maniera del tutto separata sotto forma di vettori densi. Questo processo è reso possibile da un'architettura definita "Siamese", in cui due reti neurali identiche (Neural Network D e Neural Network Q) estraggono i vettori di feature. Un vantaggio cruciale di questa configurazione risiede nella divisione del carico computazionale: il calcolo per i documenti viene eseguito interamente offline (Offline Computation), mentre solamente l'elaborazione della query avviene in tempo reale (online). La rilevanza finale, indicata con il punteggio $S_{q,d}$, si ottiene misurando la similarità tra questi due vettori densi rappresentativi, tipicamente attraverso un semplice ma efficace prodotto scalare (dot product).
+Un'alternativa per evitare la costruzione dell'indice spaziale consiste nell'effettuare una **scansione lineare** (linear scan) di tutto il dataset per ogni query. Questo approccio manterrebbe uno spazio di memoria lineare, ma richiederebbe un tempo di elaborazione pari a $\Theta(nd)$.
 
-[INSERIRE IMMAGINE: Diagramma dell'Offline Computation per i Metodi Basati sulla Rappresentazione. Mostra due flussi paralleli: il Documento d processato da una Rete Neurale e la Query q processata da una Rete Neurale identica in architettura Siamese. Entrambi producono Vettori di Feature che vengono combinati tramite prodotto scalare per formare una Rappresentazione Densa e calcolare il punteggio di rilevanza finale]
-
-A partire dal 2019, i metodi di dense retrieval hanno riscosso un enorme successo in quanto possiedono numerose proprietà desiderabili. In primo luogo, offrono una rappresentazione testuale completamente apprendibile (fully-learnable representation) e si integrano in modo molto naturale con i processi di fine-tuning. Inoltre, garantiscono un'elevata efficienza operativa, in quanto supportano tecniche avanzate di ricerca rapida, come l'Approximate Nearest Neighbor (ANN) search. Infine, e forse la cosa più importante, questi metodi superano le tradizionali limitazioni del recupero di informazioni sparso (sparse retrieval), eliminando definitivamente il problema del vocabulary mismatch, ovvero la discrepanza di vocabolario tra i termini cercati e quelli presenti nel testo.
-
-### L'Evoluzione verso le Rappresentazioni Dense (Dense Representations)
-
-Alla base dei metodi descritti vi sono le Rappresentazioni Dense. Queste tecniche apprendono come proiettare i vettori di feature sparsi all'interno di uno spazio continuo a bassa dimensionalità, indicato come $R^{k}$, dove $k$ è strettamente minore della dimensione del vocabolario originale ($k\ll|F|$). Le fondamenta di questo campo sono state gettate da **Word2Vec**, introdotto da Mikolov et al. nel 2013. Questo modello propone due distinti approcci per apprendere le rappresentazioni vettoriali continue delle parole. Il primo, denominato **CBOW** (Continuous Bag of Words), cerca di predire una specifica parola partendo dal suo contesto circostante. Il secondo approccio, lo **Skip-gram**, opera al contrario: tenta di predire il contesto a partire da una singola parola fornita. Dal punto di vista architetturale, entrambi gli approcci sono implementati come reti neurali lineari a due strati, in cui le parole in ingresso e in uscita (originariamente nel formato sparso one-hot) vengono codificate e successivamente decodificate in una rappresentazione densa dotata di dimensioni inferiori. Un aspetto rivoluzionario di questa tecnica è che non richiede alcun tipo di dato etichettato manualmente dall'uomo (no need for human-labeled data). Inoltre, regolando la dimensione della finestra di contesto (context window size), è possibile variare l'obiettivo dell'apprendimento: finestre più ampie permettono di catturare maggiormente la semantica, mentre finestre più brevi si focalizzano sulla sintassi del linguaggio.
-
-A seguito di Word2Vec, sono emersi approcci via via più sofisticati. Tra questi, **FastText** estende il modello di base includendo anche gli n-grammi di una parola. Di conseguenza, l'embedding finale di un termine risulta essere la somma vettoriale del suo embedding specifico e dell'embedding di tutti i suoi n-grammi costituenti. Un'ulteriore evoluzione è rappresentata da **Doc2Vec** (Mikolov e Le, ICML 2014). Questa architettura estende Word2Vec aggiungendo nuove dimensioni di input specificatamente dedicate agli identificatori dei documenti (document IDs). In questo modo, gli ID dei documenti vengono proiettati nel medesimo spazio vettoriale delle parole, permettendo di derivare l'embedding di un intero documento a partire dai vettori delle parole che lo compongono. Tali embedding documentali si rivelano estremamente versatili e possono essere impiegati per una moltitudine di task computazionali. L'apice attuale di questa evoluzione, come descritto nello studio di Delvin et al. del 2019, è l'impiego di **BERT** per generare *contextualized embeddings*, in cui la rappresentazione vettoriale di una determinata parola non è statica, ma varia in modo dinamico a seconda dell'esatto contesto in cui si trova inserita all'interno della frase.
-
-### Configurazione dei Modelli e Scelta tra Rappresentazione Singola e Multipla
-
-Negli ultimi anni, la ricerca ha prodotto diversi contributi fondamentali sull'utilizzo delle rappresentazioni dense in ambito IR. Modelli di spicco includono **ColBERT** (Khattab e Zaharia, ACM SIGIR 2020), **ANCE** (Xiong et al., ICLR 2021), e la combinazione **STAR / ADORE** (Zhan et al., ACM SIGIR 2021). Una distinzione strutturale cruciale in questi sistemi è quella tra metodi a singola rappresentazione (Single-representation methods) e metodi a rappresentazione multipla (Multiple-representation methods). Nei modelli a rappresentazione singola, come ad esempio ANCE, viene generato un unico embedding vettoriale per codificare l'intero documento. Al contrario, nei metodi a rappresentazione multipla, come ColBERT, il documento viene espresso attraverso un insieme di embedding, assegnandone uno specifico per ogni singolo termine contenuto al suo interno.
-
-### Le Funzioni di Loss e la Strategia di Selezione dei Dati Negativi
-
-L'addestramento (learning) volto a creare queste rappresentazioni dense per l'Information Retrieval richiede campioni di dati strutturati solitamente in coppie o triple di input. Un campione tipico è formato da una query $q$, da un documento positivo pertinente $d^{+}$, e da un documento negativo $d^{-}$. Per ciascuno di questi elementi si ottiene un vettore di embedding. Successivamente, si impiega una specifica funzione metrica per misurare la similarità tra queste rappresentazioni nello spazio denso; le scelte più comuni ricadono sulla Similarità del Coseno (Cosine similarity) o sul Prodotto Scalare (Dot product). Lo scopo dell'addestramento è forzare il modello a produrre embedding geometricamente vicini per gli input tra loro simili e, specularmente, vettori distanti per gli input discordanti. Questo concetto viene formalizzato attraverso funzioni di loss che quantificano le distanze relative tra i diversi campioni analizzati.
-
-La misurazione avviene tramite logiche di Pairwise o Triplet loss. In uno scenario ideale, la distanza vettoriale tra la query $q$ e il documento pertinente $d^{+}$ dovrebbe tendere a 0, mentre la distanza tra la query $q$ e il documento non pertinente $d^{-}$ dovrebbe essere superiore a un certo margine prefissato $m$. La formulazione matematica della loss in questo caso è:
-
-$$L(q,d)=\begin{cases}d(q,d) & se\ d\in D^{+}\\ max(0,m-d(q,d)) & se\ d\in D^{-}\end{cases}$$
-
-Mentre l'individuazione dei documenti positivi risulta agevole in quanto derivano direttamente dai dati di supervisione forniti al modello, la selezione dei documenti negativi rappresenta una sfida molto più complessa (How to choose them?). Nel tempo sono state sviluppate diverse strategie di campionamento, quali la selezione in-batch (all'interno dello stesso lotto di dati), la selezione cross-batch e il campionamento casuale (random sampling).
-
-[INSERIRE IMMAGINE: Diagramma a cerchi concentrici che illustra la classificazione dei negativi nello spazio geometrico. Al centro vi è il punto rosso della query (q) e vicino ad essa il punto blu del documento positivo (d). Lo spazio circostante, delimitato dal raggio del "margin", contiene gli Hard Negatives (i negativi più difficili da distinguere perché molto vicini alla query). Esternamente vi sono gli anelli dei Semi-Hard Negatives e, ancora più lontani, gli Easy Negatives]
-
-La classificazione di questi documenti negativi riflette la loro distanza dalla query nello spazio vettoriale: gli **Easy Negatives** sono documenti facilmente riconoscibili come errati poiché estremamente discordanti; i **Semi-Hard Negatives** presentano una moderata similarità; infine, gli **Hard Negatives** sono documenti non rilevanti ma che possiedono un'altissima somiglianza con la query, rendendoli gli esempi negativi più importanti e complessi da gestire durante il training.
+Entrambe queste soluzioni (il partizionamento esatto e la scansione lineare) risultano del tutto insoddisfacenti per i sistemi reali. Nonostante ciò, queste metodologie rappresentano il meglio che possiamo ottenere se pretendiamo di elaborare soluzioni matematicamente esatte. Per superare questo stallo prestazionale, è inevitabile scendere a compromessi e ammettere un certo grado di approssimazione sui risultati restituiti dal sistema. Esistono diverse misure per valutare la qualità di questa approssimazione; in questo specifico contesto, l'approssimazione viene quantificata misurando il **recall rispetto al groundtruth** (ovvero la frazione di veri risultati rilevanti recuperati rispetto alla verità di base).
 
 ---
 
 ### Glossario e Concetti Chiave
 
-- **Cross-entropy loss e Pair-wise training**: Tecnica di apprendimento per il fine-tuning di BERT in cui la perdita viene calcolata confrontando i punteggi di documenti positivi e negativi rispetto a una singola query.
+- **Distanza Euclidea e Prodotto Scalare:** Due metriche fondamentali usate nel caso monodimensionale per determinare la similarità tra una query e un punto; la prima valuta la vicinanza geometrica, la seconda proietta i vettori massimizzando o minimizzando i valori in base al segno.
+    
+- **Diagramma di Voronoi:** Struttura geometrica utilizzata nel caso 2D per il partizionamento spaziale, che divide il piano in celle poligonali in cui ogni punto al loro interno è più vicino al generatore della cella rispetto a qualsiasi altro punto.
+    
+- **Point Location:** Il problema algoritmico che consiste nel determinare in quale regione (es. cella di Voronoi) cade un punto di query interrogato.
+    
+- **Maledizione della Dimensionalità:** Fenomeno per cui le strutture di indicizzazione esatte perdono drasticamente efficienza temporale e spaziale all'aumentare del numero di dimensioni $d$, rendendo impraticabile la ricerca algoritmica senza approssimazioni.
+- --
+### Strategie per l'Approximate k-NN Retrieval
 
-- **Architettura Siamese**: Struttura neurale alla base dei metodi orientati alla rappresentazione, che impiega due reti identiche e parallele per computare separatamente i vettori densi di documenti e query prima del loro confronto.
+Il problema del recupero approssimato dei k vicini più prossimi, noto come **Approximate k-NN Retrieval**, può essere affrontato attraverso diverse strategie fondamentali. La prima categoria comprende le **soluzioni basate su alberi** (Tree-based solutions), di cui un esempio di spicco è l'algoritmo ANNOY sviluppato da Spotify. Questo approccio si basa sul partizionamento iterativo dello spazio vettoriale: inizialmente si divide l'insieme dei dati in due metà (Split it in two halves), successivamente si divide nuovamente (Split again), e si procede in questo modo per diverse iterazioni successive (...more iterations later) al fine di creare una struttura ad albero navigabile. 
+![[Pasted image 20260430151104.png]]
 
-- **Dense Retrieval & Embeddings (Word2Vec, Doc2Vec, FastText)**: Approcci che abbandonano la rappresentazione sparsa a favore della proiezione del testo in vettori continui a bassa dimensionalità, capaci di catturare a fondo sintassi e semantica.
+Una seconda strategia si avvale delle **soluzioni basate sul clustering** (Clustering-based solutions), esemplificate dall'indice IVF presente nella libreria FAISS di Facebook. In questo metodo, lo spazio viene diviso in regioni di esplorazione, all'interno delle quali viene localizzato un vettore di query $x_q$. L'area di indagine viene controllata definendo il raggio di ricerca (search scope) tramite parametri specifici, come ad esempio il parametro _nprobe_, che nell'architettura mostrata è impostato a $8$. 
+![[Pasted image 20260430151135.png]]
 
-- **Single vs. Multiple Representation**: Distinzione architetturale fondamentale tra metodi che usano un solo vettore per sintetizzare l'intero documento (come ANCE) e metodi che assegnano un vettore per ogni singolo termine (come ColBERT).
 
-- **Triplet loss e Selezione dei Negativi**: Metrica di distanza usata per l'addestramento, che mira a distanziare i documenti non pertinenti (classificabili in Easy, Semi-Hard e Hard Negatives) oltre un certo margine, avvicinando contemporaneamente i documenti pertinenti alla query.
+Il terzo approccio riguarda le **soluzioni basate sull'hashing** (Hashing-based solutions), come ad esempio la tecnica LSH derivata da pubblicazioni teoriche. Questo metodo utilizza una funzione di hashing (hashing function) per mappare un insieme di chiavi (keys) all'interno di specifici contenitori, chiamati hash buckets, associandole infine ai rispettivi valori (values) in modo da raggruppare efficientemente gli elementi simili. 
+![[Pasted image 20260430151208.png]]
+
+Infine, la strategia attualmente adottata in modo quasi universale fa uso dei **Grafi di Prossimità** (Proximity Graphs), con l'algoritmo HNSW come rappresentante assoluto. Questo approccio sfrutta una struttura a grafo multilivello per navigare lo spazio vettoriale in modo estremamente rapido: la ricerca inizia da un punto di ingresso (entry point) nel livello più alto e meno denso, per poi scendere ai livelli inferiori guidati dal vettore di query (query vector), fino a raggiungere il vicino più prossimo (nearest neighbor) nel livello base dell'infrastruttura. ![[Pasted image 20260430151309.png]]
+
+### Simulazione In Vitro dell'Algoritmo HNSW
+
+Per comprendere le meccaniche dei grafi di prossimità, viene proposta una "Simulazione in Vitro dell'HNSW". Questo esperimento didattico, che per sua stessa natura porta con sé il rischio intrinseco di rivelarsi un "Epic Fail", si basa su ingredienti molto semplici: gli studenti stessi, che fungono da vettori in uno spazio bidimensionale (ovvero i nodi della rete), e una specifica query. L'obiettivo finale di questa simulazione è identificare il punto _top-1_ calcolando la **distanza Euclidea** (Eucleadian distance).
+
+La simulazione si sviluppa rigorosamente in tre fasi. Il **Step 1** consiste nella costruzione del **Grafo KNN** (o grafo di prossimità), stabilendo che per ogni nodo vi sia un numero di vicini pari a $p = 3$. Una volta stabilita la topologia iniziale, si passa al **Step 2**, in cui viene eseguito un algoritmo di ricerca di tipo _greedy_, partendo da un nodo scelto in modo del tutto casuale (random node). Durante l'esecuzione, il sistema si pone l'interrogativo fondamentale se la query sia stata trovata o meno. Nel caso di esito negativo ("No? Argh!"), significa che la ricerca è incappata in un **minimo locale** (Local Minimum). Di conseguenza, è necessario riprovare selezionando un altro punto di partenza, oppure eseguire un _backtrack_ avvalendosi di un _heap_ che memorizza i vicini. Se invece l'esito è positivo ("Yes? Urrah!"), si procede semplicemente a contare quanti passi (steps) sono stati necessari per raggiungere il traguardo.
+
+Per ottimizzare ulteriormente questo processo e muoversi più velocemente nella "regione" in cui risiede la query, viene introdotto il **Step 3**, che prevede la creazione di una **gerarchia**. In questa fase, a ogni studente viene richiesto di pensare a un numero casuale compreso nell'intervallo $[1, 6]$ (RANDOM!). Questa meccanica stocastica serve a determinare i livelli: ogni studente che ha pensato esattamente al numero $5$ viene "promosso" al livello superiore, identificato come livello 1. A questo punto, si ripete l'operazione di costruzione del grafo descritta nel Step 1, applicandola però unicamente ai nodi isolati che compongono il neo-formato livello 1.
+
+### NSW (Navigable Small World) e Ricerca Greedy
+
+La struttura planare di base prima dell'introduzione dei livelli gerarchici è definita come **NSW** (Navigable Small World). Questa architettura si presenta visivamente come un grafo costituito da nodi interconnessi tra loro tramite una fitta rete di archi, all'interno della quale viene introdotto un nodo target da ricercare. ![[Pasted image 20260430151647.png]]
+![[Pasted image 20260430151654.png]]
+![[Pasted image 20260430151700.png]]
+![[Pasted image 20260430151706.png]]
+
+La navigazione vera e propria all'interno della rete NSW avviene tramite l'algoritmo di **Greedy Search**. La ricerca ha inizio partendo da un nodo di partenza posizionato nella struttura. L'algoritmo procede valutando i nodi adiacenti, spostandosi iterativamente verso il vicino che minimizza la distanza rispetto al nodo target rosso. Durante questo percorso esplorativo, i nodi periferici valutati vengono evidenziati dal sistema, permettendo di tracciare un percorso diretto e continuo fino ad approdare al nodo che rappresenta la migliore approssimazione spaziale della query. ![[Pasted image 20260430151731.png]]
+![[Pasted image 20260430151738.png]]
+
+![[Pasted image 20260430151750.png]]
+![[Pasted image 20260430151758.png]]
+![[Pasted image 20260430151805.png]]
+![[Pasted image 20260430151817.png]]
+![[Pasted image 20260430151828.png]]
+### Concetti Chiave
+
+- **Approximate k-NN Retrieval**: L'insieme di tecniche (basate su alberi, clustering, hashing o grafi) per identificare i k-vicini più prossimi in spazi vettoriali con alta efficienza accettando un margine di approssimazione.
+    
+- **HNSW (Hierarchical Navigable Small World)**: Evoluzione dei grafi di prossimità che sfrutta una gerarchia di livelli, dove i livelli superiori consentono movimenti ampi e quelli inferiori definiscono la precisione locale della ricerca.
+    
+- **Greedy Search**: L'algoritmo di base impiegato nei grafi NSW che, partendo da un nodo casuale, si sposta inesorabilmente verso il vicino più prossimo alla query, rischiando tuttavia di bloccarsi in minimi locali.
+---
+
+### Le Skip List di Pugh come Fondamento Teorico
+
+L'introduzione di una gerarchia nell'algoritmo **HNSW** trae la sua ispirazione diretta dalle **Skip List di Pugh**. Questa struttura dati si propone come un'alternativa probabilistica ai classici alberi di ricerca binaria (**BST**) al fine di rispondere in modo estremamente efficiente alle interrogazioni per trovare il predecessore di un valore (predecessor queries).
+
+![[Pasted image 20260430151901.png]]
+
+Il fondamento di questa architettura risiede in quello che definiamo **Layer 0**. Questo strato di base non è altro che una lista collegata standard, dove tutti gli elementi del dataset (ad esempio i nodi 3, 5, 7, 11, 14, 21 e 29) sono disposti sequenzialmente e collegati dal nodo di _Start_ fino al nodo di _End_.
+
+### Costruzione dei Livelli Gerarchici (Layers)
+
+Se dovessimo cercare un valore nel solo Layer 0, saremmo costretti a scorrere la lista linearmente. Per ovviare a questo problema, la logica delle Skip List prevede l'aggiunta di livelli gerarchici superiori, i quali contengono versioni sempre più "sparse" della lista originale.
+
+![[Pasted image 20260430151936.png]]
+
+Viene quindi generato un **Layer 1**, collocato al di sopra del livello base, che ospita solamente un sottoinsieme dei nodi, come ad esempio il 5, l'11 e il 21. Di conseguenza, questi nodi agiscono come "stazioni intermedie" che permettono di saltare grandi porzioni della lista sottostante.
+
+![[Pasted image 20260430151951.png]]
+
+Il processo di astrazione continua costruendo strati sempre più leggeri. Viene aggiunto un **Layer 2** che contiene solamente i nodi 5 e 21, e infine un **Layer 3** che, in questo scenario, ospita esclusivamente il nodo 5.
+
+### Esecuzione di una Query nella Struttura a Strati
+
+Per comprendere a fondo il vantaggio di questa architettura, possiamo simulare una **query** in cui il sistema è incaricato di cercare il valore **12**.
+
+![[Pasted image 20260430152020.png]]
+
+
+La ricerca non parte dal livello base, bensì dall'entry point posizionato nel livello più alto e sparso, ovvero il **Layer 3**. Trovandosi sul nodo 5, il sistema valuta il livello corrente ma, essendo l'unico nodo disponibile, scende direttamente al **Layer 2** (sempre sul nodo 5). A questo punto, il sistema analizza il nodo successivo in orizzontale, ovvero il 21. Poiché 21 è strettamente maggiore della nostra query (12), l'algoritmo capisce di essersi spinto troppo oltre; pertanto, scende al **Layer 1** rimanendo sul nodo 5.
+
+Nel Layer 1, il nodo successivo è l'11. Poiché 11 è minore di 12, la ricerca avanza orizzontalmente fino al nodo 11. Controllando il passo successivo da questa nuova posizione, si incontra di nuovo il 21. Essendo ancora una volta maggiore del valore cercato, la ricerca scende al livello base, il **Layer 0**, fermandosi sul nodo 11. Valutando il successivo nodo nel Layer 0 (il 14), che è maggiore di 12, l'algoritmo conclude la sua esecuzione identificando l'11 come l'esatto predecessore.
+
+### Estensione ai Grafi di Prossimità
+
+Sebbene l'esempio delle Skip List chiarisca il concetto su dati monodimensionali, l'algoritmo **HNSW** applica questa stessa identica logica a strutture dati complesse come i grafi geometrici o vettoriali.
+
+![[Pasted image 20260430152131.png]]
+
+Nei moderni sistemi di recupero delle informazioni, i dati non formano linee rette, ma reti. Si inizia con grafi composti da pochissime connessioni per arrivare, man mano, a grafi altamente densi.
+
+![[Pasted image 20260430152146.png]]
+
+
+Come illustrato per le liste, **HNSW introduce una gerarchia** sovrapponendo questi grafi. I grafi più sparsi fungono da strati superiori (Layer alti), fornendo collegamenti a lunghissimo raggio che attraversano vasti spazi vettoriali. I nodi, pur esistendo in più grafi, mantengono delle mappature esatte tra un livello e l'altro.
+
+
+### Navigazione e il framework kANNolo
+
+L'effettiva esecuzione di una ricerca all'interno di questa struttura gerarchica a grafo simula perfettamente la logica della Skip List.
+
+![[Pasted image 20260430152220.png]]
+
+Il punto di partenza si trova nel grafo più sparso. La ricerca (indicata visivamente da frecce verdi di instradamento) viaggia rapidamente verso l'area generale del punto bersaglio compiendo grossi balzi (long-range links). Quando non è più possibile avvicinarsi ulteriormente in quel livello, la ricerca si sposta al livello inferiore. Qui, grazie a una maggiore densità di collegamenti a medio raggio, il percorso si affina. Il ciclo si ripete fino a planare nel grafo più denso in assoluto (livello base), dove la ricerca esegue i micro-passi finali per raggiungere il nodo più vicino in assoluto (target rosso).
+
+
+A supporto di queste infrastrutture gerarchiche, si posiziona il framework **kANNolo**, rappresentato iconograficamente per combinare l'idea di stratificazione dei dati (tipica del roll) con le reti a grafo sovrapposte necessarie per il calcolo approssimato dei vicini.
 
 ---
 
-## Architetture di Retrieval: Campionamento Dinamico e Late Interaction
+### Glossario / Concetti Chiave
 
-**Introduzione**
+- **Skip List di Pugh:** Una struttura dati probabilistica basata su liste sovrapposte e a densità decrescente, utilizzata come base logica per scalare le predecessor queries rispetto ai BST.
+    
+- **HNSW (Hierarchical Navigable Small World):** Algoritmo che applica il concetto di gerarchia multi-strato non più a liste lineari, ma a grafi di prossimità per ricerche vettoriali complesse.
+    
+- **Layer / Livelli Gerarchici:** Livelli sovrapposti di dati dove il livello più basso (Layer 0) contiene la struttura completa, mentre i livelli superiori (Layer 1, 2, 3...) contengono versioni drasticamente ridotte per permettere l'attraversamento rapido dei dati.
+    
+- **Routing Gerarchico:** Il processo greedy per cui una query viene iniziata nel layer più alto (con collegamenti lunghi) per poi scendere verticalmente nei layer più densi man mano che ci si avvicina al target.
+---
+### kANNolo: Un'Implementazione Efficiente
 
-Dopo aver esplorato i concetti base del dense retrieval e l'addestramento dei modelli linguistici, è fondamentale comprendere le sfide legate all'efficienza e alla scalabilità di questi sistemi. In questa sezione analizzeremo come i motori di ricerca gestiscono il calcolo delle similarità tramite algoritmi di ricerca approssimata, per poi concentrarci su due architetture avanzate che affrontano il problema dei falsi positivi e dei costi computazionali: ANCE e ColBERT.
+Nell'ambito delle architetture basate su grafi, si distingue **kANNolo**, un'implementazione scritta in linguaggio Rust dell'algoritmo **HNSW** (Hierarchical Navigable Small World) che si spinge anche oltre le funzioni standard. Una delle caratteristiche fondamentali di questa libreria è di essere l'unica a poter lavorare in modo nativo sia con vettori sparsi (**Sparse**) che densi (**Dense**). Dal punto di vista dello sviluppo, kANNolo è progettato per risultare super efficiente e facile da estendere. Un dettaglio particolare della sua genesi è che il codice è stato implementato prevalentemente da studenti universitari, rendendola di fatto la prima libreria **KNN** (K-Nearest Neighbors) a prendere in prestito il nome da un tipico dolce italiano.
 
-### L'Importanza dei Negativi Difficili e il Campionamento Dinamico
+Le eccellenti prestazioni di kANNolo sono supportate dai dati sui collaudi prestazionali. Analizzando i grafici che mettono in relazione le **Queries per second** (Query per secondo) con l'**Accuracy@10** (Accuratezza), è possibile confrontare kANNolo (impostato con parametro $M=32$) con altre librerie molto popolari quali hnswlib, FAISS e N2 (tutte parimenti valutate con $M=32$). Nel grafico, kANNolo si posiziona ai vertici delle prestazioni, mantenendo un alto volume di query al secondo senza sacrificare l'accuratezza, riuscendo a eguagliare o superare le prestazioni dei concorrenti diretti.
 
-Come abbiamo visto, l'addestramento di modelli di retrieval richiede l'uso di esempi negativi, ma non tutti i negativi sono uguali. I negativi difficili, o **Hard Negatives (HN)**, si rivelano essere in assoluto i più importanti per insegnare al modello a distinguere le sfumature semantiche sottili. Esistono due strategie principali per selezionarli: il **Campionamento Statico** (Static Sampling) e il **Campionamento Dinamico** (Dynamic Sampling). Nel campionamento statico, i negativi difficili vengono pre-calcolati prima dell'inizio dell'addestramento e non cambiano mai durante l'intero processo. Al contrario, il campionamento dinamico è un approccio molto più sofisticato: i negativi difficili sono selezionati dinamicamente calcolandoli a ogni singolo passo di addestramento (training step). In pratica, si scelgono i documenti irrilevanti che il modello in quello specifico istante sta erroneamente posizionando in cima alla classifica (top-ranked irrelevant documents).
+![[Pasted image 20260430154104.png]]
 
-Per comprendere appieno questa differenza, possiamo fare un esempio concreto. Supponiamo che l'utente cerchi "Presidente della Repubblica Italiana". Un **Random Negative** (negativo facile o casuale) potrebbe essere un documento intitolato "Come cucinare la pasta", che non ha alcuna correlazione e risulta facile da scartare. Un **Hard Negative** statico potrebbe essere "Presidente degli Stati Uniti", che ha un'alta correlazione testuale ma un intento diverso. Il vero potere del **Dynamic Hard Negative** si manifesta con documenti contenenti dati semanticamente molto rilevanti ma obsoleti o errati nel contesto specifico, come ad esempio un documento su "Giorgio Napolitano" (Presidente dal 2006 al 2015), che il modello potrebbe inizialmente confondere prima di affinarsi per favorire il risultato corretto "Sergio Mattarella" (dal 2015 in poi).
 
-### Il Flusso dei Motori di Ricerca e il k Nearest Neighbour
+### Problemi Aperti degli Approcci basati su Grafi
 
-Per capire come questi modelli si inseriscono in un motore di ricerca reale, dobbiamo guardare alla sua architettura di base. Il flusso di lavoro tradizionale inizia con le **Queries** e i **Texts** (documenti) che passano attraverso un **Inverted Index** (indice invertito). Questo indice alimenta una fase di **Initial Retrieval** (recupero iniziale), la quale produce un sottoinsieme di **Candidate Texts** (testi candidati). Questi candidati vengono infine passati a un **Reranker**, che ha il compito di riordinarli in modo raffinato per produrre la **Ranked List** (lista ordinata) finale che l'utente visualizzerà.
+Nonostante la comprovata velocità in fase di inferenza, gli approcci basati su grafi soffrono di problematiche aperte che ne complicano la gestione su larga scala. Il primo scoglio rilevante è l'**Alto Costo in Tempo per la Costruzione** (High Construction Time). Affinché la topologia sia corretta, per ogni nodo aggiunto è necessario individuare con precisione le connessioni ideali; questo significa che l'operazione di inserimento di un vettore comporta un costo computazionale pari a quello di una vera e propria ricerca. Inoltre, il sistema deve operare in modo tale da assicurare l'assenza di ridondanza durante la creazione di nuovi archi (edges).
 
-[INSERIRE IMMAGINE: Diagramma del funzionamento di un motore di ricerca, che illustra il flusso logico dai testi elaborati in un indice invertito, passando per il recupero iniziale dei testi candidati, fino ad arrivare al reranker che genera la lista ordinata finale]
+Il secondo limite critico è l'**Alto Costo in Spazio** (High Space Usage). Per poter mappare lo spazio, il sistema deve salvare per ogni singolo vettore una grande quantità di archi ad esso associati. Per mantenere inalterata la promessa di un'alta efficienza in fase di ricerca, questi ingombranti indici devono necessariamente risiedere per intero all'interno della memoria RAM.
 
-Nei sistemi che adottano le **Rappresentazioni Dense** (Dense Representations), il recupero delle informazioni si traduce nel trovare i documenti i cui vettori sono geometricamente più simili a quello della query, calcolando il prodotto scalare (dot product) o la similarità del coseno (cosine similarity). Questo compito equivale a cercare i $k$ punti più vicini in uno spazio a N-dimensioni, noto come **k Nearest Neighbour (kNN) Retrieval**. Effettuare una ricerca kNN esatta (Exact kNN) richiede di confrontare tutti i documenti $d$ contro la query $q$, mantenendo in memoria una struttura dati di tipo *Heap* per conservare i $k$ elementi con la similarità più alta. Tuttavia, questo approccio ha una complessità temporale di $O(n \log k)$ e risulta troppo lento per sistemi su larga scala. Di conseguenza, si ricorre all'**Approximate Nearest Neighbour (ANN)**, che baratta una frazione di precisione per un'enorme velocità, utilizzando diverse tecniche avanzate come Alberi (Trees), Grafi (Graphs), Locality-Sensitive Hashing (LSH) o Quantizzazione.
+Infine, l'approccio strutturale genera inefficienze a livello di processore: la ricerca **non è cache-friendly**. Per visitare i vicini di un nodo durante il calcolo, l'algoritmo effettua continui accessi casuali (random accesses) al _forward index_, vanificando i meccanismi di pre-fetching della memoria cache e introducendo colli di bottiglia nei tempi di latenza.
 
-### ANCE: Approximate Nearest-Neighbor Negative Contrastive Estimation
+### Product Quantization (Quantizzazione del Prodotto)
 
-Una delle implementazioni più efficaci del campionamento dinamico è il modello **ANCE**. Questo sistema si basa sull'idea che il campionamento dei negativi difficili sia un elemento assolutamente cruciale. ANCE utilizza i negativi difficili dinamici sfruttando costantemente il modello appreso fino a quel momento per selezionarli. Architetturalmente, utilizza un **BERT Siamese/Dual Encoder**, una tecnica a rappresentazione singola (Single-representation technique) in cui viene generato esattamente un vettore per ogni documento e in cui i pesi della rete sono condivisi tra la query e il documento. Questo permette di effettuare il recupero esatto tramite KNN sulla base dei vettori generati.
+Per superare i limiti di memoria e velocizzare ulteriormente il calcolo delle distanze, i sistemi IR impiegano una tecnica nota come **Quantizzazione del Prodotto** (Product Quantization), che si definisce come una strategia di compressione con perdita dei dati (**Lossy Compression**). Il meccanismo logico alla base della quantizzazione consiste nel raggruppare i componenti del vettore originario in un numero $m$ di segmenti (chunks), dove ogni segmento avrà una grandezza pari a $d/m$ componenti. Successivamente, si sostituisce l'intero contenuto di ogni chunk con un codice rappresentativo che occupa un solo byte.
 
-Il processo di addestramento di ANCE è particolarmente innovativo perché separa logicamente le figure del **Trainer** e dell'**Inferencer**. Mentre il Trainer aggiorna i pesi del modello utilizzando un mix di documenti positivi e negativi, l'Inferencer lavora in parallelo (o in modo asincrono) effettuando l'inferenza per aggiornare l'indice e la ricerca ai vari checkpoint (es. $k-1$, $k$, $k+1$). Questo aggiornamento costante dell'indice garantisce che l'insieme dei negativi di ANCE (ANCE Negatives, indicati come $D_{f_{k}}^{-}$) sia sempre allineato con le debolezze attuali del modello.
+L'applicazione di questa compressione offre tre vantaggi immediati:
 
-[INSERIRE IMMAGINE: Schema del processo di addestramento di ANCE, con l'alternanza parallela tra il Trainer, che elabora documenti positivi e negativi, e l'Inferencer, che ad ogni checkpoint temporale aggiorna dinamicamente l'indice di ricerca dei negativi difficili]
+1. Riduce drasticamente l'utilizzo dello spazio globale richiesto dal data set.
+    
+2. Permette un calcolo delle distanze molto più rapido, grazie al numero nettamente inferiore di componenti da elaborare.
+    
+3. Migliora l'efficienza della memoria, poiché i vettori che devono essere letti e caricati risultano molto più corti. Tuttavia, trattandosi esplicitamente di una compressione lossy, vi è un dazio da pagare: il **Recall** (Richiamo) del sistema può diminuire, e solitamente lo fa.
 
-Questa architettura complessa porta a risultati di altissimo livello. La seguente tabella illustra le performance di ANCE (sviluppato da Xiong et al., ICLR 2021) rispetto ad altre metodologie sparse, in cascata e dense sui dataset MS MARCO e TREC DL:
 
-| **Method**                               | **MARCO Dev Passage Retrieval (MRR@10)** | **MARCO Dev Passage Retrieval (Recall@1k)** | **TREC DL Passage Rerank (NDCG@10)** | **TREC DL Passage Retrieval (NDCG@10)** | **TREC DL Document Rerank (NDCG@10)** | **TREC DL Document Retrieval (NDCG@10)** |
-| ---------------------------------------- | ---------------------------------------- | ------------------------------------------- | ------------------------------------ | --------------------------------------- | ------------------------------------- | ---------------------------------------- |
-| **Sparse & Cascade IR**                  |                                          |                                             |                                      |                                         |                                       |                                          |
-| BM25                                     | 0.814                                    | 0.240                                       | 0.506                                | 0.519                                   |                                       |                                          |
-| Best DeepCT                              | 0.243                                    | n.a.                                        | n.a.                                 | 0.554                                   |                                       |                                          |
-| Best TREC Trad Retrieval + BERT Reranker | 0.240                                    | n.a.                                        | 0.554                                | 0.742                                   | 0.549                                 | 0.646                                    |
-| **Dense Retrieval**                      |                                          |                                             |                                      |                                         |                                       |                                          |
-| Rand Neg                                 | 0.949                                    | 0.261                                       | 0.552                                | 0.605                                   | 0.615                                 | 0.543                                    |
-| NCE Neg                                  | 0.256                                    | 0.943                                       | 0.602                                | 0.539                                   | 0.618                                 | 0.542                                    |
-| BM25 Neg                                 | 0.299                                    | 0.928                                       | 0.664                                | 0.591                                   | 0.626                                 | 0.529                                    |
-| DPR (BM25 + Rand Neg)                    | 0.311                                    | 0.952                                       | 0.600                                | 0.653                                   | 0.629                                 | 0.557                                    |
-| BM25- Rand                               | 0.280                                    | 0.948                                       | 0.576                                | 0.609                                   | 0.566                                 | 0.637                                    |
-| BM25 → NCE Neg                           | 0.942                                    | 0.279                                       | 0.608                                | 0.571                                   | 0.638                                 | 0.564                                    |
-| BM25 → BM25 + Rand                       | 0.939                                    | 0.306                                       | 0.648                                | 0.591                                   | 0.540                                 | 0.626                                    |
-| ANCE (FirstP)                            | 0.959                                    | 0.330                                       | 0.648                                | 0.677                                   | 0.615                                 | 0.641                                    |
-| ANCE (MaxP)                              |                                          |                                             | 0.628                                | 0.671                                   |                                       |                                          |
+![[Pasted image 20260430154642.png]]
 
-### ColBERT: Contextualized Late Interaction over BERT
+Per chiarire il concetto con un esempio numerico, prendiamo in esame un vettore originale di dimensione $d=12$, in cui ogni singolo valore è memorizzato come un "float32". Il vettore contiene i seguenti valori: `0.8, -1.2, 3.4, 1.3, -2.1, 0.3, 2.4, 1.5, 0.9, -1.0, 0.8, 4.1`. Seguendo le regole della quantizzazione, il vettore viene frazionato in $m=3$ blocchi, ciascuno contenente 4 valori distinti. A questo punto, si utilizza un singolo byte per codificare per intero ogni blocco, ottenendo in output i valori riassuntivi `3`, `254` e `87`. Il calcolo del risparmio di memoria è immediato: partendo da 12 valori a 32 bit e riducendoli a 3 valori da 8 bit, il sistema ha appena risparmiato l'equivalente di $12 \times 32 - 3 \times 8 = 360$ bit per questo specifico vettore.
 
-Nonostante i vantaggi del Dual Encoder (veloce ma meno preciso) e del Cross-Encoder (preciso ma estremamente lento), la ricerca ha cercato un punto di incontro. La risposta è **ColBERT** (Contextualized Late Interaction over BERT), un modello differenziabile end-to-end che mischia abilmente la velocità del primo con la precisione del secondo. L'intuizione principale di ColBERT è la **Late Interaction** (interazione ritardata), ideata specificamente come metodo per combattere il pesante onere computazionale.
+### Concetti Chiave
 
-A differenza di ANCE, ColBERT impiega una rappresentazione basata sui termini (Term-based representation), in cui ogni singolo documento è rappresentato da un insieme di vettori, ovvero uno per ogni suo termine. Questi vettori densi dei documenti possono essere comodamente pre-calcolati offline. Poiché le query sono sconosciute a priori, le loro rappresentazioni contestualizzate vengono calcolate on-line. L'interazione "tardiva" avviene in questo modo: per ogni singolo token che compone la query, si calcola la similarità con *tutti* i token presenti nel documento, estraendo poi il valore massimo (operatore MaxSim). La similarità finale tra la Query $Q$ e il Documento $D$ è data dalla sommatoria di tutte queste similarità massime, e il recupero finale sfrutta un kNN approssimato (Approximate kNN retrieval). Matematicamente, questo concetto si esprime con la formula:
+- **kANNolo:** Implementazione in Rust dell'algoritmo HNSW, capace di supportare sia vettori sparsi che densi con alta efficienza, caratterizzata dal nome di un tipico dolce italiano.
+    
+- **Limitazioni dei Grafi:** Approcci come l'HNSW offrono tempi di ricerca eccellenti ma patiscono alti costi in fase di costruzione dell'indice, eccessivo uso della memoria RAM e scarsa compatibilità con le logiche di caching della CPU.
+    
+- **Product Quantization (PQ):** Tecnica di compressione lossy che suddivide i vettori ad alta dimensionalità in blocchi più piccoli, codificandoli in singoli byte per risparmiare memoria e accelerare il calcolo delle similarità, a fronte di una potenziale perdita di recall.
+---
+## Product Quantization: Encoding
 
-$S_{q,d} := \sum_{i\in[|E_{q}|]} max_{j\in[|E_{d}|]} E_{q_{i}} \cdot E_{d_{j}}^{T}$
+L'elaborazione dei dati ad alta dimensionalità richiede tecniche di compressione efficaci, tra cui spicca l'algoritmo discusso in questa sezione. Nello specifico, analizzeremo il processo di codifica associato alla **Product Quantization** (quantizzazione del prodotto).
 
-[INSERIRE IMMAGINE: Architettura di ColBERT che illustra il meccanismo di Late Interaction, dove le molteplici rappresentazioni vettoriali dei termini della query interagiscono parallelamente con i termini del documento tramite l'operatore matematico MaxSim, per poi essere sommate e restituire lo score finale]
+### La suddivisione dell'Original Vector
 
-Questa architettura riduce drasticamente i FLOPs (operazioni in virgola mobile) per query rispetto a un approccio congiunto standard. Nella tabella seguente, tratta dallo studio di Khattab e Zaharia (ACM SIGIR 2020), possiamo osservare come ColBERT mantenga un MRR@10 eccezionale abbattendo drasticamente la latenza e il carico computazionale:
+Il processo prende in esame un vettore di partenza, definito esplicitamente come **Original vector**, che viene frammentato logica in sotto-vettori più piccoli per poter essere analizzato e compresso. Il primo segmento estratto da questo vettore originale è composto dai valori `0.8, -1.2, 3.4, 1.3`. Questo blocco di dati numerici viene elaborato utilizzando un algoritmo di clustering, nello specifico il **k-means with 256 centroids**.
 
-| **Method**                   | **MRR@10 (Dev)** | **MRR@10 (Eval)** | **Re-ranking Latency (ms)** | **FLOPs/query** |
-| ---------------------------- | ---------------- | ----------------- | --------------------------- | --------------- |
-| BM25 (official)              | 16.7             | 16.5              |                             |                 |
-| KNRM                         | 19.8             | 19.8              | 3                           | 592M (0.085x)   |
-| Duet                         | 24.3             | 24.5              | 22                          | 159B (23x)      |
-| fastText+ConvKNRM            | 29.0             | 27.7              | 28                          | 78B (11x)       |
-| $BERT_{base}$ [25]           | 34.7             |                   | 10,700                      | 97T (13,900x)   |
-| $BERT_{base}$ (our training) | 36.0             |                   | 10,700                      | 97T (13,900x)   |
-| $BERT_{large}$ [25]          | 36.5             | 35.9              | 32,900                      | 340T (48,600x)  |
-| ColBERT (over $BERT_{base}$) | 34.9             | 34.9              | 61                          | 7B (1x)         |
+![[Pasted image 20260430155455.png]]
 
-[RIFERIMENTO VISIVO DEL PROFESSORE: Grafico a dispersione che confronta la latenza delle query in millisecondi sull'asse delle ordinate con l'accuratezza (MRR@10) sull'asse delle ascisse dei vari modelli. Il grafico evidenzia chiaramente come ColBERT, sia in modalità re-rank che full retrieval, offra un eccellente compromesso posizionandosi in basso a destra, garantendo alta precisione a una frazione del tempo richiesto da BERT-base e BERT-large]
+Attraverso questa operazione di partizionamento dello spazio, il sistema calcola la distanza del sotto-vettore dai vari centroidi di riferimento. Di conseguenza, il blocco `0.8, -1.2, 3.4, 1.3` viene associato e codificato con l'identificativo del suo centroide più vicino, che in questo caso corrisponde al numero **3**.
+![[Pasted image 20260430155600.png]]
+### La codifica sequenziale dei blocchi successivi
+
+La procedura prosegue in modo iterativo sui frammenti successivi dell'**Original vector**. Il secondo blocco individuato dal sistema contiene i valori `-2.1, 0.3, 2.4, 1.5`. Anche in questo frangente, il sotto-vettore viene sottoposto al calcolo spaziale tramite il medesimo **k-means with 256 centroids**. Il risultato di questa mappatura attribuisce a questo secondo blocco l'identificativo del centroide **254**.
+![[Pasted image 20260430155628.png]]
+
+Infine, il sistema analizza il terzo sotto-vettore mostrato, formato dai valori `0.9, -1.0, 0.8, 4.1`. Sfruttando per la terza volta consecutiva il modello **k-means with 256 centroids**, quest'ultima porzione di dati viene matematicamente ricondotta e assegnata al centroide numero **87**.
+
+[![[Pasted image 20260430155649.png]]
+### Risultato della Compressione e Perdita di Dati
+
+Al termine di questa rigorosa sequenza di operazioni, l'**Original vector** ad alta dimensionalità risulta interamente codificato in una forma estremamente compatta. Il nuovo array compresso è infatti rappresentato esclusivamente dalla sequenza dei tre centroidi individuati: **3, 254, 87**.
+
+Tuttavia, è fondamentale sottolineare una caratteristica intrinseca e critica di questo metodo matematico: si tratta chiaramente di un processo **Lossy!** (ovvero con perdita di dati). Questo avviene perché l'assegnazione finale a un singolo centroide approssima forzatamente la posizione esatta e originale del vettore nello spazio. In altre parole, l'avvertenza cruciale è che vettori originali differenti potrebbero generare la medesima codifica, poiché tutti i punti vettoriali che ricadono all'interno della stessa macro-regione di spazio delimitata dal k-means verranno irrimediabilmente associati allo stesso identico numero di centroide.
+
+---
+
+### Concetti Chiave
+
+- **Product Quantization**: Tecnica di compressione che codifica un vettore originale frammentandolo in parti più piccole e mappando ogni frammento a un valore rappresentativo.
+    
+- **k-means with 256 centroids**: Il modello spaziale di clustering utilizzato per dividere lo spazio vettoriale in 256 macro-regioni, ognuna identificata da un centroide numerico.
+    
+- **Lossy Encoding**: Proprietà della codifica che comporta una perdita di informazione non recuperabile, indicando che vettori di partenza diversi (ma vicini nello spazio) possono produrre esattamente la stessa stringa compressa finale.
+---
+### Distance Computation nella Product Quantization
+
+Il processo di **Product quantization** si basa in primo luogo sull'operazione di **distance computation**, ovvero il calcolo delle distanze tra un vettore di input e i vettori presenti all'interno del sistema. Partendo da una **Query** specifica, rappresentata da un vettore numerico (con i valori 3.6, 2.1, -0.9, 1.1), il sistema effettua un confronto con altri vettori di riferimento. Nel caso illustrato, i vettori di riferimento con i quali la query interagisce presentano rispettivamente le coordinate 2.1, 2.1, 1.1, 1.4 e 3.1, -1.1, 2.1, 1.1.
+
+Durante questa fase, vengono calcolate le distanze parziali (indicate come **Distances**) strutturando i risultati in apposite matrici o griglie di calcolo. Questo processo iterativo mappa i sottospazi dei vettori per determinare la loro vicinanza spaziale.
+
+![[Pasted image 20260430160543.png]]
+
+Come risultato finale di queste operazioni di mappatura, il sistema identifica un **Document** (documento) specifico, il quale viene rappresentato in forma quantizzata tramite i valori 3, 254 e 87. Le frecce nel processo visivo indicano come specifiche posizioni nelle matrici delle distanze convergano per formare l'identificativo finale del documento.
+![[Pasted image 20260430160602.png]]
+### Risultati Sperimentali: Recall vs Latency
+
+Per comprendere l'efficacia pratica di questi algoritmi, è fondamentale analizzare gli **Experimental Results** (risultati sperimentali).
+
+L'analisi si concentra sulla relazione "Recall vs Latency (PQ 1M)", ovvero il compromesso tra il livello di richiamo e la latenza del sistema, testato su un milione di vettori estratti dal dataset **Sift**.
+
+![[Pasted image 20260430160629.png]]
+
+Il grafico traccia la metrica del Recall sull'asse verticale (Y), con valori che partono da 0.62 per arrivare al valore massimo di 1, mentre sull'asse orizzontale (X) sono riportati i valori di latenza (o throughput) scanditi in intervalli numerici da 0 fino a 1.800.000. Vengono analizzate le prestazioni di diverse configurazioni del sistema, descritte nella legenda: la curva del **Sift base** e le curve relative alle varianti **Sift (8)**, **Sift (4)**, **Sift (2)** e **Sift (1)**.
+
+Inoltre, sull'asse delle ascisse, poco prima della soglia dei 600.000, è presente una linea verticale di demarcazione associata al termine **Brute Force Scan** (scansione a forza bruta). Questa soglia funge da punto di riferimento per confrontare le prestazioni di efficienza e latenza dei metodi approssimati rispetto a una ricerca lineare ed esaustiva su tutti gli elementi.
+
+---
+
+### Concetti Chiave
+
+- **Product quantization**: Tecnica che permette di rappresentare vettori complessi attraverso componenti quantizzate per ottimizzare lo spazio e i calcoli.
+    
+- **Distance computation**: L'operazione matriciale attraverso la quale si calcola la vicinanza tra la Query e i vettori presenti nel database.
+    
+- **Recall vs Latency**: Metrica di valutazione cruciale nei sistemi di Information Retrieval che evidenzia il compromesso (trade-off) tra la qualità dei risultati recuperati e il tempo o le risorse computazionali impiegate per ottenerli.
+---
+### Le Famiglie di Embedding e la Rappresentazione Sparsa
+
+Nel contesto del recupero neurale delle informazioni, i documenti e le query vengono convertiti in vettori chiamati embedding. Questi si dividono principalmente in tre famiglie: vettori densi singoli (_dense single-vector_), vettori densi multipli (_dense multi-vector_) e vettori sparsi singoli (_sparse single-vector_).
+
+Gli embedding sparsi rappresentano una soluzione di particolare interesse. Essi si distinguono per essere altamente efficaci ed estremamente più efficienti in termini di spazio e tempo rispetto alle controparti dense multi-vettore. Un ulteriore e cruciale vantaggio è la loro interpretabilità "by design", ovvero per concezione nativa.
+
+Per illustrare questo concetto, consideriamo un esempio pratico. Se poniamo al sistema la query _"what shoes do most nba players wear"_ (quali scarpe indossano la maggior parte dei giocatori nba), la sua rappresentazione vettoriale sparsa assegnerà un peso specifico ai termini ritenuti centrali per il contesto. L'algoritmo non si limiterà a pesare i termini esatti, ma dedurrà anche l'importanza semantica, restituendo valori come: _nba_ (2.56), _shoes_ (2.32), _shoe_ (2.14), _basketball_ (1.97), _wearing_ (1.55), _wear_ (1.52), _most_ (1.34) e _players_ (1.25).
+
+### Il Forward Index e la Sfida del Calcolo Approssimato kNN
+
+![[Pasted image 20260430180805.png]]
+
+Quando queste rappresentazioni devono essere applicate su larga scala, il sistema organizza i dati utilizzando un **Forward Index** (Indice Diretto). Questa struttura mappa ogni singolo documento alla lista dei suoi componenti vettoriali. Per esempio, il documento $d_1$ conterrà i componenti associati ai rispettivi valori $c_1 v_1, c_2 v_2, \dots, c_{165} v_{165}$, mentre un documento $d_2$ potrebbe estendersi fino a $c_{183} v_{183}$.
+
+Le dimensioni di questi indici nel mondo reale sono massive: un tipico dataset può comprendere circa **8.8 milioni di documenti** e un vocabolario di circa **30.000 (30K) componenti**. Tuttavia, data la natura "sparsa" di questa tecnica, per un dato documento si registrano mediamente solo **150 componenti non-zero**. L'indice si estende fino a mappare l'ultimo documento, $d_{8M}$, con i suoi relativi componenti (es. fino a $c_{142} v_{142}$).
+
+L'obiettivo fondamentale in fase di ricerca è individuare i top $k$ documenti (ad esempio, ponendo $k=10$) che massimizzano la similarità con la query formulata dall'utente. Se la query è codificata con componenti che vanno da $c_1 v_1$ fino a $c_{43} v_{43}$, il sistema deve calcolare l'argomento massimo del prodotto scalare tra il vettore della query ($q$) e i vettori dei documenti ($v$) appartenenti al dataset ($D$). Questa operazione è formalizzata dalla formula:
+
+$$argmax_{v \in D}^{(k)} q^T v$$
+
+Date le enormi moli di dati, questo calcolo viene svolto in forma **approssimata** (Approximated kNN).
+![[Pasted image 20260430181748.png]]
+
+### Innovazioni Recenti: La Competizione Big-ANN
+
+L'importanza della ricerca sui vettori sparsi è culminata nella _NeurIPS'23 Competition Track: Big-ANN_, un evento di riferimento per il settore supportato da giganti tecnologici come Microsoft, Pinecone, AWS e Zilliz. Durante le presentazioni dei vincitori della traccia "Sparse", sono emersi algoritmi di altissimo livello come **PyANNS** (sviluppato da Zihao Wang della Shanghai Jiao Tong University) e **GrassRMA** (sviluppato da Meng Chen, Yue et al.).
+
+L'evidenza empirica più importante emersa dalla competizione, i cui dettagli sono disponibili su _[https://big-ann-benchmarks.com/neurips23.html](https://big-ann-benchmarks.com/neurips23.html)_, è che **le soluzioni basate su grafi (Graph-based solutions) superano quelle basate su Indici Invertiti con un margine davvero molto ampio**.
+![[Pasted image 20260430181911.png]]
+
+### Gli Indici Invertiti e l'Inefficienza del Brute Force
+
+Nonostante il successo dei grafi, gli **Inverted Indexes** restano fondamentali e ampiamente studiati. Un Indice Invertito capovolge la logica del Forward Index: per ogni componente o termine del vocabolario (da $c_1$ a $c_{30K}$), elenca tutti i documenti in cui esso compare.
+
+- Il termine $c_1$ può essere presente nei documenti $d_1, d_2, d_3, d_4, \dots, d_{1,650,000}$.
+    
+- Il termine $c_2$ può comparire in $d_1, d_2, d_3, d_4, \dots, d_{873,066}$.
+    
+- Il termine $c_{30K}$ si trova in $d_1, d_2, d_3, d_4, \dots, d_{581,345}$.
+    
+
+![[Pasted image 20260430182147.png]]
+
+
+Se si applicasse un approccio di tipo **Brute Force** per valutare la nostra query contro gli 8.8 milioni di documenti (sia sul Forward che sull'Inverted Index), il sistema sarebbe costretto a eseguire ben **8.841.823 calcoli di prodotto scalare** (dot product computations). Durante l'elaborazione, le architetture fanno uso di una struttura ad albero chiamata **Heap** per immagazzinare e ordinare i documenti più promettenti man mano che vengono valutati (es. nodi 1, 2, 3, 4, 5, 9). Per limitare questo onere computazionale, la letteratura suggerisce tecniche come **IOQP** (basata su liste ordinate per impatto e terminazione anticipata) o **SparseIVF** (basata su indici invertiti di file e sketches).
+![[Pasted image 20260430182339.png]]
+
+### Il Metodo Seismic: Pruning e la Concentrazione dell'Importanza
+
+L'ottimizzazione decisiva per il Retrieval su vettori sparsi è introdotta dal metodo **Seismic**, basato sul principio della **Concentrazione dell'Importanza (Concentration of Importance)**.
+
+![[Pasted image 20260430182430.png]]
+
+Il principio matematico di Seismic rileva che, nei vettori sparsi, il **90% del prodotto scalare viene generato avvalendosi solo del ~15% dei termini**. Seismic sfrutta questa concentrazione per applicare una **potatura (pruning)** su due direttrici, applicata per esempio a una query complessa estesa fino a $c_{112} v_{112}$:
+
+1. **Limitazione dei Documenti ($\lambda$):** Il sistema memorizza o analizza solo i top-$\lambda$ documenti all'interno di ogni lista dell'indice. Scegliendo, ad esempio, di conservare solo **$\lambda=4000$** documenti per lista, il volume delle operazioni matematiche crolla immediatamente dagli 8.841.823 iniziali a circa **4.000.000**.
+    
+2. **Limitazione dei Componenti della Query ($\sigma$):** Oltre a ridurre i documenti, l'algoritmo analizza unicamente le liste relative ai componenti principali della query. Scegliendo di valutare solo i top-$\sigma$ termini della query (es. **$\sigma=10$**), il numero totale dei calcoli di prodotto scalare viene abbattuto a sole **40.000 computazioni**.
+
+### Validazione e Accuratezza
+
+
+Questa potatura massiccia deve essere validata per assicurarsi di non perdere i documenti realmente utili. Si utilizza quindi la metrica **Accuracy@10**, definita come la frazione dei reali 10 migliori vettori che il sistema riesce effettivamente a recuperare.
+
+Applicando la regola del $\lambda=4000$, i dati dimostrano la robustezza del sistema:
+
+![[Pasted image 20260430182739.png]]
+
+I risultati evidenziano chiaramente che, limitando l'analisi a soli 10 termini della query, il sistema Seismic riesce a raggiungere un'accuratezza superiore al 98%, offrendo prestazioni straordinarie e validando a pieno il concetto di concentrazione dell'importanza.
 
 ---
 
 ### Glossario e Concetti Chiave
 
-- **Hard Negatives e Dynamic Sampling**: Documenti semanticamente molto simili alla query ma errati. Il campionamento dinamico li estrae in tempo reale in base alle classifiche erronee del modello durante il training, fornendo gli esempi più istruttivi per l'apprendimento.
+- **Sparse Embeddings:** Rappresentazione matematica in cui documenti e query sono tradotti in vettori composti prevalentemente da valori nulli. Si rivelano altamente efficienti in termini di spazio/tempo e la loro struttura pesata li rende nativamente interpretabili.
+    
+- **Indici Forward e Inverted:** Il Forward Index elenca per ogni documento tutti i componenti in esso presenti. Al contrario, l'Inverted Index associa a ciascun componente del vocabolario la lista dei documenti che lo contengono.
+    
+- **Concentration of Importance:** Regola statistico-matematica chiave nei vettori sparsi, la quale dimostra che circa il 15% dei termini è responsabile della genesi del 90% del prodotto scalare complessivo.
+    
+- **Pruning (Seismic):** Strategia di ottimizzazione che abbatte i costi computazionali tagliando i dati da analizzare. Considerando solo $\lambda=4000$ documenti per lista e $\sigma=10$ termini per query, le computazioni calano da quasi 9 milioni a sole 40.000, mantenendo un'Accuracy@10 del 98.30%.
 
-- **Approximate Nearest Neighbour (ANN)**: Tecniche algoritmiche (come LSH o alberi) utilizzate per superare il limite computazionale $O(n \log k)$ della ricerca kNN esatta, permettendo di trovare velocemente i vettori più simili in dataset di grandi dimensioni.https://meet.google.com/fvi-pvcf-ttu
+---
+### Architettura di Base e la Tecnica del Pruning
 
-- **ANCE (Approximate Nearest-neighbor Negative Contrastive Estimation)**: Un modello basato su Dual Encoder che migliora le proprie prestazioni aggiornando asincronamente (tramite un Inferencer) l'indice dei negativi difficili durante il processo di training.
+L'infrastruttura di base si fonda su due strutture dati fondamentali: l'**Inverted Index** e il **Forward Index**. L'indice invertito mappa una vasta gamma di concetti (da $C_{1}$ fino a $C_{30K}$) alle relative liste di documenti associati (come $d_{1} \dots d_{4000}$). Parallelamente, il Forward Index collega i documenti (fino a $d_{8M}$) alle coppie concetto-valore, come ad esempio $C_{1} V_{1}$ e $C_{2} V_{2}$.
 
-- **ColBERT e Late Interaction**: Un'architettura che mantiene vettori multipli per ogni termine del documento testuale. La "Late Interaction" calcola le similarità massime tra ogni termine della query e tutti i termini del documento solo all'ultimo stadio, garantendo la precisione del Cross-Encoder con latenze drasticamente inferiori.
+![[Pasted image 20260430184632.png]]
+
+Quando viene processata una query composta da vari termini (ad esempio da $C_{1} V_{1}$ fino a $C_{43} V_{43}$), il sistema deve eseguire il calcolo del prodotto scalare (dot product computations) per stimare la rilevanza. Valutare questi punteggi con un approccio **Brute Force** richiederebbe ben 8.841.823 computazioni. Affidandosi semplicemente all'**Inverted Index**, il numero scende a circa 4.000.000 di calcoli. Per ottimizzare ulteriormente questo processo, Seismic introduce il **Pruning**, riducendo le computazioni a circa 40.000.
+
+Il pruning opera attraverso l'utilizzo di una struttura dati **Heap** che mantiene una soglia di riferimento definita $\tau$. Questa soglia rappresenta il punteggio minimo (minimum score) necessario affinché un documento candidato possa entrare nell'heap dei risultati. Nonostante questa notevole scrematura, emerge una forte inefficienza operativa: il sistema sta ancora valutando tutti i documenti presenti nella lista candidata ("We are evaluating all the documents in the list!").
+
+]
+
+### Ottimizzazione tramite Blocking
+
+Per superare il limite della valutazione esaustiva, Seismic implementa la strategia del **Blocking**. L'obiettivo principale diventa quindi quello di saltare i documenti irrilevanti senza dover minimamente calcolare il loro prodotto scalare con la query.
+
+Questo risultato si ottiene permutando e raggruppando i documenti all'interno di ogni posting list in base alla loro similarità. Questa operazione di raggruppamento viene effettuata applicando una versione superficiale (shallow version) dell'algoritmo di clustering **K-Means**. Di conseguenza, si vengono a creare dei blocchi (etichettati come $S_{1}, S_{2} \dots S_{\beta}$) contenenti ciascuno decine di documenti simili tra loro. Il vantaggio di questa architettura è evidente: diventa possibile saltare un intero blocco di documenti se si ha la certezza che non contenga alcun documento rilevante per la query.
+
+### Creazione e Raffinamento dei Summaries
+
+Per poter scartare un intero blocco senza doverlo scansionare, Seismic utilizza i **Summaries** (sommari), i quali hanno lo scopo specifico di stimare il prodotto scalare del miglior documento presente all'interno del blocco stesso.
+
+La costruzione del summary avviene partendo dall'analisi dei vettori dei singoli documenti (come $d_{1}, d_{2}, d_{3}$) e calcolando il valore massimo per ogni singola componente. Questo primo approccio risulta essere **conservativo**, poiché stabilisce un limite superiore (upper bounds) certo per il vero prodotto scalare. Tuttavia, dal punto di vista pratico, questa tecnica genera un sommario con troppe componenti diverse da zero, andando a pesare sulle prestazioni.
+
+![[Pasted image 20260430184957.png]]
+La soluzione adottata consiste nel raffinare il summary mantenendo esclusivamente le componenti non-zero più grandi e scartando le altre (ad esempio, eliminando valori minori in favore dei picchi massimi come 3.1 e 3.5). Applicando questo taglio, il sommario diventa **preciso anche se non più conservativo**, garantendo parallelamente un uso ragionevole dello spazio di memoria ("Reasonable space usage").
+
+
+### Impatto Computazionale Finale
+
+L'integrazione di queste tecniche modifica drasticamente le prestazioni del sistema. Aggiungendo il **Blocking** e l'uso dei sommari raffinati, il numero di computazioni necessarie per il calcolo del prodotto scalare crolla ulteriormente a circa 5.100 operazioni. Tali metodologie rappresentano il nucleo di Seismic, a cui si aggiungono molte altre ottimizzazioni architetturali ("and many other optimizations!") per rendere il recupero delle informazioni estremamente reattivo.
+
+|**Metodo**|**# Dot Product Computations**|
+|---|---|
+|**Brute Force**|8.841.823|
+|**Inverted Index**|~4.000.000|
+|**Pruning**|~40.000|
+|**Blocking**|~5.100|
+
+![[Pasted image 20260430185045.png]]
 
 ---
 
-## Efficienza e Ottimizzazione nei Modelli di Neural IR
+### Concetti Chiave
 
-L'integrazione di reti neurali profonde nei sistemi di Information Retrieval ha portato a miglioramenti eccezionali per quanto concerne l'accuratezza semantica, ma ha sollevato un problema critico imprescindibile: l'efficienza computazionale. In questo capitolo analizzeremo le sfide architetturali poste da questi potenti strumenti e capiremo come i moderni motori di ricerca affrontino la necessità di mantenere alte prestazioni riducendo drasticamente i tempi di latenza. Nello specifico, esploreremo tecniche avanzate come il calcolo anticipato delle rappresentazioni, i protocolli di compressione dei dati e modelli interpretativi innovativi come EPIC.
-
-### L'Importanza dell'Efficienza nei Motori di Ricerca
-
-Negli ultimi anni, le **Deep Transformer Networks** hanno superato i precedenti standard qualitativi (diventando lo stato dell'arte, o SOTA) in una moltitudine di task legati all'elaborazione del linguaggio naturale e all'Information Retrieval. L'incredibile precisione di questi modelli comporta tuttavia un costo elevato: le loro dimensioni sono colossali, rendendone l'esecuzione dal vivo estremamente esosa. Per fornire una dimensione a questa crescita esponenziale, basti pensare che nel giro di un solo anno i modelli linguistici pre-addestrati sono passati dai circa 110 milioni di parametri del primo GPT agli oltre 8,3 miliardi di Megatron-LM, arrivando infine alla sbalorditiva cifra di 175 miliardi di parametri per GPT-3. L'applicazione di queste enormi architetture a un motore di ricerca web classico (Ad-hoc Retrieval) deve scontrarsi con vincoli di tempo estremamente severi: il sistema è obbligato a restituire all'utente i "top-k" documenti più rilevanti per una data query in un lasso temporale che solitamente non deve superare i 100 millisecondi. Date le premesse, i modelli neurali generano un impatto e un peso sostanziale sulle performance di elaborazione delle query stesse. Per aggirare questo collo di bottiglia elaborativo, la comunità scientifica ha proposto svariate metodologie, tra le quali spiccano l'interazione disaccoppiata (**De-coupled Interaction**), meccanismi di **Knowledge Distillation**, la **Quantizzazione** e procedure per uscire precocemente dai rami di calcolo (**Early exit**).
-
-### Il Compromesso tra Latenza ed Efficacia
-
-Il divario tecnico tra l'accuratezza predittiva dei modelli linguistici massivi e la loro reale velocità operativa è immediatamente comprensibile confrontando empiricamente i tempi di inferenza con le metriche di efficacia.
-
-[RIFERIMENTO VISIVO DEL PROFESSORE: Il grafico a dispersione posiziona i modelli su un piano cartesiano confrontando la metrica MRR@10 sull'asse verticale con la latenza della query in millisecondi sull'asse orizzontale. È evidente come la versione "BERT (large)" domini in alto a destra, esibendo prestazioni di ranking eccellenti ma con una latenza proibitiva oltre i 3500ms. In basso a sinistra risiede l'algoritmo classico BM25, istantaneo ma poco efficace (MRR@10 di circa 0.20). Nelle aree centrali del grafico sono sparsi svariati modelli di compromesso, come doc2query, Duet (v2), DeepCT-Index, docTTTTTquery e le architetture TK a 1 o 3 livelli.]
-
-Come è facile dedurre da questa analisi visiva, modelli statistici tradizionali quali BM25 assicurano risposte quasi istantanee, accettando di contro un'accuratezza decisamente inferiore rispetto all'avanguardia neurale. Diametralmente all'opposto, l'imponente architettura BERT "large" tocca i vertici dell'efficacia nel riordinamento dei documenti, richiedendo però finestre di calcolo inaccettabili per il rilascio in un ambiente web in tempo reale. La grande scommessa tecnologica è dunque concepire soluzioni algoritmiche ibride capaci di spingere i propri risultati verso l'angolo in alto a sinistra dello schema di dispersione: l'obiettivo è emulare, o quantomeno avvicinare, l'altissimo ranking di BERT operando a una pura frazione del suo dispendio temporale.
-
-### Disaccoppiare l'Architettura per Precalcolare i Termini
-
-Per studiare l'ottimizzazione del modello, è necessario fare un passo indietro all'architettura standard di elaborazione. Quando si usa BERT nella sua forma nativa, i testi della query e del documento vengono uniti fin dall'inizio e somministrati contemporaneamente in pasto alla rete: l'input inizia con il token di classificazione **[CLS]**, seguito dai token della query testuale (es. "tax" ed "evade"), prosegue con il divisore **[SEP]**, aggancia i vocaboli del documento in esame (come "world", "news", "for", "tax", "fraud", "today"), e chiude con un secondo **[SEP]**. Tutta questa sequenza attraversa integralmente e congiuntamente svariati livelli strutturali noti come **Self-attention layers**, per poi produrre solo alla fine il punteggio di rilevanza desiderato (**ranking score**) pesato mediante un modulo denominato $W_{combine}$.
-
-[INSERIRE IMMAGINE: Diagramma raffigurante l'architettura convenzionale di BERT, illustrando la concatenazione diretta di Query e Documento (delimitati dai token speciali [CLS] e [SEP]), i cui vettori attraversano congiuntamente un blocco coeso di livelli di Self-attention fino all'estrazione dello score finale.]
-
-Alla luce di questo processo, i ricercatori hanno avanzato un'ipotesi decisiva: le primissime fasi di auto-attenzione tra la query immessa e il testo del documento sono davvero determinanti per definire se un file è rilevante? Indagini approfondite hanno rivelato che tali passaggi embrionali non sono cruciali (spoiler: not really). Su questo assunto è stata costruita una via per il riordino efficiente dei documenti basata sul calcolo anticipato e offline delle rappresentazioni vettoriali dei termini testuali, ovvero il **Precomputing Term Representations**. Il concetto è lineare ma potentissimo: la query e il testo del documento possono essere tranquillamente elaborati in maniera separata e asincrona nei primi strati (o layer) dell'architettura Transformer, restituendo un drastico salto in avanti nella velocità di inferenza del software.
-
-[RIFERIMENTO VISIVO DEL PROFESSORE: L'istogramma illustra la tenuta delle metriche P@20 e ERR@20 all'aumentare dell'indice del "Join Layer", ossia il livello esatto in cui query e documento convergono e iniziano a condividere la self-attention. L'immagine certifica che posticipando progressivamente questa congiunzione (dal layer 0 fino all'11) le metriche prestazionali reggono ben al di sopra del baseline stabilito da BM25, con un decadimento evidente della qualità unicamente in prossimità dell'ultimo strato disponibile.]
-
-Applicando concretamente questo disaccoppiamento logico, si possono processare i testi e memorizzare su dischi fisici (**Storage**) le pesanti rappresentazioni vettoriali del documento estrapolate fino al livello $l$. Contestualmente, quando il sistema riceve una ricerca, la stringa testuale della query passa indipendentemente attraverso i propri livelli iniziali, entrando finalmente in contatto incrociato col documento salvato solamente partendo dallo strato successivo $l+1$, fino alla fine della rete nel livello $n$.
-
-### Il Collo di Bottiglia dello Storage e la Compressione PreTTR
-
-Il disaccoppiamento dell'architettura alleggerisce in modo impressionante il tempo richiesto alla CPU/GPU del server, al prezzo tuttavia di generare un gargantuesco fabbisogno di archiviazione sui dischi di memoria (il cosiddetto storage burden). Risolvere questo dilemma ingegneristico ha richiesto l'incorporazione nel modello di due moduli intermedi: uno per comprimere i dati del documento (**comp.**) prima che siano riversati all'interno dello Storage, e l'altro speculare preposto alla decompressione rapida (**decomp.**) che ricomponga i vettori non appena devono essere iniettati nel livello condiviso $l+1$. I test eseguiti sul dataset WebTrack (su metrica P@20) hanno certificato il successo di tale integrazione: è concesso applicare tassi di compressione fino all'83% senza registrare alcuna decurtazione netta dell'accuratezza predittiva. I numeri lo dimostrano: confrontando il modello originale BERT base, dotato di un parametro P@20 di 0.3460, con una variante ottimizzata PreTTR avente un **Join Layer** ritardato fino a livello 11 ($l=11$) e vettori deflazionati dell'83% ($e=128$), quest'ultima riesce a preservare un solidissimo parametro di 0.3370.
-
-[INSERIRE IMMAGINE: Riproduzione visiva del modello "Precomputing Term Representations" in cui i flussi paralleli e indipendenti attraversano i layer basali, affluiscono in nodi di compressione (comp.) per essere immagazzinati in uno Storage, dai quali fuoriescono poi attraverso i nodi di decompressione (decomp.) prima di riversarsi fusi nel layer l+1 superiore.]
-
-Sotto l'aspetto cronometrico, valutando il tempo speso in secondi per vagliare lotti di 100 documenti testuali, il guadagno temporale cresce in maniera direttamente proporzionale al posizionamento del **Join Layer** nella pila neurale. Se la congiunzione tra query e documento si innesca al livello 8, il sistema elargisce uno **speedup di 3.5x**; se tuttavia il punto di unione (joint layer) viene esasperato fino allo strato numero 11, il motore registra una velocizzazione estrema, pari a un vertiginoso **42x speedup** complessivo.
-
-### Efficienza e Interpretabilità: Il Modello EPIC
-
-La ricerca sull'ottimizzazione del neural IR ha generato non solo evoluzioni algoritmiche, ma modelli originali dedicati come **EPIC**, acronimo di Expansion via Prediction of Importance with Contextualization. Questa architettura sorge con un duplice mandato: fendere il costo inferenziale pur garantendo un grado eccellente di trasparenza intellegibile da parte umana (interpretabilità) sulle logiche decisionali. Dal punto di vista strutturale, l'accelerazione matematica di EPIC si poggia su un duplice principio. Prima di tutto, la rete attribuisce lo score documentale impiegando puramente il dot product (prodotto scalare), beneficiando a pieno regime delle librerie computazionali ottimizzate per moltiplicazioni rapide fra matrici. In seconda battuta, EPIC argina lo spreco di risorse invocando algoritmi di natura prettamente neurale unicamente in veste di **re-ranking**, applicandoli cioè come rifinitura per scremare un limitato insieme di documenti precedentemente rintracciato e contrassegnato come "potenzialmente rilevante" in una passata pre-computazione classica (come l'estrazione primigenia via BM25). In questo modello trasparente, i vettori generati non sono mere stringhe numeriche, ma si associano a degli appositi punteggi di peso appresi per ogni vocabolo (**Importance scores**); pesi logici che la macchina sa mappare direttamente al posizionamento fisico interno alla stringa di input.
-
-[RIFERIMENTO VISIVO DEL PROFESSORE: L'immagine antropomorfizza la testa del motore BERT mentre incamera i singoli blocchi sillabici della domanda "How far does AAA tow in California". Sulla destra è ritratta la matrice degli output con bande grigie variamente scurite: questi rappresentano visivamente gli "Importance scores" a intensità variabile estratti indipendentemente, vocabolo per vocabolo, provando la natura interpretabile del modulo.]
+- **Pruning tramite Heap:** Eliminazione dei documenti candidati che non raggiungono la soglia minima ($\tau$) definita dall'Heap, riducendo le computazioni a circa quarantamila.
+    
+- **Blocking (Shallow K-Means):** Raggruppamento di decine di documenti simili all'interno delle posting list, permettendo di ignorare blocchi interi senza calcolare il prodotto scalare se ritenuti irrilevanti.
+    
+- **Summaries Ottimizzati:** Vettori che stimano il punteggio massimo di un blocco calcolando il valore massimo per componente, resi efficienti per lo spazio mantenendo solo le componenti non-zero maggiori a discapito della conservatività.
 
 ---
-
-### Glossario e Concetti Chiave
-
-- **De-coupled Interaction**: Filosofia ingegneristica atta ad arginare la dispendiosa latenza processando preventivamente ma asincronamente i vettori testuali del documento e quelli della query, ritardandone volontariamente il fatidico punto di scambio per abbassare il monte ore di calcolo in tempo reale.
-
-- **Join Layer**: Punto fisico all'interno dei multistrati dell'infrastruttura di una rete neurale in cui l'analisi indipendente dei due flussi testuali viene interrotta, obbligando la query testuale ad avviare la correlazione semantica (self-attention) con il bagaglio del documento per estrarne il rank.
-
-- **Precomputing Term Representations e Compressione**: Metodologia incentrata sull'escogitare un salvataggio persistente dei tensori semantici del documento, mitigando il gigantesco handicap di Storage associato avvalendosi di robusti scaglioni compressivi (capaci di sfiorare tassi deflattivi dell'83%).
-
-- **EPIC (Expansion via Prediction of Importance with Contextualization)**: Raffinato applicativo neurale architettato per la riduzione dei costi operativi. Fonde la parsimonia derivante dall'estrazione del ranking con vettori scalari (dot product) alle iniezione trasparenti di "Importance Scores", ponderazioni di peso ricollegabili individualmente a ciascun tassello testuale letto, promuovendo così l'interpretabilità.
-
----
-
-## Espansione e Interpretabilità nel Neural IR: Il Modello EPIC
-
-**Introduzione**
-
-Nelle architetture di Information Retrieval neurale, la necessità di bilanciare un'elevata precisione con tempi di risposta rapidi ha portato allo sviluppo di approcci ibridi e innovativi. In questa sezione, approfondiremo il funzionamento del modello EPIC (Expansion via Prediction of Importance with Contextualization), esplorando come questo sistema riesca a codificare i documenti combinando punteggi di importanza ed espansione. Analizzeremo inoltre le tecniche di potatura (pruning) per ottimizzare le prestazioni, i risultati sperimentali che ne certificano l'efficienza rispetto ai modelli tradizionali e, infine, la sua capacità unica di mantenere l'interpretabilità dei risultati.
-
-### Vettori dei Documenti e Punteggi di Espansione
-
-Il cuore dell'architettura **EPIC** risiede nella sua peculiare modalità di rappresentazione testuale. In questo modello, i vettori dei documenti non sono semplici stringhe numeriche opache, ma sono strutturati per riflettere due componenti fondamentali: l'**Importance score** (il punteggio di importanza di ogni singolo termine, calcolato in base al contesto) e l'**Expansion score** (il punteggio di espansione).
-
-[INSERIRE IMMAGINE: Diagramma del modello BERT (illustrazione basata sulle grafiche di Jay Alammar, [The Illustrated BERT, ELMo, and co. (How NLP Cracked Transfer Learning) – Jay Alammar – Visualizing machine learning one concept at a time.](http://jalammar.github.io/illustrated-bert/)) che elabora la frase "The cost of endless pools...". Dalla rete fuoriescono frecce che moltiplicano gli 'Importance scores' per gli 'Expansion scores', combinandoli in un unico vettore finale del documento (Document vector)]
-
-Quando una frase come "The cost of endless pools" viene elaborata, la rete neurale assegna dinamicamente un peso a ciascuna parola. Questi punteggi vengono poi combinati matematicamente (attraverso una moltiplicazione) per formare il vettore definitivo del documento. Questo approccio permette al sistema non solo di capire quali termini sono centrali, ma anche di espandere il significato includendo concetti semanticamente correlati, arricchendo così la rappresentazione vettoriale prima ancora che avvenga la ricerca vera e propria.
-
-### Il Document Quality Score e la Tecnica di Pruning
-
-Per garantire che il sistema rimanga efficiente in fase di esecuzione, EPIC implementa due meccanismi di ottimizzazione cruciali. Il primo è il **Document Quality Score**, un punteggio qualitativo globale assegnato all'intero documento. Questo valore non viene calcolato a caso, ma è generato da un livello di rete neurale di tipo feed-forward posizionato direttamente sopra il token di classificazione **[CLS]**.
-
-[INSERIRE IMMAGINE: Schema dell'architettura di EPIC che mostra il token speciale [CLS] passare attraverso un 'feed forward layer' per generare il 'Document Quality Score'. Parallelamente, viene illustrato il processo di 'Top k pruning' applicato alle rappresentazioni dei termini]
-
-Il secondo meccanismo è la potatura, nota tecnicamente come **Top k pruning**. Poiché memorizzare vettori densi per ogni singola parola di un documento richiederebbe uno spazio di archiviazione (storage) insostenibile, il sistema seleziona e conserva esclusivamente le rappresentazioni dei *k* termini considerati più importanti, scartando le informazioni ridondanti o di scarso valore semantico. In questo modo, l'indice di ricerca si mantiene compatto, permettendo al contempo un recupero delle informazioni estremamente rapido.
-
-### Analisi Sperimentale: Il Compromesso tra Efficienza ed Efficacia
-
-Le prestazioni del modello EPIC sono state rigorosamente misurate e confrontate con altri sistemi allo stato dell'arte sul dataset di validazione MS-MARCO (Dev). L'obiettivo degli esperimenti era dimostrare come fosse possibile abbattere la latenza delle query mantenendo al contempo un'alta efficacia nel ranking, misurata attraverso la metrica MRR@10.
-
-[RIFERIMENTO VISIVO DEL PROFESSORE: Una serie di grafici a dispersione (scatter plot) che mostrano sull'asse delle ordinate l'efficacia (MRR@10) e sull'asse delle ascisse la latenza della query in millisecondi. Nei grafici viene evidenziato progressivamente il posizionamento di EPIC rispetto a docTTTTTquery, al modello TK a un layer e infine al massiccio BERT large, collocato in alto all'estrema destra a causa della sua altissima latenza.]
-
-I risultati empirici evidenziano i notevoli vantaggi computazionali di questo approccio. La seguente tabella sintetizza le comparazioni principali effettuate durante gli esperimenti:
-
-| **Confronto Sperimentale**       | **Accelerazione (Speedup)** | **Variazione della Latenza** | **Efficacia del Ranking Mantenuta** |
-| -------------------------------- | --------------------------- | ---------------------------- | ----------------------------------- |
-| **EPIC + BM25** vs docTTTTTquery | 1.3x speedup                | Da 63ms a 48ms               | 98% dell'efficacia originale        |
-| **EPIC** vs TK (1 layer)         | 6.5x speedup                | Da 445ms a 68ms              | Stessa efficacia del ranking (100%) |
-| **EPIC** vs BERT (large)         | 51.5x speedup               | Da 3.5 secondi a 68ms        | 83% dell'efficacia originale        |
-
-Come si evince dai dati, l'abbinamento di EPIC con metodi di espansione o di recupero iniziale (come BM25 o docTTTTTquery) permette di superare algoritmi più complessi come TK (1 layer) ottenendo un'accelerazione di 6.5 volte a parità di risultati qualitativi. Se paragonato al mastodontico BERT (large), EPIC sacrifica solo un 17% di efficacia per restituire un tempo di risposta ben 51,5 volte più rapido, rendendo il modello utilizzabile in un contesto di produzione reale.
-
-### L'Interpretabilità Trasparente del Modello EPIC
-
-Oltre all'efficienza computazionale, uno dei meriti più rilevanti di EPIC è la sua **Interpretabilità**. A differenza dei modelli neurali tradizionali, che agiscono spesso come "scatole nere" inaccessibili, EPIC permette all'operatore umano di comprendere visivamente ed esplicitamente il motivo per cui un documento è stato ritenuto rilevante o espanso.
-
-Prendendo ad esempio la query "cost of endless pools swim spa", il sistema evidenzia i termini del documento sorgente con intensità differenti a seconda della loro importanza. In una frase esplicativa che cita "endless pools and swim spa ##s are available in a number of different price brackets...", termini come "endless", "pools", "swim", "spa" e "prices" risultano chiaramente identificati come portanti. Di conseguenza, il modello genera dinamicamente dei **Top expansion terms** logicamente deducibili: per concetti legati al costo, le parole di espansione selezionate includono "pay", "paid", "cost", "paying", "much", "what", "fee", "costs", "thing" e "spending". In contrapposizione, un modello come docTTTTTquery produrrebbe un'espansione diversa, focalizzandosi su "pool", "endless", "how", "cost", "much", "price", "doe", "swim", "build", "spa". Questa trasparenza è fondamentale per diagnosticare e raffinare il comportamento del motore di ricerca.
-
-[INSERIRE IMMAGINE: Schermata che mostra visivamente l'interpretabilità di EPIC per la query "cost of endless pools swim spa". Il testo del documento è scomposto in singole etichette colorate (box) con diverse sfumature di colore per indicare il peso dei termini. Sotto, sono elencati esplicitamente i "Top expansion terms" e i termini espansi dal modello concorrente "docTTTTTquery"]
-
----
-
-### Glossario dei Concetti Chiave
-
-- **EPIC (Expansion via Prediction of Importance with Contextualization)**: Modello neurale ottimizzato per l'efficienza e la trasparenza, che calcola vettori basati sull'importanza dei termini nel loro contesto integrandoli con capacità di espansione semantica.
-
-- **Expansion score**: Valore numerico assegnato all'interno del vettore del documento che codifica l'arricchimento semantico, permettendo al sistema di recuperare documenti usando termini correlati non esplicitamente presenti nella query originale.
-
-- **Document Quality Score**: Punteggio globale assegnato all'intero testo analizzato, calcolato processando il token di base [CLS] mediante uno strato dedicato della rete neurale (feed-forward layer).
-
-- **Top k pruning**: Tecnica di alleggerimento computazionale che scarta i vettori dei termini meno rilevanti di un documento, conservando solo i primi *k* valori per ottimizzare lo spazio di memoria richiesto.
-
-- **Interpretabilità**: La proprietà di un sistema di Information Retrieval, accentuata in EPIC, che consente agli utenti e agli sviluppatori di capire il ragionamento interno della macchina (ad esempio visionando quali parole hanno ricevuto il peso maggiore per attivare la classificazione).
-
----
+![[Pasted image 20260430185057.png]]
+![[Pasted image 20260430185105.png]]
+![[Pasted image 20260430185116.png]]
+![[Pasted image 20260430185127.png]]

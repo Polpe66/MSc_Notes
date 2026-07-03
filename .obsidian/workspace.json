@@ -6,6 +6,7 @@
       {
         "id": "9142dff8adbdf1df",
         "type": "tabs",
+        "dimension": 52.36508994003998,
         "children": [
           {
             "id": "ac3bd5d18cb0750a",
@@ -13,12 +14,31 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "IR/Slide9.md",
+                "file": "IR/Slide3.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Slide9"
+              "title": "Slide3"
+            }
+          }
+        ]
+      },
+      {
+        "id": "8bcc4475a89f1abc",
+        "type": "tabs",
+        "dimension": 47.63491005996003,
+        "children": [
+          {
+            "id": "db55ab96dbc52340",
+            "type": "leaf",
+            "state": {
+              "type": "pdf",
+              "state": {
+                "file": "Slide Lezioni/03-07-WeightingModels.pdf"
+              },
+              "icon": "lucide-file-text",
+              "title": "03-07-WeightingModels"
             }
           }
         ]
@@ -78,7 +98,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 300,
+    "collapsed": true
   },
   "right": {
     "id": "91903aee59939870",
@@ -196,30 +217,47 @@
   },
   "active": "ac3bd5d18cb0750a",
   "lastOpenFiles": [
+    "Slide Lezioni/03-07-WeightingModels.pdf",
+    "IR/Slide3.md",
+    "Slide Lezioni/02-NaturalLanguage.pdf",
+    "IR/Slide2.md",
+    "Slide Lezioni/01-Evaluation.pdf",
+    "IR/Slide1.md",
+    "Slide Lezioni/00-Introduction.pdf",
+    "IR/Slide10.md",
+    "IR/Lezione 1 - Introduzione.md",
+    "IR/Lezione 12 - Neural Information Retrieval.md",
+    "IR/Lezione 11 - Training e Inferenza di Alberi.md",
+    "IR/Lezione 2 - Valutazione dei Sistemi di IR.md",
+    "IR/Lezione 13 - Approximate Nearest Neighbor.md",
+    "IR/Lezione 10 - Learning to Rank II.md",
+    "IR/Lezione 9 - Learning to Rank I.md",
+    "IR/Lezione 8 - Data Compression.md",
+    "IR/Lezione 7 - Query Processing Avanzato Top-k.md",
+    "IR/Lezione 6 - Inverted Index e Query Processing.md",
+    "IR/Lezione 5 - Ponderazione e BM25.md",
+    "IR/Lezione 4 - Rappresentazione del Testo e Modello Booleano.md",
+    "IR/Lezione 3 - Proprieta╠Ç del Linguaggio Naturale e Text Processing.md",
+    "Senza nome",
+    "IR/Slide12.md",
+    "IR/allegati/Pasted image 20260502154922.png",
+    "IR/allegati/Pasted image 20260502154817.png",
+    "IR/allegati/Pasted image 20260502154749.png",
+    "IR/allegati/Pasted image 20260502154713.png",
+    "IR/allegati/Pasted image 20260502154448.png",
+    "IR/allegati/Pasted image 20260502154340.png",
+    "IR/allegati/Pasted image 20260502154220.png",
+    "IR/allegati/Pasted image 20260502154157.png",
+    "IR/allegati/Pasted image 20260502154121.png",
+    "IR/allegati/Pasted image 20260502153951.png",
+    "IR/Slide11.md",
+    "IR/Notes_IR.md",
+    "IR/Slide9.md",
     "IR/Slide8.md",
-    "IR/allegati/Pasted image 20260423152144.png",
-    "IR/allegati/Pasted image 20260423152121.png",
-    "IR/allegati/Pasted image 20260423152056.png",
-    "IR/allegati/Pasted image 20260423152019.png",
-    "IR/allegati/Pasted image 20260423151710.png",
-    "IR/allegati/Pasted image 20260423151506.png",
-    "IR/allegati/Pasted image 20260423151427.png",
-    "IR/allegati/Pasted image 20260423151402.png",
-    "IR/allegati/Pasted image 20260423151126.png",
-    "IR/allegati/Pasted image 20260423150433.png",
     "IR/Slide7.md",
     "IR/Slide6.md",
     "IR/Slide5.md",
-    "IR/Slide4.md",
-    "README.md",
     "P2P/slideRicci/8_260328_094427.pdf",
-    "IR/Slide3.md",
-    "IR/Slide2.md",
-    "IR/Slide1.md",
-    "IR/Notes_IR.md",
-    "IR/Slide11.md",
-    "IR/Slide10.md",
-    "IR/Slide9.md",
     "IR/allegati"
   ]
 }

@@ -1,6 +1,4 @@
-# Slide 9: Addestramento e Inferenza Efficienti di Ensemble di Alberi di Decisione
-
-In questo capitolo affronteremo il tema dell'addestramento e dell'inferenza efficienti per i modelli basati su **ensemble di alberi di decisione** (Ensembles of Decision Trees). Questo argomento, delineato dal professor Rossano Venturini dell'Università di Pisa, risulta fondamentale per comprendere a fondo le moderne architetture di Information Retrieval (IR) e i complessi sistemi di ranking.
+# Addestramento e Inferenza Efficienti di Ensemble di Alberi di Decisione
 
 ### L'Architettura di Base e il Query Processing
 
@@ -10,13 +8,12 @@ Durante la fase Offline, il sistema analizza una **Document Collection**. Questa
 
 Nella fase Online, che si attiva nel momento in cui l'utente effettua una ricerca, una **Query** iniziale viene elaborata e trasformata in una **Expanded Query**. Questa query espansa viene inviata al blocco di **Query Processing**, il quale interroga direttamente l'Inverted Index. A questo punto, subentra la fase di **Feature Lookup and Computation**, che ha il compito di recuperare dal repository le caratteristiche specifiche associate ai documenti estratti. Infine, i documenti vengono ordinati da una **Learned Ranking Function**, la quale si basa sul modello di ranking precedentemente addestrato, restituendo così all'utente i risultati finali ordinati per rilevanza.
 
-[INSERIRE IMMAGINE: Diagramma di flusso dell'architettura di un motore di ricerca, che illustra le fasi online e offline, i flussi dall'elaborazione della query alla feature computation, fino alla Learned Ranking Function e ai dati di training]
-
+![[Pasted image 20260424114602.png]]
 ### La Gradient Boosting Machine (GBM)
 
 Il motore matematico dietro molti di questi modelli di ranking è la **Gradient Boosting Machine (GBM)**. In termini generali, gli algoritmi di apprendimento **Boosting** operano addestrando i dati tramite molteplici **weak learners**. Un "weak learner" può essere inteso come un qualsiasi metodo di classificazione sotto-potenziato (under-power). La potenza del boosting risiede nel fatto che ogni nuovo learner apprende dagli errori commessi da quelli che lo hanno preceduto.
 
-Nel caso specifico della GBM, il ruolo di weak learners viene ricoperto proprio dagli **alberi di decisione**. L'obiettivo finale di questa tecnica è imparare una complessa funzione $F(x)$, definita come la somma di $M$ weak learners. Questo concetto è riassunto dalla formula $F(x)=\sum_{i=0}^{M}F_{i}(x)$. La versatilità della GBM è notevole: può essere utilizzata efficacemente sia per compiti di regressione che per la classificazione, trovando un'applicazione perfetta anche nel Learning-to-Rank (LtR). Storicamente, questo approccio è stato originariamente proposto da Breiman nel 1997 e successivamente aggiornato e perfezionato da Friedman nel 1999. Oggigiorno, implementazioni altamente ottimizzate di questa teoria costituiscono il nucleo di librerie estremamente diffuse come **XGBoost** e **LightGBM**.
+Nel caso specifico della GBM, il ruolo di weak learners viene ricoperto proprio dagli **alberi di decisione**. L'obiettivo finale di questa tecnica è imparare una complessa funzione $F(x)$, definita come la somma di $M$ weak learners. Questo concetto è riassunto dalla formula $F(x)=\sum_{i=0}^{M}F_{i}(x)$. La versatilità della GBM è notevole: può essere utilizzata efficacemente sia per compiti di regressione che per la classificazione, trovando un'applicazione perfetta anche nel Learning-to-Rank (LtR). Oggigiorno, implementazioni altamente ottimizzate di questa teoria costituiscono il nucleo di librerie estremamente diffuse come **XGBoost** e **LightGBM**.
 
 ### Learning-to-Rank con Ensemble di Alberi di Regressione
 
@@ -24,7 +21,7 @@ Quando applichiamo i principi appena visti al Learning-to-Rank, il modello che n
 
 Tuttavia, c'è un rovescio della medaglia dal punto di vista dell'efficienza: al momento del calcolo del punteggio (scoring time), il sistema è costretto a elaborare e attraversare tutti gli alberi presenti per ogni singolo documento. Per comprendere la scala del problema, analizziamo qualche numero: un modello tipico include un quantitativo di alberi di decisione $M$ che varia da $1K$ a $20K$ (da 1.000 a 20.000 alberi). Ognuno di questi alberi presenta dalle 16 alle 512 foglie, e l'intero sistema coinvolge un bacino di feature compreso tra 100 e 2000. In questo schema logico, alberi multipli (come $T_1$, $T_2$, fino a $T_n$) ricevono in input la coppia composta dalla query e dal documento $(q, d)$. Ciascun albero emette in uscita un sotto-punteggio ($s_1$, $s_2$, fino a $s_n$). Il punteggio globale del documento si calcola, come detto, tramite la sommatoria $s(d)=\sum_{i=1}^{n}s_{i}$.
 
-[INSERIRE IMMAGINE: Schema concettuale che mostra diverse strutture ad albero indipendenti che processano la stessa coppia (q, d) e i cui output parziali confluiscono in una somma finale per ottenere il punteggio s(d)]
+![[Pasted image 20260427083947.png]]
 
 Per concretizzare la valutazione di uno di questi alberi di decisione, consideriamo un esempio pratico. Supponiamo di trovarci di fronte al seguente set di feature estratte per la coppia Query-Documento:
 
@@ -34,38 +31,47 @@ Per concretizzare la valutazione di uno di questi alberi di decisione, consideri
 
 L'attraversamento inizia dalla radice, la quale imposta una condizione sulla feature $F_4$ (ad esempio, se il valore è $\le 50.1$). Poiché $F_4 = 43.9$, la condizione è soddisfatta e l'algoritmo si sposta verso il nodo successivo, che analizza la feature $F_1$ (soglia a $10.1$). Avendo $F_1 = 13.3$, la condizione non è superata e si imbocca il ramo alternativo fino ad arrivare alla feature $F_3$ (soglia a $-1.0$). Essendo $F_3 = -1.2$, si segue l'ultimo ramo che conduce alla foglia di uscita ("Exit leaf"). In questo esempio, la foglia di uscita ha un valore assegnato di $2.0$, pertanto il sistema incrementerà il punteggio totale applicando la regola $Score += 2.0$.
 
-[INSERIRE IMMAGINE: Struttura di un albero di decisione con percorsi ramificati basati su soglie (es. 50.1:F4, 10.1:F1). Il percorso valutato nell'esempio precedente è contrassegnato con frecce rosse fino ad arrivare al nodo foglia con valore 2.0]
+![[Pasted image 20260427084224.png]]
 
 ### Dettagli di Addestramento della Gradient Boosting Machine
 
-Garantire un addestramento efficiente per questi ensemble richiede basi matematiche rigorose. L'algoritmo riceve in input un set di dati descritto come $\{(x_{i},y_{i})\}_{i=1}^{n}$, dove $x_{i}$ rappresenta il vettore delle feature e $y_{i}$ rappresenta il valore target. Deve essere definita inoltre una **funzione di perdita differenziabile** $L(y_{i},F(x_{i}))$. Se l'obiettivo è la regressione, si impiega generalmente l'Errore Quadratico Medio o **MSE (Mean Squared Error)**, formalizzato come $L(y_{i},F(x_{i}))=\frac{1}{2}(y_{i}-F(x_{i}))^{2}$. Al contrario, se ci si trova di fronte a un problema di classificazione, la scelta ricade sull'entropia incrociata (Cross entropy).
+Garantire un addestramento efficiente per questi ensemble richiede basi matematiche rigorose. L'algoritmo riceve in input un set di dati descritto come $\{(x_{i},y_{i})\}_{i=1}^{n}$, dove $x_{i}$ rappresenta il vettore delle feature e $y_{i}$ rappresenta il valore target. 
+Deve essere definita inoltre una **funzione di perdita differenziabile** $L(y_{i},F(x_{i}))$. 
+
+Se l'obiettivo è la regressione, si impiega generalmente l'Errore Quadratico Medio o **MSE (Mean Squared Error)**, formalizzato come $L(y_{i},F(x_{i}))=\frac{1}{2}(y_{i}-F(x_{i}))^{2}$. Al contrario, se ci si trova di fronte a un problema di classificazione, la scelta ricade sull'entropia incrociata (Cross entropy).
 
 Il primo passo pratico consiste nello stabilire una predizione iniziale. Per minimizzare l'MSE fin dall'inizio, il sistema assegna come stima approssimativa di partenza la media aritmetica di tutti i valori target disponibili, espressa come $F_{0}(x_{i})=\frac{1}{n}\sum_{i=1}^{n}y_{i}$. Avendo stabilito questa baseline, inizia un ciclo iterativo che si ripete per $m \in [1,M]$, con $M$ pari al numero di weak learners che vogliamo costruire.
 
 In ogni iterazione, l'obiettivo è elaborare i cosiddetti **pseudo-residui** (che corrispondono al gradiente, cioè le derivate parziali della funzione di perdita).
 
-[RIFERIMENTO VISIVO DEL PROFESSORE: Viene mostrato un grafico cartesiano che traccia il valore predetto $F_m(x_i)$ contro la curva convessa della funzione di perdita $L(y_i, F(x_i))$. Il gradiente corrisponde alla pendenza della tangente alla curva, che indica la direzione per minimizzare l'errore]
+![[Pasted image 20260427091123.png]]
 
 Il gradiente rappresenta la derivata della funzione di perdita calcolata rispetto alla predizione corrente. Lo scopo è "spostare" questa predizione in una direzione tale da far decrescere la funzione di perdita.
-In termini formali, lo pseudo-residuo per ogni punto $i$ da $1$ a $n$ si ricava così: $r_{i,m}=-[\frac{\partial L(y_{i},F(x_{i}))}{\partial F(x_{i})}]F(x)=F_{m-1}(x)$. Se si applica la logica dell'MSE, l'equazione si semplifica notevolmente in $r_{i,m}=y_{i}-F_{i}(x_{m})$.
+
+In termini formali, lo pseudo-residuo per ogni punto $i$ da $1$ a $n$ si ricava così: 
+![[Pasted image 20260427091211.png|277]]
+![[Pasted image 20260427091225.png]]
+
+Se si applica la logica dell'MSE, l'equazione si semplifica notevolmente in $r_{i,m}=y_{i}-F_{i}(x_{m})$.
 
 Una volta quantificati i pseudo-residui, si adatta un nuovo albero di regressione proprio su questi scarti, andando a creare un numero di regioni terminali (le foglie) pari a $k_{m}$. Per ciascuna di queste regioni $j$, si prende il punto dati $x_{i}$ che cade al suo interno e si procede calcolando il valore di $\gamma$ ottimale che vada a minimizzare l'errore secondo questa formula: $\gamma_{j,m}=argmin_{\gamma}\sum_{x_{i}}L(y_{i},F_{m-1}(x_{i})+\gamma)$. Nel contesto dell'MSE, questo valore matematico risulta essere nient'altro che la media dei valori target presenti in quella specifica regione terminale.
 
 Il passo conclusivo dell'iterazione consiste nell'aggiornare l'intero modello sommando il nuovo componente individuato: $F_{m}(x)=F_{m-1}(x)+\alpha\gamma_{j,m}$. In questa espressione, $j$ fa riferimento alla regione che contiene il punto $x$, mentre $\alpha$ agisce come tasso di apprendimento (learning rate). Ripetendo questi step, al termine del ciclo l'algoritmo restituirà in output il modello definitivo $F_{M}$. Man mano che avvengono i "node split" (le divisioni dei nodi), l'accuratezza migliora, portando a una progressiva diminuzione della somma dei residui originari.
 
-[INSERIRE IMMAGINE: Grafici a dispersione (scatterplot) sovrapposti che dimostrano visivamente come, partendo da una linea piatta che rappresenta la media $F_0$, ogni split dei nodi riduca l'ampiezza dei residui, ovvero la distanza dei punti blu dalla linea di approssimazione rossa]
+![[Pasted image 20260427091601.png]]
 
+---
 ### Concetti Chiave
 
-1. **Inverted Index**: Struttura dati primaria elaborata offline che permette al motore di ricerca di recuperare documenti rapidamente al momento dell'invio di una query online.
+- **Inverted Index**: Struttura dati primaria elaborata offline che permette al motore di ricerca di recuperare documenti rapidamente al momento dell'invio di una query online.
 
-2. **Weak Learners**: In ambito Boosting, si definiscono così i classificatori semplici (come un singolo albero di decisione non profondo) che, lavorando in sinergia, riescono a formare un modello di elaborazione molto potente.
+- **Weak Learners**: In ambito Boosting, si definiscono così i classificatori semplici (come un singolo albero di decisione non profondo) che, lavorando in sinergia, riescono a formare un modello di elaborazione molto potente.
 
-3. **Gradient Boosting Machine (GBM)**: Sofisticata tecnica di apprendimento che ottimizza modelli di predizione in modo iterativo, dove ogni albero successivo si focalizza nel correggere gli errori (pseudo-residui) commessi nella fase precedente.
+- **Gradient Boosting Machine (GBM)**: Sofisticata tecnica di apprendimento che ottimizza modelli di predizione in modo iterativo, dove ogni albero successivo si focalizza nel correggere gli errori (pseudo-residui) commessi nella fase precedente.
 
-4. **Learning-to-Rank (LtR)**: L'applicazione degli algoritmi di ensemble (come la somma dei vari sotto-punteggi di una foresta di alberi) per determinare un punteggio totale capace di stabilire l'ordine di rilevanza per un insieme di documenti.
+- **Learning-to-Rank (LtR)**: L'applicazione degli algoritmi di ensemble (come la somma dei vari sotto-punteggi di una foresta di alberi) per determinare un punteggio totale capace di stabilire l'ordine di rilevanza per un insieme di documenti.
 
-5. **Pseudo-residui e Gradiente**: I pseudo-residui indicano il delta di errore per ciascun punto dati, corrispondente al gradiente della funzione di perdita. Muovere le previsioni lungo questo gradiente consente di minimizzare l'errore del modello.
+- **Pseudo-residui e Gradiente**: I pseudo-residui indicano il delta di errore per ciascun punto dati, corrispondente al gradiente della funzione di perdita. Muovere le previsioni lungo questo gradiente consente di minimizzare l'errore del modello.
 
 ---
 
@@ -87,7 +93,8 @@ Le innovazioni introdotte da XGBoost per ottimizzare le performance includono:
 
 Per comprendere il funzionamento interno di un albero, analizziamo l'**Exact Greedy Algorithm**. Questo algoritmo ha il compito di trovare la divisione dei dati che massimizza il guadagno informativo, esaminando ogni possibile punto di split per ogni feature.
 
-[INSERIRE IMMAGINE: Grafico a dispersione che mostra i punti dati su un piano cartesiano definiti dalle variabili Time e Project, con una linea rossa che indica una possibile divisione]
+![[Pasted image 20260427091808.png]]
+![[Pasted image 20260427091817.png]]
 
 Per illustrare il processo, consideriamo un esempio pratico basato su sei studenti, di cui analizziamo le variabili **Time** (tempo) e **Project** (progetto) per predirne un valore target **y**:
 
@@ -105,19 +112,21 @@ Il calcolo inizia definendo la predizione iniziale $F_0$, che corrisponde alla m
 
 L'algoritmo procede quindi a valutare i possibili candidati per lo split. Una delle condizioni testate è, ad esempio, **Time <= 15**.
 
-[RIFERIMENTO VISIVO DEL PROFESSORE: Nelle slide dalla 13 alla 20, viene mostrato graficamente come l'algoritmo "Exact Greedy" scansiona sequenzialmente tutti i possibili valori delle feature. Una linea rossa si muove lungo gli assi del grafico "Time" e "Project" per testare ogni possibile divisione e calcolarne il relativo punteggio]
+![[Pasted image 20260428111443.png]]
 
 Durante questa scansione sistematica, per ogni divisione ipotizzata vengono calcolati due valori: lo **score_left** e lo **score_right**. Nel caso dello split su **Time <= 15**, lo studente 2 (residuo -6) viene isolato nel ramo sinistro, generando uno $score_{left} = 36$, mentre gli altri cinque studenti finiscono nel ramo destro, producendo uno $score_{right} = 6$. Questo metodo garantisce di trovare il punto di divisione matematicamente ottimale, ma risulta estremamente oneroso dal punto di vista computazionale perché costringe il sistema a enumerare ogni singola possibilità.
 
+---
+
 ### Concetti Chiave
 
-1. **XGBoost**: Algoritmo evoluto basato sul Gradient Boosting che introduce parallelismo e ottimizzazioni di memoria per gestire dataset massivi.
-
-2. **Exact Greedy Algorithm**: Metodo di ricerca che scansiona ogni valore di ogni feature per individuare lo split migliore.
-
-3. **Pseudo-residui ($r_0$)**: La differenza tra il valore target reale e la stima attuale, utilizzati come obiettivo per l'addestramento del prossimo albero nell'ensemble.
-
-4. **Score (Root/Left/Right)**: Metriche numeriche utilizzate per valutare la qualità di una divisione dei dati all'interno di un nodo dell'albero.
+ - **XGBoost**: Algoritmo evoluto basato sul Gradient Boosting che introduce parallelismo e ottimizzazioni di memoria per gestire dataset massivi.
+ 
+ - **Exact Greedy Algorithm**: Metodo di ricerca che scansiona ogni valore di ogni feature per individuare lo split migliore.
+ 
+ - **Pseudo-residui ($r_0$)**: La differenza tra il valore target reale e la stima attuale, utilizzati come obiettivo per l'addestramento del prossimo albero nell'ensemble.
+ 
+ - **Score (Root/Left/Right)**: Metriche numeriche utilizzate per valutare la qualità di una divisione dei dati all'interno di un nodo dell'albero.
 
 ---
 
@@ -138,13 +147,15 @@ Per comodità, richiamiamo la tabella dei dati analizzati:
 
 Applicando la regola **Project <= 1**, i dati vengono divisi in due rami. Il ramo sinistro ("y", yes) accoglie gli studenti 2 e 6, i cui residui sono rispettivamente -6 e -3. Il ramo destro ("n", no) riceve i restanti studenti con residui 6, 1, 6 e -4.
 
-[INSERIRE IMMAGINE: Albero di decisione parziale che mostra lo split sulla condizione "Project <= 1". Il ramo sinistro "y" porta a un nodo foglia con i valori -6 e -3, mentre il ramo destro "n" porta a un nodo con i valori 6, 1, 6 e -4.]
+![[Pasted image 20260428111825.png]]
+
 
 A questo punto, l'algoritmo calcola il punteggio per ciascun ramo. Il punteggio del nodo sinistro si ottiene quadrando la somma dei residui e dividendo per il numero di elementi: $score_{left} = \frac{(\sum r_0(i))^2}{2} = 40,5$. Seguendo la stessa logica, il punteggio del nodo destro risulta essere: $score_{right} = \frac{(\sum r_0(i))^2}{4} = 20,25$.
 
 L'elemento cruciale per decidere se confermare questa divisione è il calcolo del **gain** (guadagno). La formula applicata è: $gain = score_{left} + score_{right} - score_{root} + \gamma$. All'interno di questa equazione, la variabile $\gamma$ rappresenta la **pruning constant** (costante di potatura). In questo specifico scenario, il valore della costante è posto a -0. Sostituendo i valori calcolati, il guadagno riportato dall'algoritmo ammonta a 42.
 
 L'albero continua a espandersi ricorsivamente. Ad esempio, il ramo destro subisce una successiva diramazione basata sulla condizione **Time <= 45**. Al termine della costruzione, per ogni foglia terminale viene calcolato l'output finale, che corrisponde semplicemente alla media dei residui contenuti in quella foglia, secondo la formula: $output = \frac{1}{n} \sum r_i$. Grazie a questo calcolo, le tre foglie finali dell'esempio ottengono rispettivamente i valori di output **-4.5**, **4.3** e **-3**.
+![[Pasted image 20260428112138.png]]
 
 ### I Limiti dell'Exact Greedy Algorithm
 
@@ -156,7 +167,7 @@ Il motivo di questa inefficienza risiede nel fatto che il sistema non è in grad
 
 Per superare il blocco computazionale appena descritto, i sistemi moderni abbandonano l'Exact Greedy in favore di un approccio noto come **Histogram-based Split Finding**.
 
-[RIFERIMENTO VISIVO DEL PROFESSORE: Grafico a dispersione che mostra i punti dati distribuiti sugli assi "Time" e "Project". L'asse "Time" è suddiviso orizzontalmente in specifiche fasce di valore (0-20, 20-40, 40-60), anticipando visivamente il concetto di partizionamento a blocchi tipico degli istogrammi.]
+![[Pasted image 20260428112218.png]]
 
 L'idea fondamentale alla base di questo metodo è rinunciare alla precisione assoluta della scansione punto per punto, raggruppando invece i dati in segmenti più ampi per velocizzare drasticamente la ricerca dello split ottimale.
 
@@ -164,13 +175,13 @@ L'idea fondamentale alla base di questo metodo è rinunciare alla precisione ass
 
 ### Concetti Chiave
 
-1. **Score e Gain**: Metriche matematiche fondamentali. Lo *score* valuta la purezza di un singolo nodo, mentre il *gain* quantifica il miglioramento complessivo apportato da uno split rispetto al nodo padre.
+ - **Score e Gain**: Metriche matematiche fondamentali. Lo *score* valuta la purezza di un singolo nodo, mentre il *gain* quantifica il miglioramento complessivo apportato da uno split rispetto al nodo padre.
 
-2. **Pruning Constant ($\gamma$)**: Un parametro utilizzato nel calcolo del guadagno che serve a controllare la complessità dell'albero; se il guadagno non supera questa soglia, lo split può essere "potato" (ignorato).
+- **Pruning Constant ($\gamma$)**: Un parametro utilizzato nel calcolo del guadagno che serve a controllare la complessità dell'albero; se il guadagno non supera questa soglia, lo split può essere "potato" (ignorato).
 
-3. **Inefficienza dell'Exact Greedy**: Limite strutturale dell'algoritmo di base, il cui costo temporale scala moltiplicando il numero di feature per il numero di punti dati ($O(F \times N)$), rendendolo inadatto a dataset massivi.
+-  **Inefficienza dell'Exact Greedy**: Limite strutturale dell'algoritmo di base, il cui costo temporale scala moltiplicando il numero di feature per il numero di punti dati ($O(F \times N)$), rendendolo inadatto a dataset massivi.
 
-4. **Histogram-based Split Finding**: Tecnica di ottimizzazione che mira a risolvere l'inefficienza dell'Exact Greedy, approssimando la ricerca degli split raggruppando i valori delle feature in istogrammi.
+-  **Histogram-based Split Finding**: Tecnica di ottimizzazione che mira a risolvere l'inefficienza dell'Exact Greedy, approssimando la ricerca degli split raggruppando i valori delle feature in istogrammi.
 
 ---
 
@@ -178,11 +189,10 @@ L'idea fondamentale alla base di questo metodo è rinunciare alla precisione ass
 
 Come abbiamo precedentemente osservato, l'approccio exact greedy risulta estremamente oneroso, poiché richiede un tempo di calcolo proporzionale al numero di feature moltiplicato per il numero di punti dati per ogni singolo nodo elaborato. A causa di questo limite, non è materialmente possibile enumerare e testare tutte le possibili divisioni in scenari complessi , dato che ogni singola feature potrebbe presentare fino a *n* split potenziali. Per superare questo collo di bottiglia, l'informatica moderna impiega la tecnica dell'**Histogram-based Split Finding**. Questo metodo sfrutta gli istogrammi come strumento per aggregare valori consecutivi all'interno dei dati. Invece di analizzare ogni punto, i possibili valori assunti da una feature vengono raggruppati all'interno di un determinato numero di "bin" (contenitori virtuali); questa suddivisione può avvenire in modo uniforme oppure seguendo la distribuzione basata sui percentili dei dati. Di conseguenza, è fondamentale prevedere un aggiornamento tempestivo dell'istogramma ogniqualvolta si genera un nuovo nodo nell'albero decisionale , tenendo conto che questa partizione a blocchi può essere applicata sia a livello globale che locale.
 
-[INSERIRE IMMAGINE: Istogramma a barre che mostra la somma dei residui suddivisa per specifici intervalli o bin predefiniti, nello specifico per le fasce 0-20, 20-40 e 40-60 ]
+![[Pasted image 20260428112502.png]]
 
 Grazie a questa categorizzazione per fasce, l'efficienza aumenta radicalmente: la ricerca di ogni split richiederà un tempo proporzionale unicamente al numero di feature moltiplicato per il numero di bin, saltando la scansione estenuante di ogni singolo record. Da un punto di vista tecnico, fissando un parametro *b* bit, i valori originali della feature vengono direttamente quantizzati all'interno di $2^b$ bin. Il vantaggio di tale ottimizzazione è cruciale per poter addestrare dataset di proporzioni gigantesche garantendo al contempo un impatto minimo sulla memoria del sistema (memory footprint). Basti pensare che, sfruttando questa tecnica, processare il dataset Higgs contenente 10 milioni di istanze su una GPU consuma solamente 611MB di RAM. Per fornire un quadro delle configurazioni standard, l'algoritmo imposta solitamente di default l'utilizzo di 255 bin, che vengono ridotti a 16 bin se si elabora tramite processore grafico (GPU).
-
-[RIFERIMENTO VISIVO DEL PROFESSORE: Viene mostrato un istogramma a colonne che mette a confronto il tempo di addestramento misurato in secondi. Il grafico valuta dataset molto noti come Higgs, epsilon, Bosch, Microsoft-LTR, Expo e Yahoo-LTR. I test presentano le performance ottenute variando i bin a 255, 63 e 15, ed eseguendo le operazioni sia su una CPU da 28-Core sia su schede grafiche come AMD RX 480 e NVIDIA GTX 1080 ]
+![[Pasted image 20260428112627.png]]![[Pasted image 20260428112633.png]]
 
 ### L'Architettura Innovativa di LightGBM
 
@@ -220,11 +230,6 @@ L'altra innovazione cruciale è l'**Exclusive Feature Bundling (EFB)**, concepit
 
 (Tabella che dimostra operativamente il concetto di EFB: le colonne esclusive 'Midterms' ed 'Exam' vengono raggruppate senza perdita di logica nella nuova e singola colonna 'M&E')
 
-### Valutazione Sperimentale dei Modelli GBDT
-
-L'impatto di simili architetture viene ampiamente validato dalla comunità accademica. Un punto di riferimento essenziale è lo studio "An Experimental Evaluation of Large Scale GBDT Systems", redatto dagli accademici Fangcheng Fu, Jiawei Jiang, Yingxia Shao e Bin Cui e pubblicato nel contesto del pVLDB nel 2019.
-
-[RIFERIMENTO VISIVO DEL PROFESSORE: Si evidenziano i grafici dei risultati empirici tratti dal documento, che tracciano l'andamento della Valid AUC (misura di accuratezza) in funzione del tempo speso in secondi. Le curve presentate confrontano chiaramente le prestazioni dei sistemi Vero, DimBoost, LightGBM e XGBoost testati a fondo su scenari di enorme complessità, includendo i famosi dataset denominati (a) SUSY, (b) Higgs, (e) RCV1 e (f) Synthesis ]
 
 ### Verso l'Inferenza Efficiente: Panoramica e Complessità
 
@@ -232,7 +237,7 @@ Passando dalla teoria dell'addestramento all'applicazione reale, incontriamo il 
 
 La vera criticità emerge nel momento topico del calcolo del punteggio (il cosiddetto scoring time): per valutare l'effettiva pertinenza di un singolo elemento, il motore deve rigorosamente processare l'intera selva di alberi costruita durante la fase offline. Le metriche standard delineano uno scenario computazionalmente brutale: il numero totale di alberi impiegati, etichettato con la variabile $M$, conta frequentemente dalle 1.000 alle 20.000 unità (1K-20K). Ognuno di essi nasconde una struttura densa ramificata in un range che va dalle 16 alle 512 foglie finali. Tutto l'impianto viene alimentato da un vocabolario di parametri esteso tra le 100 e le 2000 feature processate costantemente. Matematicamente, una determinata combinazione originata da una query e dal relativo documento, denotata con $(q, d)$, transita attraverso i nodi $T_1$, $T_2$ fino al terminale $T_n$ generando i relativi frammenti numerici $s_1$, $s_2$ fino a $s_n$; frammenti che saranno poi inglobati nell'espressione ricapitolativa $s(d)=\sum_{i=1}^{n}s_{i}$ per decretare il posizionamento esatto in graduatoria .
 
-[INSERIRE IMMAGINE: Illustrazione del flusso di inferenza parallela per una coppia (q, d) interrogata simultaneamente da alberi multipli (da T1 a Tn). Sotto ogni albero compaiono nodi rettangolari, dai quali scendono frecce tratteggiate verso i rispettivi risultati parziali s1, s2, sn che infine convergono su un'unica linea del punteggio totale ]
+![[Pasted image 20260428114752.png]]
 
 ---
 
@@ -254,53 +259,39 @@ La vera criticità emerge nel momento topico del calcolo del punteggio (il cosid
 
 Una volta addestrato un modello complesso, il calcolo del punteggio per un documento richiede l'attraversamento fisico di ogni singolo albero. L'approccio di base, noto come **Naïve baseline**, prevede che ogni nodo dell'albero sia rappresentato come un oggetto informatico contenente l'identificatore della feature (feature id), la soglia di riferimento (threshold) e i puntatori per muoversi verso il ramo sinistro o destro. A livello di codice, questa architettura si traduce tipicamente in classici blocchi condizionali "If-then-else". Il programma valuta una condizione, ad esempio `if (x[4] <= 50.1)`, e procede ricorsivamente sul sotto-albero sinistro in caso affermativo, o sul sotto-albero destro in caso contrario . Se si raggiunge una foglia, il sistema restituisce semplicemente un valore numerico, come ad esempio `return 0.4;` o `return -1.4;` .
 
-+3
-
-[INSERIRE IMMAGINE: Struttura condizionale If-then-else che modella il passaggio tra i nodi di un albero di decisione, in base a soglie predefinite per specifiche feature]
-
+![[Pasted image 20260428114905.png]]
 Questo meccanismo apparentemente lineare nasconde gravi falle prestazionali. In primo luogo, il sistema è costretto a "pagare" computazionalmente sempre per l'intera profondità dell'albero (depth of the tree). In secondo luogo, questi salti continui causano un alto tasso di errata predizione dei salti da parte del processore (**High branch misprediction rate**) e portano a un bassissimo tasso di hit nella cache di memoria (**Low cache hit ratio**). La comunità di ricerca ha tentato di proporre tecniche allo stato dell'arte (SoA) per arginare il problema, tra cui spiccano **Struct+** e **VPred**. Quest'ultimo, ad esempio, implementa funzioni ottimizzate per elaborare la profondità, come la funzione C-like `double depth4(float x, Node nodes)` che estrae l'identificatore del nodo e aggiorna sequenzialmente il suo indice calcolando il percorso sui figli per poi ritornare gli score finali . Ciononostante, i colli di bottiglia legati all'architettura hardware rimangono presenti.
 
-+4
 
 ### L'Intuizione di QuickScorer: Oltre l'If-Then-Else
 
 Per superare radicalmente queste inefficienze fisiche e logiche, è stato introdotto l'algoritmo **QuickScorer**. Il successo di questo metodo si fonda su due ingredienti principali: da una parte propone un attraversamento alternativo per ogni singolo albero (Alternative traversal of a single tree), dall'altra è in grado di processare l'intera foresta di alberi simultaneamente (Process the whole forest at once).
 
-+1
 
 Il funzionamento di QuickScorer durante l'attraversamento del singolo albero (Single Tree Traversal) abbandona completamente il concetto di navigazione gerarchica. Al contrario, l'algoritmo esamina le condizioni imposte dai nodi classificandole categoricamente in **True Node** (Nodo Vero) e **False Node** (Nodo Falso).
 
-+2
 
-[RIFERIMENTO VISIVO DEL PROFESSORE: Un albero decisionale colorato in verde e rosso per distinguere visivamente i nodi veri da quelli falsi, con le foglie numerate da 0 a 7, e affiancato da array di bit ("Result") che subiscono operazioni logiche per isolare il valore finale ]
-
-+1
+![[Pasted image 20260428115002.png]]
 
 La genialità di QuickScorer risiede nell'utilizzo delle maschere per i nodi falsi (use of false nodes' masks). Ogni nodo dell'albero è associato a uno specifico vettore di bit (bitvector). L'algoritmo inizializza un vettore "Result" (Risultato) impostando tutti i bit a 1, come ad esempio la stringa `11111111` che rappresenta le 8 foglie terminali di un ipotetico albero. Successivamente, il sistema identifica esclusivamente i nodi la cui condizione non è soddisfatta (i nodi falsi) e applica un'operazione logica **AND** sequenziale tra il vettore "Result" e i bitvector associati a questi nodi. In virtù delle proprietà matematiche dell'operazione AND condotta su questi vettori (ad esempio combinando `00011111` e `11111101`), il risultato isola esattamente il bit corrispondente alla foglia finale corretta.
+![[Pasted image 20260428115052.png]]
 
-+4
+Questo stratagemma matematico rende il processo totalmente **insensibile all'ordine di elaborazione dei nodi** (Insensitive to nodes' processing order!). Potendo domandare a un "oracolo" la semplice stesura della lista dei nodi falsi, l'algoritmo abbatte la necessità di eseguire istruzioni di salto, azzerando di fatto le "branches" (No branches) e annientando così il problema della branch misprediction.
 
-Questo stratagemma matematico rende il processo totalmente **insensibile all'ordine di elaborazione dei nodi** (Insensitive to nodes' processing order!). Potendo demandare a un "oracolo" la semplice stesura della lista dei nodi falsi, l'algoritmo abbatte la necessità di eseguire istruzioni di salto, azzerando di fatto le "branches" (No branches) e annientando così il problema della branch misprediction.
-
-+2
 
 ### Attraversamento Interlacciato e Disposizione dei Dati
 
 Il secondo ingrediente fondamentale di QuickScorer è l'attraversamento interlacciato degli alberi (Interleaved tree traversals), che permette di processare la foresta in blocco. Per ottenere ciò, i dati non vengono più immagazzinati come alberi logici separati, ma vengono spacchettati in una serie di array contigui in memoria.
 
-+1
-
 Specificamente, le soglie di divisione vengono raggruppate per feature (da f0​, f1​ fino a f∣F∣−1​) e salvate all'interno di un grande array denominato `thresholds`, rigorosamente ordinate per valori crescenti (increasing values) . L'architettura prevede un array `offsets` di dimensione ∣F∣ che funge da indice, un array `tree_ids` per rintracciare la provenienza di ciascun nodo e il contenitore dei `bitvectors`. I risultati finali sono gestiti tramite gli array ausiliari `v` e `leaves`, entrambi dipendenti dal numero delle foglie . Incolonnando l'esecuzione con questa struttura dati orizzontale, QuickScorer ribalta le prestazioni: assicura un basso tasso di branch misprediction (Low branch misprediction rate) e massimizza l'efficienza della memoria con un alto cache hit ratio.
 
-+4
 
-[INSERIRE IMMAGINE: Schema che rappresenta l'architettura lineare degli array di QuickScorer: offsets che puntano alle sezioni dell'array thresholds (ordinato in modo crescente), seguiti dagli array tree_ids, bitvectors, v e leaves]
+
+![[Pasted image 20260428115140.png]]
 
 ### Valutazione e Risultati Sperimentali
 
 L'efficacia pratica di questa architettura è stata dimostrata tramite approfonditi test comparativi che misurano il tempo di scoring per singolo documento, espresso in microsecondi, e il relativo fattore di accelerazione (speedup). I test sono stati condotti utilizzando dataset di riferimento del settore come **MSN-1** e **Y!S1**. L'esperimento ha valutato foreste di densità crescente, testando insiemi di 1.000, 5.000, 10.000 e fino a 20.000 alberi decisionali. Nelle batterie di prova, sono stati confrontati fianco a fianco quattro metodi: **QS** (QuickScorer), **VPRED**, **IF-THEN-ELSE**, e **STRUCT+**. I modelli sono stati inoltre declinati in base al numero di foglie massime per albero: 8, 16, 32 e 64.
-
-+1
 
 Di seguito una tabella sintetica che ritrae una porzione dei risultati su modelli da 1.000 e 5.000 alberi con foglie di livello 8 (i dati completi si estendono parallelamente per tutte le configurazioni analizzate):
 

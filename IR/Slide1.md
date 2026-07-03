@@ -1,4 +1,4 @@
-# Slide 1: L'Architettura Generale di un Motore di Ricerca
+# L'Architettura Generale di un Motore di Ricerca
 
 Per comprendere come valutare un sistema di Information Retrieval, è essenziale osservare la sua architettura interna, la quale si divide in componenti di elaborazione **Offline** e **Online**. 
 
@@ -14,7 +14,9 @@ La valutazione di un motore di ricerca parte da interrogativi di natura prettame
 
 Riguardo alla ricerca in sé, è fondamentale misurare la latenza e i requisiti di elaborazione della CPU necessari per elaborare query su indici di grandissime dimensioni, come collezioni da 5 milioni di documenti. Inoltre, si valuta la qualità dei servizi collaterali, verificando se il sistema è in grado di suggerire all'utente prodotti correlati validi per l'acquisto.
 
-Questi aspetti tecnici, per quanto cruciali, non descrivono tuttavia l'efficacia e la qualità intrinseca del motore di ricerca in ottica utente. L'obiettivo finale di un sistema IR è garantire un'alta soddisfazione durante l'esperienza di ricerca, concentrandosi in particolar modo sulla bontà della pagina dei risultati (SERP) costruita per ogni specifica interrogazione. Valutare se un utente sia "felice" rappresenta però una sfida notevole. Un segnale apparente di successo è l'elevato numero di clic sui risultati restituiti, ma questo dato va analizzato criticamente poiché titoli o sommari fuorvianti potrebbero ingannare gli utenti e forzare clic non legati a una reale pertinenza. In determinate situazioni, l'assenza di clic ("no clicks") può persino configurarsi come una buona notizia se, per esempio, l'utente trova l'informazione desiderata direttamente nelle anteprime della SERP. 
+Questi aspetti tecnici, per quanto cruciali, non descrivono tuttavia l'efficacia e la qualità intrinseca del motore di ricerca in ottica utente. 
+
+L'obiettivo finale di un sistema IR è garantire un'alta soddisfazione durante l'esperienza di ricerca, concentrandosi in particolar modo sulla bontà della pagina dei risultati (SERP) costruita per ogni specifica interrogazione. Valutare se un utente sia "felice" rappresenta però una sfida notevole. Un segnale apparente di successo è l'elevato numero di clic sui risultati restituiti, ma questo dato va analizzato criticamente poiché titoli o sommari fuorvianti potrebbero ingannare gli utenti e forzare clic non legati a una reale pertinenza. In determinate situazioni, l'assenza di clic ("no clicks") può persino configurarsi come una buona notizia se, per esempio, l'utente trova l'informazione desiderata direttamente nelle anteprime della SERP. 
 
 Ulteriori segnali forti di soddisfazione derivano da azioni concrete post-ricerca, come l'acquisto di beni investendo ingenti somme di denaro, il ritorno di visitatori ricorrenti su base settimanale o mensile, e l'analisi del **Dwell time**, ovvero il tempo trascorso sulla pagina di destinazione dopo aver cliccato un link della SERP prima di tornare alla lista dei risultati.
 
@@ -40,13 +42,16 @@ Se per ogni giudizio un revisore umano impiegasse solo 2,5 secondi, occorrerebbe
 
 Per testare adeguatamente i sistemi, le test query impiegate devono essere direttamente pertinenti ai documenti a disposizione e, soprattutto, risultare rappresentative dei reali bisogni formativi di un utente. L'estrazione casuale di termini dai testi archiviati per simulare query è considerata una pessima pratica.
 
-Un metodo decisamente migliore consiste invece nel campionare interrogazioni autentiche estrapolandole dai log del motore di ricerca. Nelle metodologie classiche sviluppate prima dell'avvento del Web, dove i tassi di interrogazione esigui limitavano la disponibilità dei log, la prassi richiedeva che gli esperti ideassero e confezionassero a mano i cosiddetti "bisogni dell'utente" (che la terminologia TREC chiama **topics**) e le query associate. L'ecosistema dell'IR si basa fortemente su collezioni di test pubbliche. 
+Un metodo decisamente migliore consiste invece nel campionare interrogazioni autentiche estrapolandole dai log del motore di ricerca. 
+
+Nelle metodologie classiche sviluppate prima dell'avvento del Web, dove i tassi di interrogazione esigui limitavano la disponibilità dei log, la prassi richiedeva che gli esperti ideassero e confezionassero a mano i cosiddetti "bisogni dell'utente" (che la terminologia TREC chiama **topics**) e le query associate. L'ecosistema dell'IR si basa fortemente su collezioni di test pubbliche. 
 
 **TREC (Text Retrieval Conference)** è il punto di riferimento in questo ambito: un'iniziativa sponsorizzata dal National Institute of Standards and Technology (NIST) il cui fine primario è consolidare l'infrastruttura di test per valutazioni su vasta scala nel dominio IR, unificando sia la ricerca sui metodi che la creazione dei materiali. L'accezione di "Information Retrieval" viene qui mantenuta volutamente vasta, per abbracciare tutte le tecniche dedicate all'accesso a informazioni non strutturate preventivamente per le macchine. TREC è suddiviso concettualmente in **track**, vere e proprie aree di interesse ispirate da specifici "use case" e bisogni dell'utente.
 
 Ogni collezione di test TREC si articola su tre direttrici: i documenti, i bisogni informativi o "topic" e, infine, i giudizi di pertinenza (relevance judgments), i quali descrivono quali testi andrebbero estratti per i determinati argomenti. 
 
-Quando un sistema algoritmico processa un intero set di istruzioni all'interno di una collezione, il risultato finale si chiama **run**. Nelle prime edizioni, per risolvere il problema dell'impossibilità di valutare l'intera base di dati di TREC, venne ideata la tecnica del **Pooling**. Essa consiste nel fondere in un solo "pool" i documenti posizionati nelle primissime posizioni dai vari partecipanti; solo quelli all'interno del bacino vengono successivamente valutati dal giudizio umano. Ai fini del punteggio finale, qualunque documento posizionato fuori da questo limitato pool viene considerato di default come non rilevante. Numerose divisioni interne a TREC continuano tuttora la ricerca per ideare modalità ottimali e imparziali per il campionamento su larga scala.
+Quando un sistema algoritmico processa un intero set di istruzioni all'interno di una collezione, il risultato finale si chiama **run**. Nelle prime edizioni, per risolvere il problema dell'impossibilità di valutare l'intera base di dati di TREC, venne ideata la tecnica del **Pooling**. 
+Essa consiste nel fondere in un solo "pool" i documenti posizionati nelle primissime posizioni dalle run, solo quelli all'interno del bacino vengono successivamente valutati dal giudizio umano. Ai fini del punteggio finale, qualunque documento posizionato fuori da questo limitato pool viene considerato di default come non rilevante. Numerose divisioni interne a TREC continuano tuttora la ricerca per ideare modalità ottimali e imparziali per il campionamento su larga scala.
 
 ### Bisogno Informativo e Valutazioni Binarie: Precision e Recall
 
@@ -54,7 +59,7 @@ Prima di passare al calcolo delle metriche di ranking vere e proprie, bisogna fa
 
 Assumendo che i giudizi di rilevanza siano esclusivamente binari (un documento o è pertinente, o non lo è), l'IR adotta storicamente due metriche non basate sull'ordinamento chiamate **Precision** e **Recall**.
 
-- La **Precision** si definisce come la porzione dei documenti recuperati dal sistema che risultano concretamente rilevanti all'interno della ristretta cerchia di testi proposti al lettore. In termini probabilistici: $P(\text{relevant retrieved} \mid \text{retrieved})$.
+- La **Precision** si definisce come la porzione dei documenti recuperati dal sistema che risultano rilevanti. In termini probabilistici: $P(\text{relevant retrieved} \mid \text{retrieved})$.
 
 - La **Recall** valuta la metrica dal punto di vista globale, calcolando la percentuale di tutti i documenti effettivamente rilevanti celati nel corpus che l'algoritmo ha saputo intercettare: $P(\text{relevant retrieved} \mid \text{relevant})$.
 
@@ -92,12 +97,7 @@ Nei casi in cui il progettista intenda dare priorità mirata ad uno solo dei due
 
 ---
 
-### Misure Basate sull'Ordinamento (Rank-Based Measures)
-
-Una volta compresi i fondamenti della rilevanza binaria aspecifica (come Precision e Recall), è necessario introdurre le metriche basate sull'ordinamento, fondamentali poiché in un motore di ricerca reale la posizione in cui appare un risultato è cruciale. Queste misure si dividono in due macro-categorie: quelle che operano ancora in un regime di rilevanza binaria, come la **Mean Average Precision (MAP)**, la **Precision@K** e il **Mean Reciprocal Rank (MRR)**, e quelle capaci di gestire molteplici livelli di rilevanza sfumata, come il **Normalized Discounted Cumulative Gain (NDCG)**.
-
 ### Mean Average Precision (MAP)
-
 Per valutare la qualità dell'intero ranking restituito per una singola query, si utilizza l'**Average Precision (AP)**. Questa misura considera la posizione in classifica di ogni singolo documento pertinente man mano che la recall aumenta lungo la lista dei risultati. Più precisamente, si calcola la "Precision@K" esclusivamente nei punti $K_{1}, K_{2}, \dots, K_{R}$ in cui viene effettivamente incontrato un documento utile. Ad esempio, per una query che possiede in totale $R=3$ documenti rilevanti, i quali compaiono alle posizioni 1, 3 e 5 della classifica, l'AP si calcola sommando le precisioni in quei punti e dividendole per 3, ottenendo $\frac{1}{3}\cdot(\frac{1}{1}+\frac{2}{3}+\frac{3}{5})\approx0.76$.
 
 ![](assets/2026-04-09-15-18-51-image.png)
@@ -110,7 +110,7 @@ La **MAP (Mean Average Precision)** non è altro che la media aritmetica di tutt
 
 ### Precision@K e MAP@K nel Contesto Web
 
-Ci si potrebbe chiedere se metriche olistiche come la MAP siano ottimali anche per la Web Search moderna. La risposta è che esse considerano la precisione a tutti i livelli di recall, ma sul web il numero totale di documenti pertinenti per una determinata query è spesso del tutto ignoto o potenzialmente sterminato. Ciò che conta davvero per un utente reale è quanti buoni risultati sono presenti nella primissima pagina (o nelle prime tre), ossia tra i primi 10 o 30 link restituiti.
+Ci si potrebbe chiedere se metriche  come la MAP siano ottimali anche per la Web Search moderna. La risposta è che esse considerano la precisione a tutti i livelli di recall, ma sul web il numero totale di documenti pertinenti per una determinata query è spesso del tutto ignoto o potenzialmente sterminato. Ciò che conta davvero per un utente reale è quanti buoni risultati sono presenti nella primissima pagina (o nelle prime tre), ossia tra i primi 10 o 30 link restituiti.
 
 Per catturare questa dinamica si introduce la **Precision@K (P@K)**, che fissa una soglia di ranking $K$ e calcola semplicemente la percentuale di documenti pertinenti presenti nei primi $K$ risultati, ignorando tutto ciò che si trova al di sotto di tale soglia. Ad esempio, se tra i primi tre risultati ne abbiamo due rilevanti, la Prec@3 sarà $2/3=0.66$; se il quarto risultato è irrilevante, la Prec@4 scenderà a $2/4=0.5$, dimostrando come questa curva non sia strettamente monotona crescente (infatti Prec@4 è inferiore a Prec@3). Se il quinto è nuovamente rilevante, la Prec@5 risalirà a $3/5=0.6$. Analogamente si può calcolare la Recall@K.
 
