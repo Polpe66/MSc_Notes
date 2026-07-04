@@ -1,12 +1,3 @@
-### Architettura del Sistema di Retrieval
-
-L'architettura di un moderno motore di ricerca si divide concettualmente in due fasi temporali distinte: la fase **Offline** e la fase **Online**. Questa netta separazione è essenziale perché l'indicizzazione richiede molto tempo e deve essere preparata prima che l'utente effettui una ricerca, che invece deve avvenire quasi istantaneamente.
-
-Durante la fase offline, il sistema si basa su una **Document Collection** (collezione di documenti) per generare le strutture dati primarie. Attraverso il processo di **Indexing** si costruisce l'**Inverted Index** (indice invertito), che mapperà i futuri termini ricercati direttamente ai documenti in cui compaiono. Parallelamente, un modulo chiamato **Feature Processor** estrae caratteristiche aggiuntive dei documenti e le salva all'interno del **Document Features Repository**. Infine, utilizzando un insieme di **Training Data**, la fase di **Training** provvede ad addestrare un modello algoritmico (**Learning-to-rank Model**) che sarà poi usato per l'ordinamento dei risultati.
-
-Nel momento in cui inizia la fase online, l'utente inserisce una **Query**. Questa stringa viene processata dal modulo di **Expanded Query** per arricchirla di termini semanticamente utili, per poi passare al vero e proprio **Query Processing**. Questo componente interroga l'Inverted Index creato precedentemente. I risultati preliminari vengono poi uniti alle caratteristiche estratte durante il passaggio di **Feature Lookup and Computation**. A questo punto, il sistema sfrutta la **Learned Ranking Function** per riordinare i documenti in base alla loro rilevanza e mostrarli all'utente, ad esempio sulla tipica interfaccia di Google.
-
-![[Pasted image 20260414115557.png]]
 
 ### Modelli di Elaborazione delle Query
 
@@ -28,27 +19,17 @@ A fronte delle limitazioni del modello booleano puro, il paradigma del **Ranked 
 
 Per poter effettuare questo ordinamento, è necessario sapere quanto un termine "pesi" nel testo, ad esempio analizzando il numero di occorrenze di una specifica parola all'interno di un documento. A questo scopo si utilizza il modello **Bag of Words**, in cui ogni documento viene convertito in un vettore di conteggio matematico all'interno di uno spazio numerico multidimensionale $\mathbb{N}^v$.
 
-Come suggerisce il nome, ogni documento è interpretato come un sacchetto di parole ("bag of words") privo di sintassi, il cui unico valore analizzato è la frequenza testuale. Di seguito, una tabella che mostra questo paradigma applicato all'occorrenza di alcune parole chiave (Antony, Brutus, Caesar, Calpurnia, Cleopatra, mercy, worser) nelle opere teatrali di Shakespeare:
-
-| **Termine** | **Julius Caesar** | **The Tempest** | **Hamlet** | **Othello** | **Macbeth** | **Antony and Cleopatra** |
-| ----------- | ----------------- | --------------- | ---------- | ----------- | ----------- | ------------------------ |
-| Antony      | 73                | 0               | 0          | 0           | 0           | 157                      |
-| Brutus      | 157               | 0               | 1          | 0           | 0           | 4                        |
-| Caesar      | 227               | 0               | 2          | 1           | 1           | 232                      |
-| Calpurnia   | 10                | 0               | 0          | 0           | 0           | 0                        |
-| Cleopatra   | 0                 | 0               | 0          | 0           | 0           | 57                       |
-| mercy       | 0                 | 3               | 5          | 5           | 1           | 2                        |
-| worser      | 0                 | 1               | 1          | 1           | 0           | 2                        |
-
+Come suggerisce il nome, ogni documento è interpretato come un sacchetto di parole ("bag of words") privo di sintassi, il cui unico valore analizzato è la frequenza testuale. 
 ### La Ponderazione: Term Frequency e Document Frequency
 
 La **Term Frequency (tf)**, indicata con $tf_{t,d}$, rappresenta esattamente questo valore: la frequenza (ovvero il conteggio totale o il numero di volte) in cui uno specifico termine $t$ si manifesta nel documento $d$. Sebbene istintivamente verrebbe voglia di usare la $tf_{t,d}$ nuda e cruda per calcolare il match score tra query e documento, la frequenza grezza (raw term frequency) non produce risultati adeguati. Sebbene sia vero che un documento in cui una parola occorre 10 volte possa essere percepito come più rilevante rispetto a un testo in cui occorre 1 sola volta, non possiamo sostenere che sia "10 volte più rilevante". In sintesi, la rilevanza per l'utente non scala mai in maniera proporzionale rispetto alla semplice frequenza di un termine.
+![[Pasted image 20260704144349.png]]
 
 Bisogna prendere in considerazione un altro fattore vitale: la **Document frequency (df)**. A livello probabilistico, i termini maggiormente frequenti risultano molto meno informativi rispetto a parole più rare. Se si considera un termine di ricerca estremamente comune nella lingua e nella collezione (ad esempio "red", "high", "increase", "line"), un documento che lo contiene ha una buona probabilità di essere rilevante a priori rispetto a uno che non lo cita. Purtroppo, trattandosi di un termine diffusissimo, il segnale non è forte e non descrive precisamente l'intento dell'utente, in quanto gran parte dei documenti all'interno della medesima collezione vanterà la presenza di tale termine della query. Di conseguenza, l'algoritmo mira ad assegnare pesi più bassi per termini più rari come "high".
 
 ### Inverse Document Frequency (idf)
 
-La soluzione che combina la necessità di mappare i termini e valutarne l'impatto isolato è fornita dalla metrica dell'**Inverse document frequency (idf)**. Si tratta di una misura precisa di "quante informazioni" un termine è in grado di fornire alla query dell'utente, quantificando se si tratta di una stringa troppo comune o opportunamente rara all'interno di tutti i documenti esplorabili.
+Definisce quanta informazione fornisce un termine (indica ad esempio quanto è raro all'interno di tutti i documenti).
 
 Da un punto di vista matematico, l'idf è definita come la frazione inversa dei documenti contenenti quel termine, elaborata però tramite una scala logaritmica. La formula di calcolo è strutturata nel modo seguente:
 
@@ -57,30 +38,20 @@ $$idf(t,D)=\log\frac{N}{|\{d:d\in D\text{ and }t\in d\}|}$$
 Le componenti di questa equazione sono:
 
 - **$D$**: Rappresenta l'insieme globale di tutti i documenti presenti nel corpus.
-
 - **$N$**: Corrisponde al numero totale dei documenti presenti nel corpus, esprimibile come $N=|D|$.
-
 - **$n_{t}$**: Rappresenta il denominatore $|\{d\in D:t\in d\}|$, ossia l'esatto numero dei documenti in cui compare almeno una volta la parola cercata $t$ (si esprime con $tf(t,d)\neq0$).
 
-Questa operazione di divisione nasconde però un'insidia di calcolo: se un utente dovesse cercare un termine totalmente inesistente nel corpus di documenti, il conteggio al denominatore diverrebbe 0, scatenando un errore matematico fatale (la divisione per zero). Per scongiurare l'interruzione della pipeline, la pratica informatica raccomanda di apportare un aggiustamento algoritmico aggiungendo la costante 1. Il numeratore diventerà $1+N$ e il denominatore si correggerà diventando $1+|\{d\in D:t\in d\}|$.
-
----
-
-### Concetti Chiave
-
-- **Boolean Retrieval e Ranked Retrieval**: I due poli dell'Information Retrieval: il primo valuta matematicamente set logici e non fornisce un ordine, il secondo genera liste riordinate a priorità d'uso e utilità informativa.
-
-- **Bag of Words (BOW)**: Modello strutturale che scardina la grammatica di un testo per tradurlo in vettori numerici descrivendo puramente la mole di presenza delle singole parole in un array multidimensionale.
-
-- **TF-IDF**: Sistema di pesatura combinato che non si affida ciecamente alla sola ripetizione di un termine (Term Frequency), ma ne modula la rilevanza logaritmica tenendo conto di quanto quella parola è abusata nel corpus generico (Inverse Document Frequency).
-
----
-
+Questa operazione di divisione nasconde però un'insidia di calcolo: se un utente dovesse cercare un termine totalmente inesistente nel corpus di documenti, il conteggio al denominatore diverrebbe 0, scatenando un errore matematico (la divisione per zero). Per scongiurare l'interruzione della pipeline, la pratica informatica raccomanda di apportare un aggiustamento algoritmico aggiungendo la costante 1. Il numeratore diventerà $1+N$ e il denominatore si correggerà diventando $1+|\{d\in D:t\in d\}|$.
+![[Pasted image 20260704144906.png]]
 ### I Documenti come Vettori e lo Spazio Vettoriale
 
-Per calcolare quanto un documento sia rilevante rispetto a una determinata ricerca, i moderni sistemi di elaborazione utilizzano approcci matematici che trattano i testi come entità geometriche. Nel modello TF-IDF, lo score di un documento $D$ rispetto a una query $q$ viene calcolato sommando i prodotti tra l'Inverse Document Frequency (IDF) e la Term Frequency (tf) per ogni termine della query. Questa operazione è descritta dalla formula matematica $score(q,D)=\sum_{i=1}^{n}IDF(q_{i})\cdot tf(q_{i},D)$.
+Per calcolare quanto un documento sia rilevante rispetto a una determinata ricerca, i moderni sistemi di elaborazione utilizzano approcci matematici che trattano i testi come entità geometriche. Nel modello TF-IDF, lo score di un documento $D$ rispetto a una query $q$ viene calcolato sommando i prodotti tra l'Inverse Document Frequency (IDF) e la Term Frequency (tf) per ogni termine della query. Questa operazione è descritta dalla formula matematica 
 
-Questo approccio trasforma di fatto l'insieme dei documenti in uno spazio vettoriale a $|V|$ dimensioni, dove la variabile $|V|$ rappresenta la grandezza dell'intero vocabolario a disposizione. In questo spazio geometrico, i termini del vocabolario fungono da assi cartesiani , mentre i documenti si posizionano al suo interno sotto forma di punti o vettori. Questo spazio diventa rapidamente iper-dimensionale: quando si applica tale modello a un motore di ricerca web reale, le dimensioni raggiungono agilmente le decine di milioni.
+$score(q,D)=\sum_{i=1}^{n}IDF(q_{i})\cdot tf(q_{i},D)$.
+
+Questo approccio trasforma di fatto l'insieme dei documenti in uno spazio vettoriale a $|V|$ dimensioni, dove la variabile $|V|$ rappresenta la grandezza dell'intero vocabolario a disposizione.
+I termini del vocabolario fungono da assi cartesiani , mentre i documenti si posizionano al suo interno sotto forma di punti o vettori. Questo spazio diventa rapidamente iper-dimensionale: quando si applica tale modello a un motore di ricerca web reale, le dimensioni raggiungono agilmente le decine di milioni.
+Tipicamente vettori sparsi, la maggior parte delle entries sono 0.
 
 ### La Valutazione della Query e le Inefficienze della Matrice
 
@@ -105,18 +76,6 @@ Mentre la struttura di base con soli ID dei documenti è sufficiente per il Bool
 
 Nel Dictionary vengono salvate due nuove metriche per ogni termine. La prima è la $df_t$ (Document Frequency), che indica esattamente il numero totale di documenti che contengono almeno una singola occorrenza del termine $t$ . La seconda metrica è la $F_t$ (Collection Frequency), che esprime il numero totale assoluto di occorrenze di quel termine nell'intera collezione di testi. Di conseguenza, anche le Posting Lists si evolvono: invece di contenere solo l'ID del documento, ora memorizzano delle coppie di valori che includono sia l'identificativo del documento sia il conteggio locale del termine in quello specifico testo .
 
----
-
-### Concetti Chiave
-
-- **Spazio Vettoriale**: Un modello geometrico in cui i termini del vocabolario fungono da assi e i documenti sono rappresentati come vettori multidimensionali, permettendo il calcolo del punteggio di rilevanza tramite formule come il TF-IDF.
-
-- **Inverted Index (Indice Invertito)**: La struttura dati fondamentale dei motori di ricerca, creata per superare le inefficienze della scansione lineare. Funziona mappando direttamente un termine verso l'elenco dei documenti che lo contengono.
-
-- **Dictionary e Posting Lists**: Le due anime dell'indice invertito. Il Dictionary raccoglie le parole chiave e le loro frequenze globali ($df_t$ e $F_t$), mentre le Posting Lists fungono da registri che collegano il termine agli ID dei documenti rilevanti.
-
----
-
 ### Elaborazione della Query e Ricerca Avanzata
 
 Il processo di **Query Processing** ha il compito fondamentale di tradurre la richiesta dell'utente in operazioni algoritmiche sui documenti. Un esempio pratico per visualizzare questa interazione è la Ricerca Avanzata di Google, un'interfaccia che permette di inserire parole chiave in campi specifici applicando filtri binari per ottenere risultati estremamente mirati . Dal punto di vista della logica del sistema, le opzioni offerte all'utente si traducono in operatori precisi. Richiedere la presenza di "tutte queste parole" equivale a un operatore **Conjunctive AND**, mentre cercare "questa esatta parola o frase" attiva la **Phrase Search**, indicata tipicamente racchiudendo il testo tra virgolette .
@@ -140,21 +99,6 @@ Al contrario, la strategia **Document-at-a-time (DAAT)** si basa su una scansion
 Per comprendere nel dettaglio l'esecuzione pratica del TAAT, possiamo osservare la valutazione di una query composta da due parole chiave, ad esempio "information" e "retrieval" . Il sistema inizia il suo compito concentrandosi in via esclusiva sulla Posting List del primo termine, "information" . Non appena intercetta il primo documento della lista, l'algoritmo inizializza un **accumulatore**, il quale è strutturato per conservare una coppia di dati fondamentali: l'indice univoco del documento (DocId) e il numero di parole chiave della query finora ritrovate, che funge da punteggio temporaneo .
 
 Procedendo nella scansione lineare del primo termine, il sistema genera un nuovo accumulatore con score pari a 1 per ogni nuovo identificativo incontrato lungo la lista . Una volta esaurita completamente la lista di "information", il motore di ricerca si sposta sul secondo termine, "retrieval", e inizia a scorrerne la rispettiva Posting List . Quando, durante questa seconda passata, il sistema incontra un identificativo di documento già visitato in precedenza (e che quindi possiede già un suo accumulatore attivo), non crea una nuova voce, bensì individua l'accumulatore esistente e ne incrementa il punteggio, passandolo da 1 a 2 . Questo processo sequenziale di lettura e aggiornamento prosegue ininterrottamente, accumulando i valori finché la lettura del secondo termine non giunge al termine .
-
-
----
-
-### Concetti Chiave
-
-- **Conjunctive AND / Disjunctive OR**: Operatori di ricerca booleani essenziali; l'AND impone la presenza simultanea di tutti i termini, mentre l'OR ne richiede almeno uno, permettendo al Query Processing di filtrare con precisione le richieste utente.
-
-- **Term-at-a-time (TAAT)**: Strategia di elaborazione dell'Inverted Index che processa le liste di documenti una parola alla volta, utilizzando spazi di memoria temporanei per sommare gradualmente i punteggi.
-
-- **Document-at-a-time (DAAT)**: Strategia di scorrimento parallela che valuta tutti i termini della query in contemporanea, calcolando istantaneamente la rilevanza dei documenti e mantenendo nativamente una lista di risultati già ordinata.
-
-- **Accumulatore**: Struttura dati fondamentale nell'approccio TAAT, adibita a memorizzare l'identificativo di un documento (DocId) associato al suo punteggio temporaneo in fase di elaborazione della query.
-
----
 
 ### La Gestione degli Accumulatori e le Strutture Dati nel TAAT
 
@@ -184,30 +128,6 @@ Proprio per sopperire all'impossibilità di saltare i documenti inutili, entra i
 
 
 Con questa tecnica, il sistema ispeziona contemporaneamente i puntatori in testa a tutte le liste coinvolte, prelevando di volta in volta l'identificativo numericamente più piccolo . Questo procedimento restituisce direttamente una lista dei risultati perfettamente ordinata contenente i documenti in cui è presente almeno una delle parole chiave . Questo approccio porta con sé un beneficio enorme: possedere una lista ordinata nativamente permette di saltare in blocco interi gruppi di DocIds quando si affrontano query molto selettive, risparmiando preziose risorse di calcolo. Di contro, la struttura in parallelo richiesta dal DAAT risulta notevolmente più complessa da implementare, e la necessità di applicare algoritmi di ordinamento continuo porta a un costo computazionale iniziale più elevato per la pura creazione della lista dei risultati .
-
----
-
-### Concetti Chiave
-
-- **Direct Access Table / Hash Table**: Strutture dati impiegate nell'approccio TAAT per mappare velocemente l'ID di un documento al proprio accumulatore temporaneo, garantendo aggiornamenti rapidi per operatori logici o funzioni di calcolo avanzate.
-
-- **Cache Miss**: Un problema di efficienza hardware tipico del TAAT, in cui i continui salti di memoria causati dall'elevato numero di accumulatori impediscono al processore di ottimizzare le letture veloci, rallentando le performance.
-
-- **Algoritmo MergeSort**: Un principio di unione ordinata preso in prestito dal DAAT per risolvere le query con operatore OR. Fonde in tempo reale le Posting Lists estraendo l'elemento minore, producendo un elenco combinato e perfettamente indicizzato.
-
-- **Skipping dei DocIds**: La capacità (assente nel TAAT, ma possibile nel DAAT grazie alle liste già ordinate) di ignorare strategicamente enormi blocchi di documenti irrilevanti per risparmiare tempo nelle ricerche molto selettive.
-
----
-
-### L'Esecuzione Pratica del DAAT per le Query OR
-
-Per comprendere a fondo il funzionamento dell'approccio **Document-at-a-time (DAAT)** di fronte a una query disgiuntiva (operatore **OR**), è utile analizzare l'esecuzione pratica dell'algoritmo di unione basato sul **MergeSort** . Immaginiamo di dover processare due **Posting Lists** parallele: la lista per il termine "information", contenente i documenti 1, 5, 8, 11, 13, 20, 35, 40, 42, e la lista per il termine "retrieval", contenente i documenti 1, 5, 6, 8, 11, 15, 17, 50, 60 .
-
-![[Pasted image 20260415113008.png]]
-
-Il sistema avvia l'ispezione posizionando un puntatore all'inizio di entrambe le liste. Entrambi i puntatori indicano il documento 1, di conseguenza questo valore viene aggiunto ai risultati . Facendo avanzare entrambi i cursori, si riscontra un'altra corrispondenza sul documento 5, che viene a sua volta inglobato nell'elenco finale . Il comportamento dell'algoritmo cambia quando i valori divergono: il puntatore della lista "information" si ferma sul documento 8, mentre quello di "retrieval" indica il documento 6 . In questo scenario, il sistema seleziona l'identificativo numericamente più piccolo, aggiungendo il 6 ai risultati e facendo avanzare unicamente il puntatore della lista "retrieval" .
-
-Questo processo di avanzamento asimmetrico e inserimento ordinato continua ininterrottamente fino all'esaurimento di entrambe le liste. Il risultato finale è un insieme di documenti perfettamente ordinato: 1, 5, 6, 8, 11, 13, 15, 17, 20, 35, 40, 50, 60 . Tuttavia, questa logica di unione totale porta a una conclusione algoritmica inevitabile: **la query OR è estremamente costosa (expensive)**. Questo accade perché, per generare la lista completa, il sistema è letteralmente costretto a "toccare" e valutare singolarmente tutte le registrazioni (postings) presenti nelle liste analizzate, senza poterne scartare nessuna a priori.
 
 ### La Selettività delle Query AND e l'Intersezione
 

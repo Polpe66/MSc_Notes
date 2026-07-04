@@ -96,7 +96,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 300,
+    "collapsed": true
   },
   "right": {
     "id": "91903aee59939870",
@@ -215,8 +216,10 @@
   "active": "062d50e16c5702b1",
   "lastOpenFiles": [
     "Slide Lezioni/04-05-06-inverted_indexes_and_query_processing.pdf",
-    "Slide Lezioni/03-07-WeightingModels.pdf",
     "IR/Slide4.md",
+    "IR/allegati/Pasted image 20260704144906.png",
+    "IR/allegati/Pasted image 20260704144349.png",
+    "Slide Lezioni/03-07-WeightingModels.pdf",
     "IR/Slide3.md",
     "Esami/Esame O.md",
     "Esami/Esame N.md",
@@ -254,8 +257,6 @@
     "IR/allegati/Pasted image 20260502154713.png",
     "IR/allegati/Pasted image 20260502154448.png",
     "IR/allegati/Pasted image 20260502154340.png",
-    "IR/allegati/Pasted image 20260502154220.png",
-    "IR/allegati/Pasted image 20260502154157.png",
     "P2P/slideRicci/8_260328_094427.pdf",
     "IR/allegati"
   ]
