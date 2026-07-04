@@ -1,7 +1,7 @@
 ## Question #1: Describe a general learning-to-rank framework used in modern Web search. What are the characteristics of the three main families of algorithms in learning to rank? Please describe, in more technical terms, one of the three families (the one you like the most).
 
 Il framework generale del **Learning-to-Rank (LtR)** si configura come un sistema di apprendimento supervisionato il cui obiettivo è costruire un modello (ranking function) capace di ordinare un insieme di documenti in base alla loro rilevanza rispetto a una query.
-![[Pasted image 20260130181442.png]]
+![[Pasted image 20260703193146.png]]
 Le diverse strategie di LtR si classificano in base a come formulano la funzione di perdita e l'input considerato durante l'addestramento:
 
 1. **Approccio Pointwise:** È l'approccio più semplice e tratta ogni singolo documento in modo indipendente. Il problema del ranking viene ridotto a un classico problema di regressione (predire lo score esatto di rilevanza) o classificazione (predire la classe di rilevanza). La loss function calcola l'errore sul singolo documento (es. Mean Squared Error) ignorando completamente la posizione relativa degli altri documenti nella lista.

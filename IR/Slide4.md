@@ -1,7 +1,3 @@
-# Slide 4: Indicizzazione di una Collezione di Documenti
-
-L'indicizzazione è un processo fondamentale nell'Information Retrieval per organizzare ed estrarre informazioni da grandi collezioni di dati testuali in maniera efficiente. In questo capitolo verranno esplorati i fondamenti teorici e pratici dell'elaborazione delle query, partendo dall'architettura base del sistema fino all'analisi matematica del peso dei termini nei documenti.
-
 ### Architettura del Sistema di Retrieval
 
 L'architettura di un moderno motore di ricerca si divide concettualmente in due fasi temporali distinte: la fase **Offline** e la fase **Online**. Questa netta separazione è essenziale perché l'indicizzazione richiede molto tempo e deve essere preparata prima che l'utente effettui una ricerca, che invece deve avvenire quasi istantaneamente.

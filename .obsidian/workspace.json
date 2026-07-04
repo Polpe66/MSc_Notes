@@ -4,41 +4,39 @@
     "type": "split",
     "children": [
       {
-        "id": "9142dff8adbdf1df",
+        "id": "9fa1dd5a62859ce0",
         "type": "tabs",
-        "dimension": 52.36508994003998,
         "children": [
           {
-            "id": "ac3bd5d18cb0750a",
+            "id": "062d50e16c5702b1",
             "type": "leaf",
             "state": {
-              "type": "split-diff-view",
+              "type": "markdown",
               "state": {
-                "aFile": "Esami/Esame A.md",
-                "bFile": "Esami/Esame A.md",
-                "aRef": ""
+                "file": "IR/Slide4.md",
+                "mode": "source",
+                "source": false
               },
-              "icon": "diff",
-              "title": "Diff: Esame A  (Working Tree)"
+              "icon": "lucide-file",
+              "title": "Slide4"
             }
           }
         ]
       },
       {
-        "id": "8bcc4475a89f1abc",
+        "id": "a62255fc8aa42ce6",
         "type": "tabs",
-        "dimension": 47.63491005996003,
         "children": [
           {
-            "id": "db55ab96dbc52340",
+            "id": "ce6c420e48d2f305",
             "type": "leaf",
             "state": {
               "type": "pdf",
               "state": {
-                "file": "Slide Lezioni/03-07-WeightingModels.pdf"
+                "file": "Slide Lezioni/04-05-06-inverted_indexes_and_query_processing.pdf"
               },
               "icon": "lucide-file-text",
-              "title": "03-07-WeightingModels"
+              "title": "04-05-06-inverted_indexes_and_query_processing"
             }
           }
         ]
@@ -214,15 +212,28 @@
       "obsidian-git:Open Git source control": false
     }
   },
-  "active": "ac3bd5d18cb0750a",
+  "active": "062d50e16c5702b1",
   "lastOpenFiles": [
+    "Slide Lezioni/04-05-06-inverted_indexes_and_query_processing.pdf",
+    "Slide Lezioni/03-07-WeightingModels.pdf",
+    "IR/Slide4.md",
     "IR/Slide3.md",
-    "Esami/Esame E.md",
+    "Esami/Esame O.md",
+    "Esami/Esame N.md",
     "Esami/Esame D.md",
+    "Esami/Esame E.md",
+    "Esami/Esame M.md",
+    "Esami/Esame L.md",
+    "Esami/Esame I.md",
+    "Esami/Esame H.md",
+    "Esami/Esame G.md",
+    "Esami/Esame F.md",
     "Esami/Esame C.md",
     "Esami/Esame B.md",
     "Esami/Esame A.md",
-    "Slide Lezioni/03-07-WeightingModels.pdf",
+    "Esami/allegati/Pasted image 20260703193146.png",
+    "Esami/allegati/Pasted image 20260703193108.png",
+    "Esami/allegati",
     "Slide Lezioni/02-NaturalLanguage.pdf",
     "IR/Slide2.md",
     "Slide Lezioni/01-Evaluation.pdf",
@@ -236,14 +247,7 @@
     "IR/Lezione 13 - Approximate Nearest Neighbor.md",
     "IR/Lezione 10 - Learning to Rank II.md",
     "IR/Lezione 9 - Learning to Rank I.md",
-    "IR/Lezione 8 - Data Compression.md",
-    "IR/Lezione 7 - Query Processing Avanzato Top-k.md",
-    "IR/Lezione 6 - Inverted Index e Query Processing.md",
-    "IR/Lezione 5 - Ponderazione e BM25.md",
-    "IR/Lezione 4 - Rappresentazione del Testo e Modello Booleano.md",
-    "IR/Lezione 3 - Proprieta╠Ç del Linguaggio Naturale e Text Processing.md",
     "Senza nome",
-    "IR/Slide12.md",
     "IR/allegati/Pasted image 20260502154922.png",
     "IR/allegati/Pasted image 20260502154817.png",
     "IR/allegati/Pasted image 20260502154749.png",
@@ -252,11 +256,6 @@
     "IR/allegati/Pasted image 20260502154340.png",
     "IR/allegati/Pasted image 20260502154220.png",
     "IR/allegati/Pasted image 20260502154157.png",
-    "IR/allegati/Pasted image 20260502154121.png",
-    "IR/allegati/Pasted image 20260502153951.png",
-    "IR/Slide11.md",
-    "IR/Notes_IR.md",
-    "IR/Slide9.md",
     "P2P/slideRicci/8_260328_094427.pdf",
     "IR/allegati"
   ]
