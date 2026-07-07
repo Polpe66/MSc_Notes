@@ -4,17 +4,19 @@
     "type": "split",
     "children": [
       {
-        "id": "5ee1ab5761d78967",
+        "id": "55e519f68a1dafd6",
         "type": "tabs",
         "children": [
           {
-            "id": "d707f830949de9f0",
+            "id": "2b20e311cef734a5",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "Nuova scheda"
+              "type": "pdf",
+              "state": {
+                "file": "Esami/Risposte_domande_esame.pdf"
+              },
+              "icon": "lucide-file-text",
+              "title": "Risposte_domande_esame"
             }
           }
         ]
@@ -190,8 +192,9 @@
       "obsidian-git:Open Git source control": false
     }
   },
-  "active": "d707f830949de9f0",
+  "active": "2b20e311cef734a5",
   "lastOpenFiles": [
+    "appunti_finali_ir.pdf",
     "Slide Lezioni/04-05-06-inverted_indexes_and_query_processing.pdf",
     "IR/Slide4.md",
     "IR/allegati/Pasted image 20260704144906.png",
