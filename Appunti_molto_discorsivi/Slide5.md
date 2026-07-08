@@ -1,6 +1,3 @@
-# Slide 5: Compressione di Dati nei Motori di Ricerca Moderni
-
-Nei moderni sistemi di Information Retrieval, le dimensioni delle collezioni di documenti richiedono soluzioni architetturali e algoritmiche avanzate. In questo capitolo esploreremo i fondamenti della compressione dei dati, partendo dalla struttura generale di un motore di ricerca fino ad arrivare ai dettagli matematici dei primi codificatori di interi basati sulla rappresentazione binaria.
 
 ### L'Architettura e l'Elaborazione delle Query
 
