@@ -305,29 +305,7 @@ Il primo passo del sistema è calcolare il tetto massimo per la prima parola del
 ![[Pasted image 20260415120233.png]]
 ![[Pasted image 20260415120243.png|697]]
 
-
-**Glossario / Concetti Chiave**
-
-- **WAND (Weak AND):** Strategia di pruning dinamico in grado di escludere dall'analisi intere sezioni di posting list, garantendo al contempo l'individuazione esatta dei risultati Top-k.
-
-- **Upper Bound (UB):** Il valore corrispondente al punteggio massimo registrato da un singolo termine all'interno della propria posting list, sfruttato per stimare il potenziale di punteggio di un documento ignoto.
-
-- **Dynamic Pruning:** Meccanica di ottimizzazione informatica che scarta (pota) dinamicamente rami di calcolo improduttivi basandosi sul confronto preventivo con una soglia limite.
-
----
-
-### Mappatura degli Upper Bound (UB)
-
-Per applicare concretamente l'algoritmo WAND, il motore di ricerca deve prima mappare il potenziale massimo di ogni termine della query. Riprendendo il nostro scenario di recupero esatto per un solo documento vincente (**Top-1**), sappiamo che l'attuale detentore della prima posizione è il documento identificato con d=8, il quale fissa la soglia di sbarramento a **τ=2.1**.
-
 Il sistema estrapola il punteggio più alto da ciascuna posting list, definendo così gli **Upper Bound (UB)** per i quattro termini in gioco. Come riassunto nella tabella sottostante, il termine "rust" ha un tetto massimo di 2.5, "best" si ferma a 0.3, "programming" a 0.6 e "language" a 1.1.
-
-| Termine         | Elementi della Posting List (docId, score) | UB  |
-| --------------- | ------------------------------------------ | --- |
-| **rust**        | 15, 2.5 \| 16, 1.5 \| 25, 2.0 \| 45, 1.5   | 2.5 |
-| **best**        | 11, 0.3 \| 12, 0.1 \| 13, 0.1 \| 15, 0.2   | 0.3 |
-| **programming** | 13, 0.5 \| 15, 0.6 \| 19, 0.6 \| 21, 0.6   | 0.6 |
-| **language**    | 10, 0.5 \| 13, 0.9 \| 25, 0.8 \| 29, 1.1   | 1.1 |
 
 ### Ordinamento per Identificativo di Documento Corrente (Sort by current docId)
 
@@ -353,28 +331,12 @@ L'iterazione avanza intercettando il documento 13 sulla lista "programming". L'a
 Sorprendentemente, anche accumulando i tetti massimi delle prime tre parole della query, si raggiunge un limite invalicabile di 2.0, che si mantiene strettamente al di sotto della soglia necessaria di 2.1. Di conseguenza, anche il documento 13 viene sottoposto a potatura logica e ignorato dal motore di ricerca, garantendo un enorme risparmio di risorse computazionali pur mantenendo l'assoluta esattezza del risultato atteso.
 ![[Pasted image 20260415120508.png]]
 
----
-
-**Glossario / Concetti Chiave**
-
-- **Sort by current docId:** Il processo di riordino dinamico delle liste invertite basato esclusivamente sul valore numerico dell'identificativo del documento attualmente sotto il cursore di lettura.
-
-- **Accumulazione degli Upper Bound:** Somma progressiva dei tetti massimi (UB) dei termini ordinati per verificare teoricamente il potenziale punteggio del documento analizzato.
-
-- **Potatura Dinamica (Dynamic Pruning):** L'azione pratica compiuta dall'algoritmo WAND quando ignora interamente il calcolo esatto di un documento, avendo dimostrato matematicamente che la somma dei suoi Upper Bound è inferiore alla soglia di sbarramento.
-
----
-
-# Il Limite di WAND e l'Introduzione di MaxScore
-
-Questo capitolo conclude l'esempio applicativo dell'algoritmo WAND, illustrando il momento esatto in cui il sistema è costretto a eseguire una valutazione completa del punteggio, per poi introdurre **MaxScore**, una strategia di potatura alternativa che si fonda sulla divisione logica delle liste di posting.
-
 ### La Valutazione Obbligatoria in WAND
 
 Riprendendo il calcolo accumulato nella fase precedente, il motore di ricerca aveva sommato gli Upper Bound (UB) dei primi tre termini ordinati ("language", "best", "programming"), raggiungendo un limite teorico di 2.0. Questo valore non era sufficiente a superare la soglia τ di 2.1 stabilita dal documento temporaneamente in prima posizione (documento 8). Il processo iterativo di WAND, tuttavia, prevede l'aggiunta dell'ultimo termine rimanente, ovvero "rust". Questo specifico termine possiede un Upper Bound decisamente elevato, quantificato in 2.5.
 ![[Pasted image 20260415120632.png]]
 
-Aggiungendo quest'ultimo dato, la formula di verifica cambia drasticamente esito. L'equazione calcolata dal sistema diventa: τ=2.1<s(Q,13)≤UB(language)+UB(best)+UB(programming)+UB(rust)=1.1+0.3+0.6+2.5=4.5. Poiché il risultato totale di 4.5 supera ampiamente la soglia di sbarramento di 2.1, il sistema perde la certezza matematica che il documento possa essere scartato a priori. Di conseguenza, la potatura dinamica si interrompe e il motore stabilisce la necessità assoluta di valutare il documento completo, segnalando il comando di analizzare il documento 15 ("Need to evaluate document 15!").
+Aggiungendo quest'ultimo dato, la formula di verifica cambia esito. L'equazione calcolata dal sistema diventa: τ=2.1<s(Q,13)≤UB(language)+UB(best)+UB(programming)+UB(rust)=1.1+0.3+0.6+2.5=4.5. Poiché il risultato totale di 4.5 supera ampiamente la soglia di sbarramento di 2.1, il sistema perde la certezza matematica che il documento possa essere scartato a priori. Di conseguenza, la potatura dinamica si interrompe e il motore stabilisce la necessità assoluta di valutare il documento completo, segnalando il comando di analizzare il documento 15 ("Need to evaluate document 15!").
 ![[Pasted image 20260415120728.png]]
 
 ### MaxScore: Una Strategia Alternativa di Pruning Dinamico
@@ -384,7 +346,7 @@ Oltre a WAND, il mondo dell'Information Retrieval si avvale di altre metodologie
 L'intuizione alla base di MaxScore si discosta dal concetto di accumulo visto in WAND. Data la consueta soglia corrente τ, questo algoritmo opera una spaccatura, suddividendo le liste di posting in due insiemi separati: le liste **essenziali** (essential) e quelle **non essenziali** (non-essential). Le liste considerate non essenziali sono quelle associate agli Upper Bound più piccoli. Questa separazione avviene assicurandosi che la somma dei massimali delle liste non essenziali si mantenga ad un livello tale da non impensierire la soglia di sbarramento, permettendo al motore di evitare calcoli su documenti che non figurano nelle liste principali.
 ### Ordinamento e Dati in MaxScore
 
-Per comprendere l'applicazione pratica di MaxScore, analizziamo i dati in ingresso. Il sistema mantiene come obiettivo l'estrazione del Top-1 assoluto. Il documento 8 in memoria continua a imporre una soglia τ pari a 2.1. Nella tabella seguente, elaborata per questo specifico test, si nota che i punteggi della lista "programming" presentano un Upper Bound ricalcolato pari a 1.0 (mentre nell'esempio WAND precedente si attestava a 0.6).
+Per comprendere l'applicazione pratica di MaxScore, analizziamo i dati in ingresso. Il sistema mantiene come obiettivo l'estrazione del Top-1 assoluto. Il documento 8 in memoria continua a imporre una soglia τ pari a 2.1. Nella tabella seguente, elaborata per questo specifico test, si nota che i punteggi della lista "programming" presentano un Upper Bound pari a 1.0
 
 ![[Pasted image 20260415121113.png]]
 
@@ -392,30 +354,6 @@ L'approccio operativo iniziale di MaxScore differisce sensibilmente da WAND. Se 
 
 ![[Pasted image 20260415121139.png]]
 
----
-
-**Glossario / Concetti Chiave**
-
-- **Valutazione Obbligatoria (Evaluate):** In WAND, l'azione imposta al sistema quando l'accumulo dei massimali teorici di punteggio supera la soglia τ, costringendo il calcolo reale dello score del documento.
-
-- **MaxScore:** Tecnica di potatura dinamica formalizzata da Turtle e Flood (1995) che aggira l'elaborazione dei documenti partizionando logicamente le posting list.
-
-- **Liste Essenziali e Non Essenziali:** Le due macro-categorie in cui MaxScore divide i termini di ricerca. Le liste con gli UB più bassi compongono l'insieme non essenziale.
-
-- **Sort by UB:** Il riordino preliminare delle liste di posting operato da MaxScore in funzione esclusiva dell'entità dei rispettivi tetti massimi.
-
----
-
-
-### Stato iniziale e parametri di base
-
-Il processo di recupero si basa sull'uso di liste invertite, le quali contengono le coppie di identificatori del documento e il relativo punteggio di pertinenza. Per ottimizzare il processo, per ogni termine della query viene precalcolato un limite superiore, definito **UB** (Upper Bound), che rappresenta il punteggio massimo assoluto che quel termine può generare.
-
-I dati di partenza per la query di esempio, composta dai termini "rust", "language", "programming" e "best", sono i seguenti:
-
-
-
-L'obiettivo di questa esecuzione è trovare il singolo documento più pertinente, operando quindi in modalità **Top-1**. Le condizioni iniziali impostano il documento corrente in esame a $d = 8$ e stabiliscono una soglia minima di sbarramento $\tau = 2.1$.
 
 ### Liste essenziali e non essenziali
 
@@ -432,22 +370,6 @@ Durante la progressione, il sistema analizza il documento identificato con il nu
 
 Il controllo successivo si sposta sul documento 13, anch'esso reperito nella lista essenziale del termine "language". Si riapplica la stessa logica di sbarramento per vedere se il punteggio potenziale massimo del documento $s(Q,13)$ superi la soglia $\tau = 2.1$. La formula si aggiorna con il punteggio specifico del nuovo documento: $\tau=2.1<?s(Q,13)\le UB(programming)+UB(best)+s(language,13)$ Il calcolo aggiornato produce $1.0 + 0.3 + 0.9 = 2.2$. In questo caso, la soglia di 2.1 è strettamente minore del punteggio massimo potenziale di 2.2. Questo significa che il documento 13 potrebbe potenzialmente essere il miglior candidato e, di conseguenza, il sistema non può scartarlo ma dovrà valutare anche le altre occorrenze per calcolarne il punteggio finale.
 ![[Pasted image 20260415121458.png]]
-
----
-### Concetti Chiave
-
-- **Algoritmo MaxScore**: Tecnica per ottimizzare l'Exact Top-k Retrieval, riducendo i calcoli necessari attraverso il partizionamento dei termini.
-
-- **UB (Upper Bound)**: Il punteggio massimo che ogni singolo termine può fornire a un documento, precalcolato prima dell'esecuzione.
-
-- **Partizionamento delle Liste**: Divisione tra liste **essenziali** e **non essenziali** per stimare rapidamente il punteggio massimo potenziale di un documento in esame.
-
-- **Soglia $\tau$**: Valore dinamico di punteggio che determina se un documento ha il potenziale matematico per entrare nella classifica dei Top-k risultati.
-
----
-
-
-### Il calcolo effettivo per il documento 13
 
 Come visto nel passaggio precedente, il documento $d = 13$ aveva superato il controllo preliminare, poiché il suo limite superiore teorico di 2.2 era maggiore della soglia $\tau = 2.1$. Questo rende necessario calcolare il punteggio esatto accumulato dal documento in tutte le liste. Dalla disamina delle liste invertite, il documento 13 riceve 0.9 punti da "language" , 0.5 punti da "programming" e 0.1 punti da "best". Sommando questi contributi reali, si ottiene un punteggio totale effettivo pari a 1.5. Dato che questo valore (1.5) non supera l'attuale soglia di 2.1, l'algoritmo non aggiorna la soglia e scarta l'ipotesi di rendere il documento 13 il nuovo candidato Top-1.
 ![[Pasted image 20260415121605.png]]
@@ -466,16 +388,3 @@ La parte finale della lezione sposta l'attenzione sull'efficienza di questi algo
 Il seguente prospetto riassume le prestazioni all'aumentare dei termini di ricerca:
 
 I dati dimostrano in modo inequivocabile che MaxScore e WAND dominano rispetto a RankedOR. Mentre RankedOR vede i suoi tempi esplodere linearmente con l'aggiunta di termini alla query (raggiungendo i 418.7 millisecondi per 6 o più termini), MaxScore si mantiene estremamente performante, con un tempo medio generale di soli 6.6 millisecondi e un costo spaziale minimo di 0.22. Questo evidenzia la straordinaria capacità delle euristiche con soglia di tagliare rami di calcolo superflui.
-
----
-### Concetti Chiave
-
-- **Calcolo del punteggio effettivo**: Il passaggio in cui, superato il controllo dell'Upper Bound, si sommano i valori reali del documento in tutte le liste invertite.
-
-- **Valutazione Sperimentale (Top-10)**: Dimostrazione pratica dell'efficacia degli algoritmi di recupero misurata in millisecondi per query su dataset reali.
-
-- **Configurazione a Blocchi**: Strutturazione dei dati, a dimensione fissa o variabile, usata durante i test di ottimizzazione per migliorare i tempi di recupero.
-
-- **Scalabilità**: La capacità di algoritmi come MaxScore e WAND di mantenere bassi i tempi di latenza anche al crescere del numero dei termini presenti nella query utente.
-
----
