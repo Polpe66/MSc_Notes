@@ -198,9 +198,6 @@ Possiamo vedere come funziona nel documento numero 1 immaginando che la parola "
 
 ### L'Architettura dell'Elaborazione della Query
 
-Dietro le interfacce dei motori di ricerca lavora un'architettura divisa in due parti: una fase Offline, che prepara i dati, e una fase Online, che risponde alle ricerche in tempo reale.
-
-Durante le operazioni Offline che avvengono in background, l'intera collezione di documenti viene analizzata attraverso un processo di indicizzazione per creare l'indice invertito. Contemporaneamente, un elaboratore chiamato Feature Processor estrae le caratteristiche dei testi e le salva in un archivio dedicato. In questo stesso flusso, il sistema preleva dei dati di addestramento per istruire un algoritmo di machine learning, così da calibrare il modello di Learning-to-rank che servirà a ordinare i risultati.
 
 ![[Pasted image 20260415114613.png]]
 
@@ -217,23 +214,6 @@ A conclusione di tutto questo processo troviamo la procedura di **Exact Top-k Re
 
 Per selezionare questi elementi, il motore interroga l'indice in modo più flessibile usando l'operatore logico OR, così da non escludere potenziali candidati validi. In questa fase, i documenti vengono valutati attraverso funzioni di calcolo molto rigorose che ne misurano l'importanza: tra queste, la più famosa e utilizzata è sicuramente la formula **BM25**, che permette di identificare con precisione matematica i risultati che meritano di finire in cima alla lista.
 ![[Pasted image 20260415114937.png]]
-
----
-
-**Glossario / Concetti Chiave**
-
-- **DAAT (Document-At-A-Time):** Tecnica di risoluzione delle query che valuta progressivamente documento per documento all'interno delle liste dei termini ricercati.
-
-- **nextGEQ:** Operatore computazionale che accelera le ricerche tra due liste non perfettamente allineate eseguendo salti in avanti per trovare l'elemento successivo "Maggiore o Uguale".
-
-- **TAAT (Term-At-A-Time):** Metodo di risoluzione alternativo che aggredisce l'operazione logica partendo rigorosamente dalle frequenze minori (le posting list più corte).
-
-- **Indici Posizionali:** Mappature sofisticate all'interno di un indice invertito in cui, oltre al rinvio al documento, viene segnalata puntualmente l'ubicazione numerica progressiva della singola parola, rendendo possibile l'individuazione di locuzioni esatte (query a frase).
-
-- **Learning to Rank:** Procedura finale e avanzatissima presente nei flussi online che sfrutta un modello di intelligenza precedentemente istruito sulle feature del testo, dedicata esclusivamente al "Re-Ranking" e perfezionamento della vetta dei risultati presentati all'utente.
-
----
-
 
 ### Recupero Esatto dei Top-k (Exact Top-k Retrieval)
 
@@ -271,19 +251,6 @@ Successivamente, il sistema esamina il valore 1.5:
 
 Questo meccanismo permette di processare un'intera sequenza di $n$ documenti mantenendo solo i migliori $k$ in un tempo computazionale pari a **$O(n \log k)$**.
 
----
-
-**Glossario / Concetti Chiave**
-
-- **Exact Top-k Retrieval**: Procedura per trovare esattamente i primi $k$ documenti con il punteggio più alto secondo una funzione di ranking.
-
-- **Min-Heap**: Struttura dati ad albero che mantiene l'elemento più piccolo alla radice, utilizzata per gestire efficientemente la soglia di sbarramento dei risultati.
-
-- **Soglia $\tau$ (tau)**: Il punteggio minimo necessario affinché un nuovo documento possa essere considerato tra i primi $k$ risultati correnti.
-
-- **Complessità $O(n \log k)$**: Efficienza temporale dell'algoritmo basato su Min-Heap, dove $n$ è il numero totale di documenti e $k$ è il numero di risultati richiesti.
-
----
 ### Complessità Computazionale del Min-Heap
 
 A completamento di quanto visto nella gestione della coda di priorità per il mantenimento dei migliori documenti, è fondamentale definire il costo operativo di questa strategia. L'efficienza temporale dell'algoritmo basato su Min-Heap, in cui si scartano sistematicamente i valori inferiori alla soglia $\tau$ corrente, garantisce una complessità computazionale pari a $O(n \log k)$ tempo. In questa notazione, $n$ rappresenta il numero totale di documenti esaminati durante lo scorrimento delle liste, mentre $k$ indica la capienza massima del Min-Heap, ovvero la quantità di risultati desiderati dall'utente.
@@ -315,30 +282,19 @@ L'elaborazione continua fino a quando i puntatori si allineano sul documento ide
 A questo punto, l'algoritmo confronta il nuovo score totale con la soglia di sbarramento. Poiché 3.7 è nettamente superiore a 2.1, il documento 8 viene sfrattato dal Min-Heap. Il nuovo detentore della posizione Top-1 diventa il documento 15 ($d = 15$). Di conseguenza, la soglia di sbarramento globale per i futuri documenti analizzati viene innalzata rigorosamente al nuovo limite di $\tau = 3.7$. Questa meccanica, sebbene garantisca l'esattezza matematica del risultato, evidenzia come il costo computazionale rimanga strettamente proporzionale alla lunghezza totale delle liste esaminate, introducendo la necessità per sistemi futuri di metodi di scarto (pruning) più aggressivi.
 ![[Pasted image 20260415115823.png]]
 
----
-
-**Glossario / Concetti Chiave**
-
-- **Complessità $O(n \log k)$:** Espressione matematica che descrive il tempo necessario per valutare $n$ elementi mantenendo aggiornata una classifica dei migliori $k$ risultati.
-
-- **Query OR:** Tipo di interrogazione testuale il cui punteggio totale di un documento è calcolato aggregando i punteggi parziali di ogni singolo termine presente al suo interno.
-
-- **Score Parziale:** Il valore numerico (peso) precalcolato e associato a un documento all'interno della singola lista invertita di un termine specifico.
-
-- **DAAT con Accumulatore:** Il processo con cui il motore si sofferma su un singolo identificativo (es. il documento 15) per sommare verticalmente tutti i suoi score parziali prima di passare all'identificativo successivo.
-
----
 ### I Limiti dell'Approccio Lineare
 
 Come osservato precedentemente nella valutazione di una query OR, l'obiettivo formale dell'Exact Top-k Retrieval è quello di trovare gli esatti Top-k risultati (ad esempio impostando il parametro k = 1000) basandosi su punteggi generati da funzioni di ranking note, come il BM25. La strategia base si affida all'uso di un Min-Heap per conservare i punteggi più alti man mano che si scorrono i dati. Nonostante il sistema riesca ad aggiornare con successo la classifica (come dimostrato dall'avanzamento dei puntatori fino a eleggere un nuovo documento Top-1 con uno score di 3.7), questo metodo si rivela profondamente inefficiente. Il motivo risiede nel fatto che il costo computazionale cresce in maniera direttamente proporzionale al numero totale di posting presenti in tutte le liste associate ai termini della query. In sostanza, il motore è costretto a ispezionare un numero eccessivo e insostenibile di identificativi documentali.
 
 ### L'Algoritmo WAND (Weak AND)
 
-In questo contesto accademico prende forma l'algoritmo **WAND** (Weak AND). Si tratta di una strategia di potatura dinamica (dynamic pruning) strutturata specificamente per autorizzare il sistema a saltare (skip) la valutazione di numerosi identificativi documentali. La grande forza innovativa di WAND risiede nella sua promessa: l'algoritmo garantisce matematicamente di restituire gli esatti risultati Top-k, pur ignorando volontariamente e massicciamente una vasta porzione dei posting. L'idea operativa fondante è logica e rigorosa: data la soglia di sbarramento corrente, indicata dalla variabile $\tau$, il sistema salta l'elaborazione di tutti quei documenti per i quali vi è la certezza matematica che otterranno un punteggio strettamente inferiore a $\tau$.
+In questo contesto accademico prende forma l'algoritmo **WAND** (Weak AND). Si tratta di una strategia di potatura dinamica (dynamic pruning) strutturata specificamente per autorizzare il sistema a saltare (skip) la valutazione di  identificativi. La forza innovativa di WAND risiede nella sua promessa: l'algoritmo garantisce matematicamente di restituire gli esatti risultati Top-k,  ignorando volontariamente una vasta porzione dei posting. L'idea operativa è che data la soglia di sbarramento corrente, indicata dalla variabile $\tau$, il sistema salta l'elaborazione di tutti quei documenti per i quali vi è la certezza matematica che otterranno un punteggio strettamente inferiore a $\tau$.
 
 ### Upper Bound e Stima dei Punteggi
 
-Per poter prevedere a priori se un documento supererà o meno la soglia senza doverne sommare tutte le componenti, l'algoritmo WAND richiede un potenziamento della struttura dati: per ogni singola lista di posting viene memorizzato un valore chiamato **Upper Bound** (UB), che corrisponde semplicemente al punteggio più grande registrato in assoluto all'interno di quella specifica lista. L'introduzione degli Upper Bound (UBs) consente di creare delle approssimazioni del punteggio reale di un documento. Se consideriamo una query composta da quattro termini, rappresentata matematicamente come $Q = t_1 t_2 t_3 t_4$ , sappiamo che lo score totale effettivo è calcolato sommando i contributi singoli tramite l'equazione $s(Q, d) = s(t_1, d) + s(t_2, d) + s(t_3, d) + s(t_4, d)$. Usando gli UB, possiamo stimare un limite massimo teorico, sapendo che il punteggio reale sarà sempre minore o uguale alla somma di alcuni UB noti e dei punteggi esatti ricalcolati per le rimanenti variabili, ottenendo la disuguaglianza $s(Q, d) \le UB(t_1) + UB(t_2) + s(t_3, d) + s(t_4, d)$.
+Per poter prevedere a priori se un documento supererà o meno la soglia senza doverne sommare tutte le componenti, l'algoritmo WAND richiede un potenziamento della struttura dati: per ogni singola lista di posting viene memorizzato un valore chiamato **Upper Bound** (UB), che corrisponde semplicemente al punteggio più grande registrato in assoluto all'interno di quella specifica lista. 
+
+L'introduzione degli Upper Bound (UBs) consente di creare delle approssimazioni del punteggio reale di un documento. Se consideriamo una query composta da quattro termini, rappresentata matematicamente come $Q = t_1 t_2 t_3 t_4$ , sappiamo che lo score totale effettivo è calcolato sommando i contributi singoli tramite l'equazione $s(Q, d) = s(t_1, d) + s(t_2, d) + s(t_3, d) + s(t_4, d)$. Usando gli UB, possiamo stimare un limite massimo teorico, sapendo che il punteggio reale sarà sempre minore o uguale alla somma di alcuni UB noti e dei punteggi esatti ricalcolati per le rimanenti variabili, ottenendo la disuguaglianza $s(Q, d) \le UB(t_1) + UB(t_2) + s(t_3, d) + s(t_4, d)$.
 
 ### Inizializzazione degli UB nell'Esempio Pratico
 

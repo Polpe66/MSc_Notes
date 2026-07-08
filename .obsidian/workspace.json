@@ -4,19 +4,51 @@
     "type": "split",
     "children": [
       {
-        "id": "55e519f68a1dafd6",
+        "id": "0ccdda619b6d0f42",
         "type": "tabs",
         "children": [
           {
-            "id": "2b20e311cef734a5",
+            "id": "b39e66ec2740f98e",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Appunti_molto_discorsivi/Slide4.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Slide4"
+            }
+          }
+        ]
+      },
+      {
+        "id": "4b0482a22e94f303",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "8b05ca2dbfe08f52",
             "type": "leaf",
             "state": {
               "type": "pdf",
               "state": {
-                "file": "Esami/Risposte_domande_esame.pdf"
+                "file": "Slide Lezioni/04-05-06-inverted_indexes_and_query_processing.pdf"
               },
               "icon": "lucide-file-text",
-              "title": "Risposte_domande_esame"
+              "title": "04-05-06-inverted_indexes_and_query_processing"
+            }
+          },
+          {
+            "id": "646267fcddd2e5bc",
+            "type": "leaf",
+            "state": {
+              "type": "pdf",
+              "state": {
+                "file": "appunti_finali_ir.pdf"
+              },
+              "icon": "lucide-file-text",
+              "title": "appunti_finali_ir"
             }
           }
         ]
@@ -192,10 +224,11 @@
       "obsidian-git:Open Git source control": false
     }
   },
-  "active": "2b20e311cef734a5",
+  "active": "b39e66ec2740f98e",
   "lastOpenFiles": [
-    "appunti_finali_ir.pdf",
     "Slide Lezioni/04-05-06-inverted_indexes_and_query_processing.pdf",
+    "appunti_finali_ir.pdf",
+    "Appunti_molto_discorsivi/Slide4.md",
     "IR/Slide4.md",
     "IR/allegati/Pasted image 20260704144906.png",
     "IR/allegati/Pasted image 20260704144349.png",
@@ -229,7 +262,6 @@
     "IR/Lezione 2 - Valutazione dei Sistemi di IR.md",
     "IR/Lezione 13 - Approximate Nearest Neighbor.md",
     "IR/Lezione 10 - Learning to Rank II.md",
-    "IR/Lezione 9 - Learning to Rank I.md",
     "Senza nome",
     "IR/allegati/Pasted image 20260502154922.png",
     "IR/allegati/Pasted image 20260502154817.png",
