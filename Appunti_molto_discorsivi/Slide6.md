@@ -1,7 +1,3 @@
-# Slide 6: Learning to Rank
-
-Questo capitolo introduce il concetto di **Learning to Rank** nell'ambito dell'Information Retrieval, esplorando l'architettura generale di un motore di ricerca, le diverse tipologie di funzioni di ranking e introducendo i fondamenti del Machine Learning necessari per apprendere tali funzioni dai dati.
-
 ### Architettura Generale e Flusso di Dati
 
 Il processo di Learning to Rank si inserisce all'interno di un'architettura di ricerca complessa, strutturata su due macro-fasi parallele: una fase **Offline** e una fase **Online**.
