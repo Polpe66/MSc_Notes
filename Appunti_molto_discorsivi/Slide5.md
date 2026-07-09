@@ -1,39 +1,42 @@
 
-### L'Architettura e l'Elaborazione delle Query
-
-L'architettura di un motore di ricerca moderno prevede una netta separazione tra le operazioni eseguite offline e quelle online. Durante la fase offline, il sistema si occupa dell'indicizzazione della collezione di documenti per generare l'**Inverted Index** (indice invertito). Parallelamente, le feature dei documenti vengono elaborate ed estratte in un repository dedicato, mentre i dati di addestramento nutrono un modello di **Learning-to-rank**.
-
-Nella fase online, il flusso parte dalla query dell'utente, che viene prima espansa e poi passata al sistema di processamento delle query. I risultati parziali interrogati sull'indice invertito passano al blocco di recupero e calcolo delle feature, per essere infine ordinati dalla funzione di ranking appresa e restituiti sotto forma di risultati di ricerca finali. L'infrastruttura sottostante a questo ecosistema è formata da immense server farm che contengono e processano l'indice e i dati di training.
-
 ![[Pasted image 20260415122206.png]]
 ### La Necessità dello Sharding
 
 Per gestire moli di dati così imponenti e garantire un'elevata reattività alle query, i motori di ricerca si affidano a una tecnica chiamata **Sharding**. Lo sharding permette di distribuire i dati frammentati su molteplici nodi fisici anziché mantenerli su un unico server centrale. L'adozione di questa tecnica è spinta da tre necessità fondamentali:
 
-In primo luogo, garantisce la **scalabilità**: man mano che la collezione di documenti cresce, una singola macchina non è più in grado di gestire il carico. Lo sharding permette al motore di scalare orizzontalmente tramite la semplice aggiunta di nuovi nodi. In secondo luogo, migliora nettamente le **performance**. Distribuendo il carico su più nodi, si alleggerisce il lavoro di ogni singolo server, risultando in una maggiore velocità di esecuzione delle query e prestazioni complessive superiori. Infine, aumenta la **tolleranza ai guasti** (Fault Tolerance). Utilizzando copie di sicurezza chiamate **repliche**, i dati restano sempre disponibili attraverso altri nodi anche qualora un server dovesse subire un guasto.
+In primo luogo, garantisce la **scalabilità**: man mano che la collezione di documenti cresce, una singola macchina non è più in grado di gestire il carico. Lo sharding permette di scalare orizzontalmente tramite la semplice aggiunta di nuovi nodi. 
+In secondo luogo, migliora nettamente le **performance**. Distribuendo il carico su più nodi, si alleggerisce il lavoro di ogni singolo server, risultando in una maggiore velocità di esecuzione delle query.
+Infine, aumenta la **tolleranza ai guasti** (Fault Tolerance). Utilizzando copie di sicurezza chiamate **repliche**, i dati restano sempre disponibili attraverso altri nodi anche qualora un server dovesse subire un guasto.
 
 Di conseguenza, se l'indice invertito dovesse allargarsi, si dovranno incrementare gli **shard** (frammenti di dati). Se ad aumentare è invece il traffico di interrogazioni da parte degli utenti, sarà necessario aumentare il numero delle **repliche**. In ambedue gli scenari, la scalabilità viene raggiunta aumentando le macchine fisiche a disposizione.
 
+Le query viene inviata ad un broker, che la inoltra a tutti gli shard, ogni shard calcola un risultato parziale e lo rimanda al broker.
+Broker fa un merge di questi risultati e produce la classifica finale da mandare all'utente.
+Broker realizza la top k locale per ciascuno shard e a seguito unisce tutto in una classifica globale
 ![[Pasted image 20260415122302.png]]
 
 ### Il Modello Base della Compressione e lo Space-Time Tradeoff
 
 La compressione dei dati si fonda su un modello concettuale basilare: una stringa di bit in ingresso, definita $B$, viene elaborata da un algoritmo **Compressore** che la riduce, restituendo una stringa compressa in uscita denominata $C(B)$. L'operazione opposta è ovviamente affidata a un **Decompressore**. 
+
 In base alle necessità, questa tecnologia può essere *lossy* (ammettendo una certa perdita di informazioni) o *lossless* (senza perdita di dettagli). 
-Il metro di valutazione primario dell'algoritmo è il **rateo di compressione**, calcolato tramite la formula $CR = \frac{|B|}{|C(B)|}$. Se il valore ottenuto è $CR = r$, significa che lo spazio occupato dall'output compresso $|C(B)|$ è $r$ volte inferiore rispetto alla dimensione dell'input originale $|B|$. Applicazioni storiche e comuni di questi principi includono utility da riga di comando come *gzip* e *bzip2*.
+
+Il metro di valutazione primario dell'algoritmo è il **rateo di compressione**, calcolato tramite la formula $CR = \frac{|B|}{|C(B)|}$. Se il valore ottenuto è $CR = r$, significa che lo spazio occupato dall'output compresso $|C(B)|$ è $r$ volte inferiore rispetto alla dimensione dell'input originale $|B|$. 
 
 Questi algoritmi sono strettamente legati a un compromesso architetturale, noto come **Space-Time Tradeoff**. Il rateo di compressione finale dipende infatti dalla velocità desiderata per le operazioni di compressione e decompressione, le quali impattano sul consumo energetico e sulla potenza di calcolo richiesta alla CPU. Spesso occorre bilanciare lo spazio di archiviazione risparmiato dalla struttura dati compressa e l'efficienza delle operazioni che vi devono essere eseguite sopra. 
-Non a caso, tool come *gzip* offrono 9 livelli di compressione distinti, dove il livello 1 è estremamente rapido ma offre risultati di compressione peggiori, mentre il livello 9 restituisce la miglior compressione al costo di tempistiche di calcolo più dilatate. Nel panorama attuale dell'Information Retrieval, questo tradeoff assume un'importanza capitale: non è più tollerabile l'ingenuo paradigma del "decomprimi prima di calcolare". L'obiettivo finale dei sistemi moderni è quello di poter effettuare operazioni di computazione operando direttamente sui dati già compressi.
+
+Nel panorama attuale dell'Information Retrieval, questo tradeoff assume un'importanza capitale: non è più tollerabile l'ingenuo paradigma del "decomprimi prima di calcolare". L'obiettivo finale dei sistemi moderni è quello di poter effettuare operazioni di computazione operando direttamente sui dati già compressi.
 
 ### Codifica di Interi e l'Ottimizzazione dei D-Gaps
 
-Scendendo nello specifico dell'indicizzazione, ci troviamo davanti al problema dei codificatori di interi: dato un intero $x > 0$, è necessario progettare un codice capace di rappresentare quel numero usando meno bit possibili. La stringa di bit risultante in uscita è definita **codeword** di $x$, indicata con $C(x)$. Elaborando un'intera sequenza $S$ di $n$ interi, la codifica finale avviene concatenando linearmente i singoli codeword: $C(x_1) \cdot\cdot\cdot C(x_n)$. I codici che si analizzano inizialmente sono definiti **statici**, poiché assegnano immancabilmente la stessa codeword a un determinato intero a prescindere dalla specifica sequenza processata.
+Dato un intero $x > 0$, è necessario progettare un codice capace di rappresentare quel numero usando meno bit possibili. 
+La stringa di bit risultante in uscita è definita **codeword** di $x$, indicata con $C(x)$. Elaborando un'intera sequenza $S$ di $n$ interi, la codifica finale avviene concatenando linearmente i singoli codeword: $C(x_1) \cdot\cdot\cdot C(x_n)$. I codici che si analizzano inizialmente sono definiti **statici**, poiché assegnano immancabilmente la stessa codeword a un determinato intero a prescindere dalla specifica sequenza processata.
 
 Nel contesto delle Posting List (che memorizzano ad esempio gli ID dei documenti in cui appare il termine "information" disposti in ordine crescente), si sfrutta una particolare tecnica denominata **d-gaps** per pre-trattare i dati. Anziché salvare numeri via via più grandi, i d-gaps permettono di salvare semplicemente la differenza numerica tra la cella attuale e la cella precedente. Di conseguenza, una lista come $[1, 5, 8, 11]$ viene ridotta agli scarti $[1, 4, 3, 3]$, mantenendo valori molto più piccoli e per natura più facili da comprimere.
 ![[Pasted image 20260415122454.png]]
 ### La Rappresentazione Binaria e il Fallimento dell'Ambiguità (Epic Fail)
 
-Un primo approccio alla scrittura in bit dei d-gaps potrebbe essere l'utilizzo di una stringa binaria di lunghezza fissa. Sappiamo che $k$ bit sono in grado di rappresentare efficacemente qualsiasi intero nell'intervallo $0 \le x < 2^k$. Definendo $bin(x)$ come la pura rappresentazione binaria di $x$, il numero di bit necessari per formarla è pari a $\lceil log_{2}(x+1)\rceil$ bit. Avendo stabilito di lavorare con interi strettamente positivi ($x > 0$), la codeword basilare viene indicata come $B(x) = bin(x-1)$. Questo definisce formalmente un limite matematico inferiore: la grandezza di un codeword generico $C(x)$ deve sempre sottostare alla disequazione ![[Pasted image 20260415122526.png]]
+Un primo approccio alla scrittura in bit dei d-gaps potrebbe essere l'utilizzo di una stringa binaria di lunghezza fissa. Sappiamo che $k$ bit sono in grado di rappresentare nell'intervallo $0 \le x < 2^k$. Definendo $bin(x)$ come la rappresentazione binaria di $x$, il numero di bit necessari per formarla è pari a $\lceil log_{2}(x+1)\rceil$ bit. Avendo stabilito di lavorare con interi strettamente positivi ($x > 0$), la codeword basilare viene indicata come $B(x) = bin(x-1)$. Questo definisce formalmente un limite matematico inferiore: la grandezza di un codeword generico $C(x)$ deve sempre sottostare alla disequazione ![[Pasted image 20260415122526.png]]
 
 Possiamo osservare la tabella delle associazioni elementari per i primi numeri:
 
@@ -54,19 +57,6 @@ Tuttavia, provando a concatenare linearmente le codifiche risultanti dai valori 
 
 Al momento della decompressione, l'algoritmo non è più in grado di ripristinare in modo certo la lista d'origine e genererà risultati contraddittori e ambigui. La natura di questa ambiguità è data dal fatto che determinati codeword fungono accidentalmente da prefisso per codeword più lunghe appartenenti ad altri valori. Per risolvere questo difetto strutturale e operare in totale sicurezza, i motori di ricerca si affidano esclusivamente a codici univocamente decodificabili in cui vige la proprietà **Prefix-free**: in questi sistemi non esistono mai situazioni in cui un codeword sia l'esatto inizio (prefisso) di un codeword più lungo.
 
----
-
-### Glossario e Concetti Chiave
-
-- **Sharding:** Una tecnica basilare dei moderni motori di ricerca volta a frammentare e distribuire i dati attraverso molti nodi fisici, essenziale per scalabilità orizzontale, alte performance e tolleranza ai guasti.
-
-- **Rateo di Compressione (CR):** Indicatore fondamentale dell'efficacia di un compressore, derivato dalla proporzione matematica tra la dimensione in bit in input ($|B|$) e la sua compressione in output ($|C(B)|$).
-
-- **D-Gaps:** Un accorgimento pratico usato sulle liste di elementi crescenti (come le Posting List) che non codifica il numero in sé, bensì l'intervallo o la differenza rispetto all'elemento antecedente, abbassando il valore assoluto degli interi.
-
-- **Codice Ambiguo:** Un paradigma di compressione malformato dove, in assenza di un rigido formato prefix-free, diviene impossibile stabilire una separazione netta e deterministica delle sequenze decodificabili.
-
----
 ### Decodificabilità Univoca e Codici Prefix-Free
 
 Il problema principale riscontrato con la codifica binaria semplice è l'ambiguità: un codice può risultare un prefisso di un altro, rendendo impossibile distinguere i singoli numeri in una sequenza continua di bit. Per risolvere questo limite, ci concentriamo sui **codici prefix-free** (o codici a prefisso), definiti come codici in cui nessuna codeword è il prefisso di un'altra. Questa proprietà garantisce che, durante la lettura del flusso di bit, non appena viene riconosciuta una sequenza corrispondente a un simbolo, essa possa essere decodificata immediatamente senza incertezze.
@@ -113,22 +103,6 @@ Esiste un limite teorico alla compressione di queste liste, noto come **Limite I
 L'efficienza reale di un compressore dipende da quanto riesce a superare il limite inferiore sfruttando le regolarità dei dati. Una sequenza che presenta valori molto raggruppati (**clustered**) è molto più comprimibile di una sequenza con distribuzione casuale, anche se hanno la stessa lunghezza $n$ e lo stesso universo $U$.
 
 Analizzando collezioni reali come Gov2 o ClueWeb09, si osserva che la distribuzione dei gap non è uniforme: una percentuale altissima di gap ha dimensione $1$ (circa il $65\%$ in alcuni casi), e la frequenza diminuisce drasticamente all'aumentare della dimensione del gap. I moderni algoritmi di compressione sono progettati specificamente per sfruttare questa alta frequenza di gap piccoli per abbattere drasticamente l'occupazione di memoria.
-
----
-
-### Glossario e Concetti Chiave
-
-- **Codice Prefix-Free**: Codice in cui nessuna parola di codice è il prefisso di un'altra, eliminando le ambiguità durante la decodifica.
-
-- **Elias Gamma/Delta**: Metodi di codifica universale che comprimono interi positivi concatenando un'informazione sulla lunghezza alla rappresentazione binaria del numero.
-
-- **Variable Byte (VB)**: Codifica allineata ai byte che utilizza un bit di controllo per gestire interi di lunghezza variabile, ottimizzando la velocità di calcolo.
-
-- **D-gaps**: Tecnica che consiste nel codificare la differenza tra interi consecutivi in una lista ordinata, riducendo la magnitudo dei valori da processare.
-
-- **Limite Combinatorio**: Il numero minimo teorico di bit necessari per codificare una lista di $n$ elementi in un universo $U$.
-
----
 
 ### Impacchettamento con Simple9 e Simple16
 
@@ -183,19 +157,3 @@ La creazione dell'indice prevede di scrivere in verticale (dal basso verso l'alt
 Per rendere fruibile l'indice viene prodotto l'array di navigazione strutturale $H$. Questo traccia quanti elementi gravitano in un bucket scrivendo semplicemente le loro cardinalità mediante il codice unario. Praticamente l'array pone un bit `1` come contatore per ogni singolo intero che vive nella sequenza originaria $S$, e al massimo un bit `0` per tracciare la conclusione di ciascun bucket in memoria. Da questo intreccio deriva l'incremento di soli $2n$ bit. Nel momento in cui giungono richieste $NextGEQ$, il sistema è capace di navigare a colpo sicuro nei raggruppamenti decomprimendo non tutto il database, ma unicamente la ristretta manciata di interi confinati in quello specifico bucket.
 
 ![[Pasted image 20260417113938.png]]
-
----
-
-### Glossario / Concetti Chiave
-
-- **Simple9/Simple16**: Metodologie dirette di impacchettamento che stivano un numero variabile di interi all'interno di una singola word da 32 bit, guidate da un selettore iniziale e basate sulla magnitudo dei dati.
-
-- **Patched Frame of Reference (PFor)**: Algoritmo ideato per tollerare valori numerici eccezionali ricalcolando gli elementi piccoli come delta ($x-b$) rispetto a una base e deviando gli elementi troppo grandi in una memoria separata.
-
-- **Binary Interpolative Coding**: Codifica che applica un approccio a divisione ricorsiva ($l$ e $h$), determinando i bit necessari dal contesto circostante. Eccelle nello smaltire le sequenze continue azzerando l'ingombro.
-
-- **Rank e Select**: Operazioni fondamentali su vettori di bit eseguibili in tempo $O(1)$. Permettono di quantificare (Rank) o posizionare (Select) rapidamente porzioni pre-calcolate all'interno del flusso dei dati compressi.
-
-- **Elias-Fano Representation**: Modello di memorizzazione che splitta i bit di elementi crescenti appoggiandosi ai bucket. Permette operazioni complesse come il $NextGEQ$ sfruttando interrogazioni su un array di controllo formattato in codice unario.
-
----

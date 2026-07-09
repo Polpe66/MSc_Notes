@@ -28,15 +28,27 @@
         "type": "tabs",
         "children": [
           {
-            "id": "646267fcddd2e5bc",
+            "id": "46adee7b2e1a12c8",
             "type": "leaf",
             "state": {
               "type": "pdf",
               "state": {
-                "file": "appunti_finali_ir.pdf"
+                "file": "Slide Lezioni/08-09-data_compression.pdf"
               },
               "icon": "lucide-file-text",
-              "title": "appunti_finali_ir"
+              "title": "08-09-data_compression"
+            }
+          },
+          {
+            "id": "80b55a1fe2ab8780",
+            "type": "leaf",
+            "state": {
+              "type": "pdf",
+              "state": {
+                "file": "main.pdf"
+              },
+              "icon": "lucide-file-text",
+              "title": "main"
             }
           }
         ]
@@ -96,7 +108,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 300,
+    "collapsed": true
   },
   "right": {
     "id": "91903aee59939870",
@@ -212,11 +225,14 @@
       "obsidian-git:Open Git source control": false
     }
   },
-  "active": "b39e66ec2740f98e",
+  "active": "46adee7b2e1a12c8",
   "lastOpenFiles": [
-    "Appunti_molto_discorsivi/Slide4.md",
+    "main.pdf",
+    "Slide Lezioni/08-09-data_compression.pdf",
     "appunti_finali_ir.pdf",
     "Appunti_molto_discorsivi/Slide5.md",
+    "Esami/Risposte_domande_esame.pdf",
+    "Appunti_molto_discorsivi/Slide4.md",
     "Slide Lezioni/04-05-06-inverted_indexes_and_query_processing.pdf",
     "IR/Slide4.md",
     "IR/allegati/Pasted image 20260704144906.png",
@@ -256,8 +272,6 @@
     "IR/allegati/Pasted image 20260502154749.png",
     "IR/allegati/Pasted image 20260502154713.png",
     "IR/allegati/Pasted image 20260502154448.png",
-    "IR/allegati/Pasted image 20260502154340.png",
-    "P2P/slideRicci/8_260328_094427.pdf",
-    "IR/allegati"
+    "IR/allegati/Pasted image 20260502154340.png"
   ]
 }
