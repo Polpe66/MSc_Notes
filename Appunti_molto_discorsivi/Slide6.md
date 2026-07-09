@@ -13,13 +13,15 @@ Nella fase online, ovvero quando il sistema è in esecuzione per l'utente, il fl
 Per comprendere a fondo come operano le **General ranking functions**, possiamo utilizzare una decomposizione basata sulle rappresentazioni.
 In questo modello teorico, abbiamo una **Query q** che viene elaborata in una **Query representation** $\phi$, e un **Document d** che genera una **Document representation** $\psi$. Inoltre, l'interazione diretta tra i due produce una **Query-document representation $\eta$**. Queste tre rappresentazioni alimentano insieme una **Aggregation function f**, la quale calcola e restituisce il **Relevance score $s(q,d)$**.
 
-Questo schema si semplifica drasticamente quando si analizzano le **BOW ranking functions**, ovvero le classiche funzioni basate sui modelli Bag-of-Words. In queste architetture, query e documenti sono rappresentati unicamente come vettori sparsi (**sparse BOW vectors**), trattati essenzialmente come multi-insiemi di parole. Di conseguenza, **non ci sono query-document features**; la componente relativa alla **Query-document representation $\eta$** viene completamente scartata dal processo di calcolo. Esempi classici di questa specifica funzione di aggregazione $f$ sono il **cosine** similarity e l'algoritmo **BM25**. Queste rappresentazioni sparse sono fisicamente archiviate negli inverted index, che costituiscono la vera e propria spina dorsale (**backbone**) dei motori di ricerca web commerciali (**commercial Web search engine**).
+Questo schema si semplifica drasticamente quando si analizzano le **BOW ranking functions**, ovvero le classiche funzioni basate sui modelli Bag-of-Words. In queste architetture, query e documenti sono rappresentati unicamente come vettori sparsi (**sparse BOW vectors**), trattati essenzialmente come multi-insiemi di parole. Di conseguenza, **non ci sono query-document features**; la componente relativa alla **Query-document representation $\eta$** viene completamente scartata dal processo di calcolo. 
+
+Esempi classici di questa specifica funzione di aggregazione $f$ sono il **cosine** similarity e l'algoritmo **BM25**. Queste rappresentazioni sparse sono fisicamente archiviate negli inverted index, che costituiscono la vera e propria spina dorsale (**backbone**) dei motori di ricerca web commerciali (**commercial Web search engine**).
 
 ![[Pasted image 20260417114644.png]]
 
 ### Estensione del Framework e Integrazione di Nuovi Segnali
 
-Constatato che finora query e documenti sono stati considerati come meri multi-insiemi di parole, è naturale chiedersi se esistano altre istanze applicabili al nostro framework generale per superare questo limite. La risposta è affermativa: esiste infatti una grande quantità di altri potenziali segnali da poter utilizzare.
+Constatato che finora query e documenti sono stati considerati come multi-insiemi di parole, è naturale chiedersi se esistano altre istanze applicabili al nostro framework generale per superare questo limite. La risposta è affermativa: esiste infatti una grande quantità di altri potenziali segnali da poter utilizzare.
 
 Quali potrebbero essere queste idee aggiuntive?
 Lato documento, si può sfruttare il fatto che esso può avere dei campi strutturati, può essere suddiviso in zone o, ancora, può essere arricchito con dati testuali esterni, come ad esempio il testo dei link in ingresso (**anchors**). Si rivelano preziose anche informazioni aggiuntive di natura strutturale e comportamentale, come i link in entrata (**In-Links**), i link in uscita (**Out-Links**), il valore di **PageRank**, il numero di **clicks** ricevuti o i **social links**. Lato query, invece, si possono integrare segnali quali il numero di termini inseriti (**# terms**), la popolarità della ricerca nei log del motore (**popularity in query logs**) o le informazioni estratte dal profilo dell'utente (**user profile info**). Reintroducendo tutti questi dati nel modello, il framework torna a sfruttare a pieno tutte le sue componenti, reintegrando attivamente la **Query-document representation $\eta$** nel calcolo della funzione di aggregazione.
@@ -28,30 +30,17 @@ Lato documento, si può sfruttare il fatto che esso può avere dei campi struttu
 
 ### L'Apprendimento della Funzione tramite Machine Learning
 
-L'inclusione di tutti questi segnali porta a un interrogativo critico: **possiamo imparare f?**
+L'inclusione di tutti questi segnali porta a un interrogativo: **possiamo imparare f?**
 Imparare questa complessa funzione di aggregazione significa affidarsi alle tecniche di **Machine Learning**.
 
-Secondo la definizione di Wikipedia, il Machine learning è un campo dell'informatica che utilizza tecniche statistiche per consentire ai sistemi informatici di apprendere. Questo si traduce nella capacità di migliorare progressivamente le prestazioni su un compito specifico attingendo dai dati, senza dover programmare il sistema in modo esplicito. Questo approccio metodologico implica necessariamente due precondizioni fondamentali: la disponibilità e l'esistenza di dati 
+Il Machine learning è un campo dell'informatica che utilizza tecniche statistiche per consentire ai sistemi informatici di apprendere. Questo si traduce nella capacità di migliorare progressivamente le prestazioni su un compito specifico attingendo dai dati, senza dover programmare il sistema in modo esplicito. Questo approccio metodologico implica necessariamente due precondizioni fondamentali: la disponibilità e l'esistenza di dati 
 (**Existence of data**), e la definizione formale di un problema di ottimizzazione (**Optimization problem**), che richiede di stabilire un task specifico e una metrica di misurazione (**task? measure?**).
 
 A seconda che al sistema venga fornito o meno un "segnale" di apprendimento o un "feedback", le attività di Machine Learning si dividono in due ampie categorie:
 
-- **Supervised learning**: In questo scenario, al computer vengono presentati degli input di esempio accompagnati dai rispettivi output desiderati, forniti da una sorta di "insegnante". L'obiettivo dell'algoritmo è imparare una regola generale capace di mappare correttamente i nuovi input verso i giusti output. Per il contesto dell'Information Retrieval e del ranking, ci troviamo di fronte a problemi di classificazione o regressione (**Classification / Regression problems**).
+- **Supervised learning**: In questo scenario, al computer vengono presentati degli input di esempio accompagnati dai rispettivi output desiderati, forniti da una sorta di "insegnante". L'obiettivo dell'algoritmo è imparare una regola generale capace di mappare correttamente i nuovi input verso i giusti output. Per il contesto dell'Information Retrieval e del ranking, ci troviamo di fronte a problemi di classificazione o regressione.
 
 - **Unsupervised learning**: Al contrario dell'apprendimento supervisionato, in questo caso non vengono fornite etichette all'algoritmo, lasciando al sistema il compito di trovare autonomamente una struttura intrinseca all'interno dei dati di input.
-
-### Glossario e Concetti Chiave
-
-- **Learning to Rank**: L'applicazione di modelli addestrati (Machine Learning) per ottimizzare la funzione di aggregazione al fine di ordinare i documenti in base alla loro rilevanza rispetto a una determinata query.
-
-- **Bag-of-Words (BOW)**: Approccio classico in cui query e documenti sono gestiti come semplici insiemi sparsi di parole (es. tramite algoritmi come BM25), escludendo l'uso di feature relazionali o comportamentali complesse.
-
-- **Machine Learning**: Disciplina informatica che sfrutta la statistica per permettere ai calcolatori di apprendere e migliorare in specifiche attività tramite l'osservazione dei dati, senza programmazione esplicita.
-
-- **Supervised Learning**: Modalità di apprendimento automatico in cui il modello viene istruito fornendogli esempi chiari di coppie input-output (es. problemi di classificazione e regressione) per fargli dedurre una regola di mappatura generale.
-
----
-
 ### Terminologia di Base e Fasi dell'Apprendimento
 
 Un tipico task di apprendimento supervisionato mappa gli input verso gli output desiderati. Un esempio classico, seppur distante dai motori di ricerca, è fornire al sistema immagini per fargli imparare a distinguere tra un cane e un gatto.
@@ -69,7 +58,9 @@ Per comprendere intuitivamente questo processo di calibrazione degli algoritmi, 
 
 Per ogni puzzle, abbiamo a disposizione il problema stesso e, in fondo al libro, la sua soluzione corretta. Di fronte alla sfida, il nostro cervello produce inizialmente un tentativo di soluzione e, in un secondo momento, lo confrontiamo con quella esatta. Osservando le differenze tra la nostra risposta e quella reale, riusciamo a sintonizzare il nostro pensiero e ad apprendere la logica corretta. Ripetendo questa operazione ("ad libitum") per molti giochi, diventiamo sempre più bravi.
 
-Traducendo questa semplice metafora nel framework formale del Machine Learning, un'istanza di addestramento derivante dall'ambiente (**Environment**) viene presentata al sistema di apprendimento (**Learning system**). L'algoritmo produce quindi in uscita una previsione sul momento, ovvero un **Actual output**. Contemporaneamente, una sorta di "Teacher" (Insegnante) fornisce l'output desiderato. La differenza matematica tra la previsione appena calcolata e l'etichetta reale dell'istanza viene elaborata da un sommatore (**Adder**) e prende il nome di **loss** o **error** (errore). L'importanza vitale della loss sta nel fatto che viene "restituita" all'algoritmo e utilizzata per aggiornare i parametri interni del suo modello. Questo meccanismo ciclico viene ripetuto per tutte le istanze che compongono il dataset di addestramento. Quando l'intero dataset viene processato, diciamo di aver completato un ciclo; e poiché il processo intero viene ripetuto svariate volte per ottimizzare l'algoritmo, misuriamo questo scorrere del tempo in **learning iterations** o **training epochs** (epoche di addestramento).
+Traducendo questa semplice metafora nel framework formale del Machine Learning, un'istanza di addestramento derivante dall'ambiente (**Environment**) viene presentata al sistema di apprendimento (**Learning system**). L'algoritmo produce quindi in uscita una previsione sul momento, ovvero un **Actual output**. Contemporaneamente, una sorta di "Teacher" (Insegnante) fornisce l'output desiderato. 
+
+La differenza matematica tra la previsione appena calcolata e l'etichetta reale dell'istanza viene elaborata da un sommatore (**Adder**) e prende il nome di **loss** o **error** (errore). L'importanza vitale della loss sta nel fatto che viene "restituita" all'algoritmo e utilizzata per aggiornare i parametri interni del suo modello. Questo meccanismo ciclico viene ripetuto per tutte le istanze che compongono il dataset di addestramento. Quando l'intero dataset viene processato, diciamo di aver completato un ciclo; e poiché il processo intero viene ripetuto svariate volte per ottimizzare l'algoritmo, misuriamo questo scorrere del tempo in **learning iterations** o **training epochs** (epoche di addestramento).
 
 ![[Pasted image 20260417115910.png]]
 
@@ -87,27 +78,18 @@ Invece di processare singole parole, il sistema gestisce l'interazione tra la qu
 
 Il successo di un sistema basato su feature vector dipende da quanti e quali segnali si riescono a raccogliere. Già molto tempo fa (in un articolo del New York Times datato 3 giugno 2008), l'ingegnere Amit Singhal rivelò che Google stava utilizzando oltre 200 diverse feature all'interno del suo motore. Questa grande famiglia di parametri comprende indicatori fisici e strutturali, come il numero di link in uscita presenti sulla pagina, il numero totale di immagini, la lunghezza del documento testuale o la lunghezza dell'URL. Si valutano anche dettagli microscopici ma utili per l'anti-spam, come la presenza del carattere tilde ('~') all'interno dell'indirizzo Web , oltre a indicatori di freschezza del contenuto come la data dell'ultima modifica (Page edit recency) e misurazioni globali di autorità come il PageRank. Ad alimentare questi modelli si aggiungono fattori di match testuale (come il punteggio BM25, la comparsa in grassetto o a colori della parola cercata e la sua frequenza logaritmica nei link diretti alla pagina) e importantissimi fattori comportamentali, quali il conteggio dei click generali, i click in corrispondenza della query specifica e il tempo speso dall'utente a leggere il risultato (url dwell time).
 
-Tutte queste innumerevoli feature vengono categorizzate concettualmente dal framework in tre grandi macrogruppi. Il primo è formato dalle **query-only features**: si tratta di caratteristiche che assumono lo stesso valore per ogni documento analizzato in quella sessione, essendo legate esclusivamente alla tipologia o alla lunghezza della query dell'utente. Il secondo raggruppamento è quello delle **query-independent features**, che raggruppa le caratteristiche intrinseche al documento il cui valore rimane costante a prescindere da chi o cosa stia cercando in quel momento. Ne sono classici esempi il PageRank della pagina e la lunghezza del suo URL. Infine, le più dinamiche sono le **query-dependent features**: sono quelle metriche generate in tempo reale dall'interazione tra la richiesta e il documento, come il punteggio BM25, la frequenza della query in grassetto e le statistiche dei click passati per quella specifica correlazione query-URL.
+Tutte queste innumerevoli feature vengono categorizzate concettualmente dal framework in tre grandi macrogruppi. Il primo è formato dalle **query-only features**: si tratta di caratteristiche che assumono lo stesso valore per ogni documento analizzato in quella sessione, essendo legate esclusivamente alla tipologia o alla lunghezza della query dell'utente. 
+
+Il secondo raggruppamento è quello delle **query-independent features**, che raggruppa le caratteristiche intrinseche al documento il cui valore rimane costante a prescindere da chi o cosa stia cercando in quel momento. Ne sono classici esempi il PageRank della pagina e la lunghezza del suo URL. 
+
+Infine, le più dinamiche sono le **query-dependent features**: sono quelle metriche generate in tempo reale dall'interazione tra la richiesta e il documento, come il punteggio BM25, la frequenza della query in grassetto e le statistiche dei click passati per quella specifica correlazione query-URL.
 
 ![[Pasted image 20260417120217.png]]
 
-### Glossario e Concetti Chiave
-
-- **Feature Vector**: La rappresentazione matematica (un vettore di caratteristiche e attributi numerici) dell'interazione tra una data query e un documento, passata in ingresso al sistema di Machine Learning.
-
-- **Observation / Instance**: Un singolo esempio o "caso di studio" fornito all'algoritmo all'interno del dataset di addestramento.
-
-- **Loss / Error**: La differenza calcolata tra la previsione generata attualmente dal modello e il risultato corretto atteso, indispensabile per aggiornare iterativamente il sistema.
-
-- **Training Epoch**: Un giro completo di elaborazione e calibrazione degli errori applicato sull'intero dataset di addestramento a disposizione.
-
-- **Query-dependent feature**: Una metrica di ranking che assume valore solo intersecando i dati della pagina analizzata con lo specifico termine ricercato dall'utente (es. BM25).
-
----
-
 ### La Pipeline del Learning to Rank e i Vincoli di Sistema
 
-Dal punto di vista operativo, l'integrazione di un modello di Learning to Rank all'interno di un motore di ricerca avviene comunemente attraverso una pipeline strutturata in due fasi principali, definita **First step** e **Second step**. Inizialmente, la query dell'utente viene processata da un **Base Ranker**, il quale interroga il **Document Index** per estrarre rapidamente un sottoinsieme iniziale di **N docs** (N documenti candidati). Successivamente, questo primo bacino di risultati passa al **Top Ranker**, che sfrutta il **Learning to Rank Algorithm** e i dati provenienti dal repository delle **Features** per riordinare e selezionare un numero più ristretto di **K docs**, i quali andranno a comporre la **Results Page(s)** finale mostrata all'utente.
+Dal punto di vista operativo, l'integrazione di un modello di Learning to Rank all'interno di un motore di ricerca avviene comunemente attraverso una pipeline strutturata in due fasi principali, definita **First step** e **Second step**. 
+Inizialmente, la query dell'utente viene processata da un **Base Ranker**, il quale interroga il **Document Index** per estrarre rapidamente un sottoinsieme iniziale di **N docs** (N documenti candidati). Successivamente, questo primo bacino di risultati passa al **Top Ranker**, che sfrutta il **Learning to Rank Algorithm** e i dati provenienti dal repository delle **Features** per riordinare e selezionare un numero più ristretto di **K docs**, i quali andranno a comporre la **Results Page(s)** finale mostrata all'utente.
 
 Questa architettura a due stadi è dettata da stringenti vincoli infrastrutturali. Le considerazioni sul budget, inteso in termini di tempo e risorse di calcolo, sono estremamente importanti per i motori di ricerca commerciali (**commercial WSEs**). Il costo computazionale dei modelli LtR, essendo sensibilmente più elevato rispetto a funzioni semplici, deve essere rigorosamente inserito nel budget di tempo disponibile per elaborare il flusso di query in entrata (**incoming stream**). Questo fattore impatta direttamente sul **throughput** (la capacità di smaltimento) del sistema, motivo per cui la comunità accademica dell'Information Retrieval ha iniziato solo di recente a studiare ottimizzazioni a basso livello per ridurre i tempi di esecuzione di specifiche famiglie di ranker LtR.
 
@@ -148,7 +130,7 @@ Nel panorama del Learning to Rank, gli algoritmi si dividono in tre grandi appro
 
 ### Il Modello Probabilistico BM25 e la Gestione dei Documenti
 
-Spostandoci dai concetti puramente strutturali ai modelli matematici veri e propri, è fondamentale analizzare **Okapi BM25**, dove l'acronimo sta per "Best Matching" e Okapi è il nome del primo sistema IR ad aver implementato questa metrica. Il BM25 rappresenta lo stato dell'arte (**SOTA**) e si dimostra decisamente superiore al coseno puro per le rappresentazioni Bag-of-Words (**BOW**). Si tratta di una funzione probabilistica che si basa sull'ipotesi di indipendenza dei termini per approssimare la reale probabilità che un documento sia pertinente all'intento di ricerca.
+**Okapi BM25**, dove l'acronimo sta per "Best Matching" e Okapi è il nome del primo sistema IR ad aver implementato questa metrica. Il BM25 rappresenta lo stato dell'arte (**SOTA**) e si dimostra decisamente superiore al coseno puro per le rappresentazioni Bag-of-Words (**BOW**). Si tratta di una funzione probabilistica che si basa sull'ipotesi di indipendenza dei termini per approssimare la reale probabilità che un documento sia pertinente all'intento di ricerca.
 
 La formula generale del BM25 è espressa come:
 
