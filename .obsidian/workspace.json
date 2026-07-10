@@ -51,8 +51,7 @@
               "title": "main"
             }
           }
-        ],
-        "currentTab": 1
+        ]
       }
     ],
     "direction": "vertical"
@@ -225,11 +224,11 @@
       "obsidian-git:Open Git source control": false
     }
   },
-  "active": "80b55a1fe2ab8780",
+  "active": "4038197bce8c68aa",
   "lastOpenFiles": [
-    "Appunti_molto_discorsivi/Slide6.md",
-    "Slide Lezioni/10-11_LearningToRank.pdf",
     "main.pdf",
+    "Slide Lezioni/10-11_LearningToRank.pdf",
+    "Appunti_molto_discorsivi/Slide6.md",
     "Appunti_molto_discorsivi/Slide5.md",
     "Slide Lezioni/08-09-data_compression.pdf",
     "appunti_finali_ir.pdf",
