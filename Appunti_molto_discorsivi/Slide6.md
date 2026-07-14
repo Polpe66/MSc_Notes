@@ -140,7 +140,7 @@ Questa equazione pondera attentamente sia la frequenza del termine che la lunghe
 
 $$F_t = \frac{f_{t,d}}{1 - b + b \cdot l_d / L}$$
 
-In questo frangente, $f_{t,d}$ è la frequenza grezza del termine $t$ nel documento $d$, mentre al denominatore avviene un processo di **Pivoted length normalization** (normalizzazione imperniata sulla lunghezza). Qui, $l_d$ indica la lunghezza specifica del documento in esame e $L$ denota la lunghezza media dei documenti nell'intera collezione (**average doc length**, o **avdl**). Il parametro **$b$** ha lo scopo di stabilire quanta importanza dare alla penalizzazione della lunghezza. Questo perché i testi più lunghi contengono statisticamente più parole e avrebbero naturalmente un vantaggio ingiusto nel combinarsi con qualsiasi query. Se impostiamo $b > 0$, il denominatore agisce penalizzando i documenti che superano la media ($> avdl$) e premiando quelli più concisi ($< avdl$).
+In questo frangente, $f_{t,d}$ è la frequenza grezza del termine $t$ nel documento $d$, mentre al denominatore avviene un processo di **Pivoted length normalization** . Qui, $l_d$ indica la lunghezza specifica del documento in esame e $L$ denota la lunghezza media dei documenti nell'intera collezione (**average doc length**, o **avdl**). Il parametro **$b$** ha lo scopo di stabilire quanta importanza dare alla penalizzazione della lunghezza. Questo perché i testi più lunghi contengono statisticamente più parole e avrebbero naturalmente un vantaggio ingiusto nel combinarsi con qualsiasi query. Se impostiamo $b > 0$, il denominatore agisce penalizzando i documenti che superano la media ($> avdl$) e premiando quelli più concisi ($< avdl$).
 
 [![[Pasted image 20260417121437.png]]
 
@@ -160,7 +160,11 @@ $$BM25F(d,q) = \sum_{t} IDF_t \tau(F_t)$$
 $$F_t = \sum_{s} \frac{w_s \cdot f_{t,s}}{1 - b_s + b_s \cdot l_s / L_s}$$
 
 In questa variante, le frequenze vengono calcolate a livello del singolo segmento semantico. La variabile $f_{t,s}$ rappresenta la frequenza del termine nel campo specifico $s$, valutata in relazione alla lunghezza di tale campo $l_s$ e alla media globale delle lunghezze per la stessa tipologia di campo
-$L_s$. Rispetto al modello di base, viene introdotto un nuovo moltiplicatore cruciale: **$w_s$**, che assegna un peso variabile e definisce l'importanza relativa del campo $s$ rispetto agli altri. Questa estensione genera un'esplosione dei parametri da configurare. Mentre il BM25 classico possedeva solo 2 parametri liberi ($b$ e $k$), il BM25F richiede di gestire ben **$2S + 1$** parametri (dove $S$ indica il numero totale dei campi analizzati), ossia i pesi $w_s$, le penalizzazioni $b_s$ per ogni campo, più la costante di saturazione globale $k$. Questa mole di variabili rende impossibile una calibrazione manuale e costringe ad affidarsi proprio alle metodologie del **Learning to Rank** per individuare la combinazione ottimale.
+$L_s$. 
+
+Rispetto al modello di base, viene introdotto un nuovo moltiplicatore cruciale: **$w_s$**, che assegna un peso variabile e definisce l'importanza relativa del campo $s$ rispetto agli altri. 
+
+Questa estensione genera un'esplosione dei parametri da configurare. Mentre il BM25 classico possedeva solo 2 parametri liberi ($b$ e $k$), il BM25F richiede di gestire ben **$2S + 1$** parametri (dove $S$ indica il numero totale dei campi analizzati), ossia i pesi $w_s$, le penalizzazioni $b_s$ per ogni campo, più la costante di saturazione globale $k$. Questa mole di variabili rende impossibile una calibrazione manuale e costringe ad affidarsi proprio alle metodologie del **Learning to Rank** per individuare la combinazione ottimale.
 
 ### Sfide nell'Ottimizzazione Listwise e Tecniche Adottate
 
@@ -170,7 +174,11 @@ $$DCG_p = \sum_{i=1}^{p} \frac{2^{rel_i} - 1}{log(1+i)}$$
 
 Questa equazione scala l'importanza del documento in modo esponenziale rispetto alla sua etichetta di partenza: un documento con relevance 0 porta un incremento di 0 punti, mentre uno con punteggio massimo (4) inietta ben 17 punti di scarto ($2^4 - 1$).
 
-Posti l'obiettivo di apprendere un modello $h$ (ovvero un modello BM25F governato dal set di parametri $\Theta$) per ordinare un set di documenti ($D = \{d_1, d_2, ...\}$), incontriamo un grave ostacolo teorico per gli approcci Listwise puri. metriche come l'NDCG dipendono intrinsecamente dalle posizioni finali occupate dai risultati e non dai semplici punteggi numerici calcolati. In altre parole, l'operazione di ordinamento globale (**sort $\{h(d_1), h(d_2), ...\}$**) gioca un ruolo centrale. Purtroppo, l'operazione di ordinamento (sort) non costituisce una funzione continua né derivabile. Non potendo calcolare un gradiente dell'ordinamento, l'ottimizzazione tramite Gradient Descent diviene strutturalmente inapplicabile in modo diretto.
+Posti l'obiettivo di apprendere un modello $h$ (ovvero un modello BM25F governato dal set di parametri $\Theta$) per ordinare un set di documenti ($D = \{d_1, d_2, ...\}$), che ci pemetta date le query q di effettuare lo scoring e il ranking del documento D basato sulla rilevanza.
+
+Incontriamo un grave ostacolo teorico per gli approcci Listwise. Metriche come l'NDCG e MAP dipendono intrinsecamente dalle posizioni finali occupate dai risultati e non dai semplici punteggi numerici calcolati. In altre parole, l'operazione di ordinamento globale (**sort $\{h(d_1), h(d_2), ...\}$**) gioca un ruolo centrale. 
+
+Purtroppo, l'operazione di ordinamento (sort) non costituisce una funzione continua né derivabile. Non potendo calcolare un gradiente dell'ordinamento, l'ottimizzazione tramite Gradient Descent diviene strutturalmente inapplicabile in modo diretto.
 
 Per bypassare questa difficoltà, l'Information Retrieval adotta vie traverse:
 
@@ -182,16 +190,3 @@ Per bypassare questa difficoltà, l'Information Retrieval adotta vie traverse:
 
 Questa problematica evidenzia infatti il più grande difetto dell'approccio Pairwise puro applicato all'Information Retrieval. Questo metodo si impegna a minimizzare il volume totale delle coppie classificate scorrettamente nel sistema. Tuttavia, nel mondo reale e per ottimizzare correttamente l'NDCG, l'ordinamento accurato dei primi risultati mostrati (**top result pairs**) assume un'importanza enormemente superiore rispetto alla perfezione dell'ordine nelle posizioni periferiche o basse dell'elenco. Per tale motivo, quantificare genericamente le violazioni delle coppie di documenti senza pesarle posizionalmente non produrrà mai un indicatore affidabile per massimizzare le valutazioni NDCG destinate agli utenti.
 
-### Glossario e Concetti Chiave
-
-- **Term Proximity**: La metrica che valuta la vicinanza strutturale tra i vari termini della ricerca all'interno del corpo testuale della pagina, definendone la densità contestuale.
-
-- **BM25 / BM25F**: Funzioni matematiche probabilistiche all'avanguardia basate sull'indipendenza dei termini; la versione F è specializzata nel gestire documenti segmentati in molteplici campi (title, abstract, test, ecc.), richiedendo un elevato numero di parametri da sintonizzare.
-
-- **Pivoted Length Normalization**: Una specifica tecnica all'interno degli algoritmi di penalizzazione che sfavorisce proporzionalmente i documenti testuali eccessivamente lunghi per evitare che i loro ampi vocabolari "acchiappino" ingiustamente un punteggio elevato.
-
-- **DCG / NDCG**: Sigla di (Normalized) Discounted Cumulative Gain, è una complessa metrica di valutazione Listwise che sfrutta potenze matematiche per premiare smisuratamente un documento eccellente posto nelle primissime posizioni della classifica, svalutando proporzionalmente i documenti utili se relegati in fondo alla pagina.
-
-- **Lambda-MART / GBRT**: Sofisticati algoritmi di Machine Learning basati su alberi decisionali che riescono ad approssimare la massimizzazione dell'NDCG aggirando matematicamente il problema della non-derivabilità della funzione di ordinamento (sort).
-
----

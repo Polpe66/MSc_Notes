@@ -13,12 +13,24 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Appunti_molto_discorsivi/Slide6.md",
+                "file": "Appunti_molto_discorsivi/Slide7.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Slide6"
+              "title": "Slide7"
+            }
+          },
+          {
+            "id": "06b4cd887e398309",
+            "type": "leaf",
+            "state": {
+              "type": "pdf",
+              "state": {
+                "file": "Esami/Risposte_domande_esame.pdf"
+              },
+              "icon": "lucide-file-text",
+              "title": "Risposte_domande_esame"
             }
           }
         ]
@@ -33,14 +45,14 @@
             "state": {
               "type": "pdf",
               "state": {
-                "file": "Slide Lezioni/10-11_LearningToRank.pdf"
+                "file": "Slide Lezioni/11-12_LearningToRank.pdf"
               },
               "icon": "lucide-file-text",
-              "title": "10-11_LearningToRank"
+              "title": "11-12_LearningToRank"
             }
           },
           {
-            "id": "80b55a1fe2ab8780",
+            "id": "fee2d0a7cb31ea90",
             "type": "leaf",
             "state": {
               "type": "pdf",
@@ -108,7 +120,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 300,
+    "collapsed": true
   },
   "right": {
     "id": "91903aee59939870",
@@ -224,15 +237,20 @@
       "obsidian-git:Open Git source control": false
     }
   },
-  "active": "4038197bce8c68aa",
+  "active": "b39e66ec2740f98e",
   "lastOpenFiles": [
+    "Slide Lezioni/11-12_LearningToRank.pdf",
     "main.pdf",
-    "Slide Lezioni/10-11_LearningToRank.pdf",
+    "Appunti_molto_discorsivi/Slide7.md",
+    "Unconfirmed 334632.crdownload",
+    "Esami/Risposte_domande_esame.pdf",
     "Appunti_molto_discorsivi/Slide6.md",
+    "Slide Lezioni/10-11_LearningToRank.pdf",
+    "Appunti_molto_discorsivi/Slide1.md",
+    "Appunti_molto_discorsivi/Slide2.md",
     "Appunti_molto_discorsivi/Slide5.md",
     "Slide Lezioni/08-09-data_compression.pdf",
     "appunti_finali_ir.pdf",
-    "Esami/Risposte_domande_esame.pdf",
     "Appunti_molto_discorsivi/Slide4.md",
     "Slide Lezioni/04-05-06-inverted_indexes_and_query_processing.pdf",
     "IR/Slide4.md",
@@ -256,15 +274,10 @@
     "Esami/allegati/Pasted image 20260703193146.png",
     "Esami/allegati/Pasted image 20260703193108.png",
     "Esami/allegati",
-    "Slide Lezioni/02-NaturalLanguage.pdf",
     "IR/Slide2.md",
-    "Slide Lezioni/01-Evaluation.pdf",
     "IR/Slide1.md",
     "IR/Slide10.md",
     "IR/Lezione 1 - Introduzione.md",
-    "IR/Lezione 12 - Neural Information Retrieval.md",
-    "IR/Lezione 11 - Training e Inferenza di Alberi.md",
-    "IR/Lezione 2 - Valutazione dei Sistemi di IR.md",
     "IR/allegati/Pasted image 20260502154922.png",
     "IR/allegati/Pasted image 20260502154817.png",
     "IR/allegati/Pasted image 20260502154749.png",
