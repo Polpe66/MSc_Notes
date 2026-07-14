@@ -1,14 +1,3 @@
-# Addestramento e Inferenza Efficienti di Ensemble di Alberi di Decisione
-
-### L'Architettura di Base e il Query Processing
-
-Per inquadrare l'impiego pratico degli alberi di decisione, è essenziale prima osservare l'architettura generale di un motore di ricerca. L'intero processo si divide tipicamente in due grandi fasi: una fase **Offline** e una fase **Online**.
-
-Durante la fase Offline, il sistema analizza una **Document Collection**. Questa passa attraverso una procedura di **Indexing** per arrivare alla costruzione del vero e proprio **Inverted Index**. Parallelamente, interviene un **Feature Processor** che ha il compito di estrarre le caratteristiche salienti, archiviandole all'interno di un **Document Features Repository**. Questi dati appena immagazzinati, combinati con i **Training Data**, vengono utilizzati nel processo di **Training** per generare un **Learning-to-rank Model**.
-
-Nella fase Online, che si attiva nel momento in cui l'utente effettua una ricerca, una **Query** iniziale viene elaborata e trasformata in una **Expanded Query**. Questa query espansa viene inviata al blocco di **Query Processing**, il quale interroga direttamente l'Inverted Index. A questo punto, subentra la fase di **Feature Lookup and Computation**, che ha il compito di recuperare dal repository le caratteristiche specifiche associate ai documenti estratti. Infine, i documenti vengono ordinati da una **Learned Ranking Function**, la quale si basa sul modello di ranking precedentemente addestrato, restituendo così all'utente i risultati finali ordinati per rilevanza.
-
-![[Pasted image 20260424114602.png]]
 ### La Gradient Boosting Machine (GBM)
 
 Il motore matematico dietro molti di questi modelli di ranking è la **Gradient Boosting Machine (GBM)**. In termini generali, gli algoritmi di apprendimento **Boosting** operano addestrando i dati tramite molteplici **weak learners**. Un "weak learner" può essere inteso come un qualsiasi metodo di classificazione sotto-potenziato (under-power). La potenza del boosting risiede nel fatto che ogni nuovo learner apprende dagli errori commessi da quelli che lo hanno preceduto.
@@ -60,20 +49,7 @@ Il passo conclusivo dell'iterazione consiste nell'aggiornare l'intero modello so
 
 ![[Pasted image 20260427091601.png]]
 
----
-### Concetti Chiave
 
-- **Inverted Index**: Struttura dati primaria elaborata offline che permette al motore di ricerca di recuperare documenti rapidamente al momento dell'invio di una query online.
-
-- **Weak Learners**: In ambito Boosting, si definiscono così i classificatori semplici (come un singolo albero di decisione non profondo) che, lavorando in sinergia, riescono a formare un modello di elaborazione molto potente.
-
-- **Gradient Boosting Machine (GBM)**: Sofisticata tecnica di apprendimento che ottimizza modelli di predizione in modo iterativo, dove ogni albero successivo si focalizza nel correggere gli errori (pseudo-residui) commessi nella fase precedente.
-
-- **Learning-to-Rank (LtR)**: L'applicazione degli algoritmi di ensemble (come la somma dei vari sotto-punteggi di una foresta di alberi) per determinare un punteggio totale capace di stabilire l'ordine di rilevanza per un insieme di documenti.
-
-- **Pseudo-residui e Gradiente**: I pseudo-residui indicano il delta di errore per ciascun punto dati, corrispondente al gradiente della funzione di perdita. Muovere le previsioni lungo questo gradiente consente di minimizzare l'errore del modello.
-
----
 
 ### L'Evoluzione con XGBoost
 
@@ -116,20 +92,6 @@ L'algoritmo procede quindi a valutare i possibili candidati per lo split. Una de
 
 Durante questa scansione sistematica, per ogni divisione ipotizzata vengono calcolati due valori: lo **score_left** e lo **score_right**. Nel caso dello split su **Time <= 15**, lo studente 2 (residuo -6) viene isolato nel ramo sinistro, generando uno $score_{left} = 36$, mentre gli altri cinque studenti finiscono nel ramo destro, producendo uno $score_{right} = 6$. Questo metodo garantisce di trovare il punto di divisione matematicamente ottimale, ma risulta estremamente oneroso dal punto di vista computazionale perché costringe il sistema a enumerare ogni singola possibilità.
 
----
-
-### Concetti Chiave
-
- - **XGBoost**: Algoritmo evoluto basato sul Gradient Boosting che introduce parallelismo e ottimizzazioni di memoria per gestire dataset massivi.
- 
- - **Exact Greedy Algorithm**: Metodo di ricerca che scansiona ogni valore di ogni feature per individuare lo split migliore.
- 
- - **Pseudo-residui ($r_0$)**: La differenza tra il valore target reale e la stima attuale, utilizzati come obiettivo per l'addestramento del prossimo albero nell'ensemble.
- 
- - **Score (Root/Left/Right)**: Metriche numeriche utilizzate per valutare la qualità di una divisione dei dati all'interno di un nodo dell'albero.
-
----
-
 ### Calcolo del Guadagno e Costruzione dell'Albero
 
 Proseguendo con l'esempio pratico basato sui dati degli studenti (variabili **Time** e **Project** rispetto al target **y**), l'algoritmo valuta un nuovo possibile punto di divisione. Nello specifico, il sistema testa la condizione **Project <= 1**.
@@ -170,20 +132,6 @@ Per superare il blocco computazionale appena descritto, i sistemi moderni abband
 ![[Pasted image 20260428112218.png]]
 
 L'idea fondamentale alla base di questo metodo è rinunciare alla precisione assoluta della scansione punto per punto, raggruppando invece i dati in segmenti più ampi per velocizzare drasticamente la ricerca dello split ottimale.
-
----
-
-### Concetti Chiave
-
- - **Score e Gain**: Metriche matematiche fondamentali. Lo *score* valuta la purezza di un singolo nodo, mentre il *gain* quantifica il miglioramento complessivo apportato da uno split rispetto al nodo padre.
-
-- **Pruning Constant ($\gamma$)**: Un parametro utilizzato nel calcolo del guadagno che serve a controllare la complessità dell'albero; se il guadagno non supera questa soglia, lo split può essere "potato" (ignorato).
-
--  **Inefficienza dell'Exact Greedy**: Limite strutturale dell'algoritmo di base, il cui costo temporale scala moltiplicando il numero di feature per il numero di punti dati ($O(F \times N)$), rendendolo inadatto a dataset massivi.
-
--  **Histogram-based Split Finding**: Tecnica di ottimizzazione che mira a risolvere l'inefficienza dell'Exact Greedy, approssimando la ricerca degli split raggruppando i valori delle feature in istogrammi.
-
----
 
 ### La Ricerca degli Split basata su Istogrammi (Histogram-based Split Finding)
 
@@ -239,21 +187,6 @@ La vera criticità emerge nel momento topico del calcolo del punteggio (il cosid
 
 ![[Pasted image 20260428114752.png]]
 
----
-
-### Concetti Chiave e Glossario
-
-1. **Histogram-based Split Finding**: Innovativa tecnica per raggruppare i valori di una feature in piccoli scaglioni ("bin" o istogrammi), riducendo drasticamente il costo della scansione dei dati durante l'apprendimento e rendendo obsoleto il dispendioso Exact Greedy Algorithm.
-
-2. **LightGBM**: Imponente architettura ad albero strutturata originariamente da Microsoft, ideata per soverchiare XGBoost velocizzando il trattamento di masse enormi di dati tramite campionamenti predittivi mirati.
-
-3. **GOSS (Gradient-based One-side Sampling)**: Modello di campionamento selettivo asimmetrico: preserva e preleva con probabilità massima tutte quelle istanze che esprimono un margine d'errore elevato (alto gradiente), pescando in misura minore dai cluster con dati ben classificati.
-
-4. **EFB (Exclusive Feature Bundling)**: Filosofia che argina la "maledizione della dimensionalità" tipica dei database sparsi (sparse data); fonde variabili reciprocamente esclusive rendendole un unico vettore condensato quasi senza decurtazione di valore logico.
-
-5. **Inferenza e Scoring Time**: La prova su strada post-addestramento. Durante lo scoring time un modello LtR calcola dal vivo l'aderenza di un documento sommando il contributo microscopico emesso individualmente da ogni singola "foglia" interpellata nell'intero bosco di migliaia di alberi del modello.
-
----
 
 ### I Problemi degli Approcci Tradizionali e la Naïve Baseline
 
@@ -288,32 +221,3 @@ Specificamente, le soglie di divisione vengono raggruppate per feature (da f0​
 
 
 ![[Pasted image 20260428115140.png]]
-
-### Valutazione e Risultati Sperimentali
-
-L'efficacia pratica di questa architettura è stata dimostrata tramite approfonditi test comparativi che misurano il tempo di scoring per singolo documento, espresso in microsecondi, e il relativo fattore di accelerazione (speedup). I test sono stati condotti utilizzando dataset di riferimento del settore come **MSN-1** e **Y!S1**. L'esperimento ha valutato foreste di densità crescente, testando insiemi di 1.000, 5.000, 10.000 e fino a 20.000 alberi decisionali. Nelle batterie di prova, sono stati confrontati fianco a fianco quattro metodi: **QS** (QuickScorer), **VPRED**, **IF-THEN-ELSE**, e **STRUCT+**. I modelli sono stati inoltre declinati in base al numero di foglie massime per albero: 8, 16, 32 e 64.
-
-Di seguito una tabella sintetica che ritrae una porzione dei risultati su modelli da 1.000 e 5.000 alberi con foglie di livello 8 (i dati completi si estendono parallelamente per tutte le configurazioni analizzate):
-
-| Metodo           | Alberi: 1.000 (MSN-1) | Alberi: 1.000 (Y!S1) | Alberi: 5.000 (MSN-1) | Alberi: 5.000 (Y!S1) |
-| ---------------- | --------------------- | -------------------- | --------------------- | -------------------- |
-| **QS**           | 2.2 (-)               | 4.3 (-)              | 10.5 (-)              | 14.3 (-)             |
-| **VPRED**        | 7.9 (3.6x)            | 8.5 (2.0x)           | 40.2 (3.8x)           | 41.6 (2.9x)          |
-| **IF-THEN-ELSE** | 8.2 (3.7x)            | 10.3 (2.4x)          | 81.0 (7.7x)           | 85.8 (6.0x)          |
-| **STRUCT+**      | 21.2 (9.6x)           | 23.1 (5.4x)          | 107.7 (10.3x)         | 112.6 (7.9x)         |
-
-I dati confermano che QuickScorer sovraperforma nettamente i metodi precedenti, offrendo speedup enormi rispetto alla naive baseline If-then-else e surclassando anche le tecniche più avanzate come Struct+ e VPred in ogni ordine di scala.
-
----
-
-### Glossario e Concetti Chiave
-
-- **Branch Misprediction**: L'errore che commette il processore del computer quando tenta di indovinare in anticipo la destinazione di un'istruzione condizionale (come un `if`). Nelle foreste decisionali tradizionali, l'imprevedibilità dei rami causa continui "vuoti" computazionali e rallentamenti.
-
-- **QuickScorer**: Innovativo algoritmo di inferenza che abbandona l'esplorazione gerarchica degli alberi, convertendo la struttura di decisione in array lineari ordinati ed eseguendo calcoli matematici logici al posto dei salti condizionali.
-
-- **Bitvector / Maschere di bit**: Insiemi di bit associati a ciascun nodo dell'albero in QuickScorer. Attraverso operazioni di AND logico basate esclusivamente sui nodi di cui non si è verificata la condizione ("False Nodes"), il sistema riesce a isolare direttamente l'indice della foglia risolutiva per assegnare il punteggio finale.
-
-- **Interleaved Tree Traversals**: La logica strutturale di QuickScorer che consiste nell'impacchettare i dati di tutti gli alberi per raggrupparli in sequenza per "feature" e ordinarli. Questo permette al processore di leggere e valutare i dati della memoria cache in un flusso continuo e altamente efficiente.
-
----
