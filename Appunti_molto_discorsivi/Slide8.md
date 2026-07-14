@@ -1,7 +1,3 @@
-# Slide 8: Appunti di Information Retrieval: Trade-off tra Efficienza ed Efficacia
-
-Questa sezione esplora il delicato equilibrio tra l'accuratezza dei risultati di ricerca e i costi computazionali associati, concentrandosi in particolare sull'ottimizzazione dei modelli di apprendimento basati su alberi decisionali.
-
 ### Il Calcolo Online della Rilevanza
 
 Il processo base per calcolare la rilevanza di un documento per una data query si articola in una serie di passaggi sequenziali. Inizialmente, un estrattore di feature elabora i token del documento (di lunghezza $m$) e della query (di lunghezza $n$) per produrre un vettore di feature estratte manualmente. Questo vettore, che modella la rilevanza della specifica coppia query-documento, viene poi fornito in input al modello di ranking (Ranking Model) insieme alle relative etichette (labels), il quale infine emette un punteggio di rilevanza finale $s_{q,d}$. Attualmente, l'approccio *state-of-the-art* si basa su foreste composte da migliaia di alberi di regressione: sebbene garantiscano un'alta qualità dei risultati, il loro impiego risulta computazionalmente molto oneroso.
@@ -52,20 +48,6 @@ Esperimenti condotti sul dataset MSLR-WEB10K indicano che la strategia basata su
 
 Un approccio alternativo all'efficienza è il post-processing, esplorato da Lucchese et al. nel 2016 con la metodologia **CLEAVER**. A differenza dei metodi di addestramento sensibili ai costi, CLEAVER interviene su un ensemble di alberi già addestrato applicando una combinazione di pruning e riponderazione dei pesi (re-weighting) tramite una strategia avida di ricerca lineare (*greedy line search*). Il framework offre svariate strategie di potatura, tra cui la rimozione casuale (random), degli ultimi alberi (last), il salto (skip), l'eliminazione dei pesi bassi (low weights), e la rimozione basata sulla perdita di score (score loss) o sulla perdita di qualità (quality loss). Sperimentato sulle architetture MART e LambdaMART tramite i dataset MSLR-Web30K e Istella-S LETOR, il risultato più significativo riguarda la strategia basata sulla *quality loss*, la quale permette di preservare esattamente la medesima efficacia del modello originario eliminando un numero di alberi tale da conservarne solo fino al 20% del volume iniziale.
 
----
-
-### Concetti Chiave
-
-- **Tree Forests (GBRT/LambdaMART)**: Ensemble complessi di alberi decisionali utilizzati per il ranking orientato alla precisione. Offrono un'eccellente efficacia ma presentano onerosi colli di bottiglia computazionali al momento dell'esecuzione.
-
-- **Architettura a Cascata**: Modello di sistema di ricerca diviso in due fasi sequenziali. Una prima fase estrae un ampio numero di documenti orientandosi alla *recall*, seguita da una seconda fase che utilizza algoritmi più complessi orientati alla *precisione*.
-
-- **Cost-sensitive Tree Induction**: Tecnica in cui l'addestramento dei modelli tiene conto contemporaneamente degli errori di previsione e dei costi computazionali per forzare la generazione di alberi compatti e superficiali.
-
-- **Pruning (Potatura)**: Metodologia di riduzione della grandezza di un modello (applicabile in fase di learning o in fase di post-processing, come nel caso di CLEAVER) utile a scartare le porzioni di alberi superflue per abbattere drasticamente la latenza di calcolo mantenendo stabile la metrica NDCG.
-
----
-
 ### X-CLEAVER: Potatura Integrata nell'Addestramento
 
 Sulla scia dell'ottimizzazione degli ensemble, nel 2018 Lucchese, Nardini, Orlando, Perego, Silvestri e Trani hanno presentato **X-CLEAVER** sulla rivista ACM TIST. Questo framework fa un passo avanti rispetto al suo predecessore introducendo il *pruning* e la riponderazione dei pesi direttamente durante la fase di apprendimento basata sul *gradient boosting*. Il processo si articola in due passaggi chiave: in primo luogo, gli alberi identificati come ridondanti vengono rimossi dall'ensemble in costruzione; successivamente, i pesi degli alberi superstiti subiscono un'operazione di *fine-tuning* mirata a ottimizzare direttamente una specifica metrica di qualità del ranking, come l'NDCG.
@@ -96,15 +78,3 @@ Oltre all'ottimizzazione degli alberi stessi, un filone di ricerca parallelo mir
 La logica dietro a questa strategia del "cortocircuito" in fase di calcolo (*short-circuiting*) si basa su considerazioni empiriche relative all'Information Retrieval. Per ogni singola query sottomessa, esiste solitamente solo una manciata di documenti realmente molto rilevanti, annegati in una moltitudine di risultati totalmente irrilevanti; inoltre, è noto che la stragrande maggioranza degli utenti non si spinge mai oltre la consultazione delle primissime pagine dei risultati. Di conseguenza, è superfluo processare tutti i documenti attraverso l'intero modello matematico. Per risolvere questa inefficienza, Cambazoglu et al. hanno introdotto ensemble additivi capaci di abortire il calcolo preventivamente. Questa interruzione intelligente è governata da quattro specifiche tecniche di soglia: soglie basate sul punteggio (**Score**), sulla capacità (**Capacity**), sul rango (**Rank**) o sulla prossimità (**Proximity**). Implementate all'interno di una piattaforma di machine learning all'avanguardia dotata di alberi GBRT , le ottimizzazioni tramite *early exit* hanno permesso al sistema di operare fino a quattro volte più velocemente rispetto all'algoritmo standard, il tutto senza riscontrare alcuna perdita qualitativa nei risultati proposti all'utente finale.
 
 ![[Pasted image 20260423152144.png]]
-
----
-
-### Concetti Chiave
-
-- **X-CLEAVER**: Evoluzione algoritmica che esegue il pruning e la calibrazione dei pesi direttamente *durante* l'addestramento tramite gradient boosting, creando fin dall'inizio modelli compatti e ad alta efficienza senza dover ricorrere a rielaborazioni successive.
-
-- **DART e X-DART**: Tecniche all'avanguardia che silenziano casualmente parti degli alberi durante il training (dropout) per evitare l'eccessivo adattamento ai dati di addestramento (over-specialization/overfitting). X-DART si distingue per rimuovere permanentemente questi alberi "muti", riducendo enormemente la complessità del modello finale.
-
-- **Early Exits (Uscite Anticipate)**: Strategia computazionale applicata agli ensemble additivi che blocca l'elaborazione del punteggio di rilevanza per quei documenti che mostrano precocemente un basso potenziale. Questo "cortocircuito" matematico previene lo spreco di risorse per risultati palesemente inutili, abbattendo drasticamente i tempi di latenza complessivi.
-
----
