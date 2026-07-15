@@ -1,7 +1,3 @@
-# Modelli Linguistici
-
-In questa prima sezione dedicata all'elaborazione del linguaggio naturale, esploreremo le fondamenta dei modelli computazionali usati per la rappresentazione dei testi, partendo dagli approcci stocastici per arrivare alle moderne reti neurali.
-
 ### Modelli Probabilistici e Modello Statistico del Linguaggio
 
 L'indagine parte dall'analisi dei **modelli probabilistici**. Un **modello statistico del linguaggio** può essere definito, nella sua essenza, come una distribuzione di probabilità $P$ che viene applicata a specifiche sequenze di termini. Immaginiamo di analizzare un documento $d$ che è composto da una precisa sequenza di parole, come ad esempio $w_{1}w_{2}w_{3}$. Tramite l'applicazione delle leggi della probabilità condizionata, possiamo calcolare la probabilità dell'intero documento tramite la seguente espressione: $P(d)=P(w_{1}w_{2}w_{3})=P(w_{1})P(w_{2}|w_{1})P(w_{3}|w_{1}w_{2})$. Sulla base delle diverse assunzioni che decidiamo di fare su questa distribuzione di probabilità, abbiamo la possibilità di creare modelli statistici che presentano differenti gradi di complessità. La formula appena citata è, a livello teorico, perfetta: essa non fa alcuna assunzione pregressa ed è quindi capace di modellare in modo esatto le caratteristiche di qualsiasi lingua. Tuttavia, si rivela totalmente impraticabile all'atto pratico, dal momento che per funzionare richiederebbe di imparare le probabilità di letteralmente qualsiasi sequenza di parole che possa esistere nel linguaggio considerato.
