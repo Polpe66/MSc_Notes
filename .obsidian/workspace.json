@@ -6,7 +6,20 @@
       {
         "id": "0ccdda619b6d0f42",
         "type": "tabs",
+        "dimension": 50,
         "children": [
+          {
+            "id": "1a13309ca120d087",
+            "type": "leaf",
+            "state": {
+              "type": "pdf",
+              "state": {
+                "file": "Esami/Risposte_domande_esame.pdf"
+              },
+              "icon": "lucide-file-text",
+              "title": "Risposte_domande_esame"
+            }
+          },
           {
             "id": "b39e66ec2740f98e",
             "type": "leaf",
@@ -20,37 +33,15 @@
               "icon": "lucide-file",
               "title": "Slide10"
             }
-          },
-          {
-            "id": "06b4cd887e398309",
-            "type": "leaf",
-            "state": {
-              "type": "pdf",
-              "state": {
-                "file": "Esami/Risposte_domande_esame.pdf"
-              },
-              "icon": "lucide-file-text",
-              "title": "Risposte_domande_esame"
-            }
           }
-        ]
+        ],
+        "currentTab": 1
       },
       {
         "id": "4b0482a22e94f303",
         "type": "tabs",
+        "dimension": 50,
         "children": [
-          {
-            "id": "4038197bce8c68aa",
-            "type": "leaf",
-            "state": {
-              "type": "pdf",
-              "state": {
-                "file": "Slide Lezioni/15-LanguageModels-I.pdf"
-              },
-              "icon": "lucide-file-text",
-              "title": "15-LanguageModels-I"
-            }
-          },
           {
             "id": "fee2d0a7cb31ea90",
             "type": "leaf",
@@ -62,8 +53,21 @@
               "icon": "lucide-file-text",
               "title": "main"
             }
+          },
+          {
+            "id": "c3b17751610e7ace",
+            "type": "leaf",
+            "state": {
+              "type": "pdf",
+              "state": {
+                "file": "Slide Lezioni/15-LanguageModels-I.pdf"
+              },
+              "icon": "lucide-file-text",
+              "title": "15-LanguageModels-I"
+            }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "vertical"
@@ -83,10 +87,12 @@
               "type": "file-explorer",
               "state": {
                 "sortOrder": "alphabetical",
-                "autoReveal": false
+                "autoReveal": false,
+                "showSearch": false,
+                "searchQuery": ""
               },
               "icon": "lucide-folder-closed",
-              "title": "Esplora risorse"
+              "title": "Files"
             }
           },
           {
@@ -227,28 +233,33 @@
   },
   "left-ribbon": {
     "hiddenItems": {
-      "switcher:Apri selezione rapida": false,
-      "graph:Apri vista grafo": false,
-      "canvas:Crea nuova lavagna": false,
-      "daily-notes:Apri nota del giorno": false,
-      "templates:Inserisci modello": false,
-      "command-palette:Apri riquadro comandi": false,
-      "bases:Crea nuova Base": false,
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false,
       "obsidian-git:Open Git source control": false
     }
   },
   "active": "b39e66ec2740f98e",
   "lastOpenFiles": [
-    "Appunti_molto_discorsivi/Slide9.md",
     "Slide Lezioni/15-LanguageModels-I.pdf",
-    "Slide Lezioni/13-14-Efficient Training and Inference.pdf",
+    "Appunti_molto_discorsivi/Slide10.md",
+    "Esami/Risposte_domande_esame.pdf",
     "main.pdf",
+    "Esami/Esame D.md",
+    "Esami/Esame C.md",
+    "Esami/Esame B.md",
+    "Esami/Esame A.md",
+    "Appunti_molto_discorsivi/Slide9.md",
+    "Slide Lezioni/13-14-Efficient Training and Inference.pdf",
     "Slide Lezioni/12BIS-EfficiencyEffectivenessTradeOffs.pdf",
     "Appunti_molto_discorsivi/Slide8.md",
     "Slide Lezioni/11-12_LearningToRank.pdf",
     "Appunti_molto_discorsivi/Slide7.md",
     "Unconfirmed 334632.crdownload",
-    "Esami/Risposte_domande_esame.pdf",
     "Appunti_molto_discorsivi/Slide6.md",
     "Slide Lezioni/10-11_LearningToRank.pdf",
     "Appunti_molto_discorsivi/Slide1.md",
@@ -263,7 +274,6 @@
     "IR/Slide3.md",
     "Esami/Esame O.md",
     "Esami/Esame N.md",
-    "Esami/Esame D.md",
     "Esami/Esame E.md",
     "Esami/Esame M.md",
     "Esami/Esame L.md",
@@ -271,13 +281,9 @@
     "Esami/Esame H.md",
     "Esami/Esame G.md",
     "Esami/Esame F.md",
-    "Esami/Esame C.md",
-    "Esami/Esame B.md",
-    "Esami/Esame A.md",
     "Esami/allegati/Pasted image 20260703193146.png",
     "Esami/allegati/Pasted image 20260703193108.png",
     "IR/Slide2.md",
-    "IR/Slide1.md",
     "IR/allegati/Pasted image 20260502154922.png",
     "IR/allegati/Pasted image 20260502154817.png",
     "IR/allegati/Pasted image 20260502154749.png",
