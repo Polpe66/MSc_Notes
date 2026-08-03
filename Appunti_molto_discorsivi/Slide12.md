@@ -10,7 +10,7 @@ L'anno 2018 ha rappresentato un vero e proprio punto di svolta per il Natural La
 
 L'acronimo **BERT** sta per *Bidirectional Encoder Representations from Transformers*. Si tratta di un modello linguistico che, fondamentalmente, definisce una distribuzione di probabilità su sequenze di parole. La sua caratteristica principale risiede nella capacità di catturare il contesto di una parola analizzando l'ambiente circostante in modo bidirezionale, guardando sia a sinistra che a destra del termine stesso. Questo modello apprende tramite due compiti principali: il **Masked Language Model** (MLM) e la **Next Sentence Prediction**.
 
-Per gestire correttamente gli input, BERT impiega alcuni token speciali. Il token **[CLS]** è un token di classificazione utilizzato come operatore di pooling per ottenere un singolo vettore rappresentativo per l'intera sequenza testuale. Il token **[MASK]** viene impiegato specificamente nel task di Masked Language Model per indicare al modello la parola nascosta da predire. Infine, il token **[SEP]** viene usato per separare distintamente le diverse frasi fornite in input. A livello strutturale, l'input finale che il modello elabora (ad esempio per una stringa come "I love search engines") è dato dalla somma di tre componenti: i *Token Embeddings*, i *Segment Embeddings* e i *Position Embeddings*. Questo approccio innovativo è stato descritto in dettaglio nello studio di Delvin et al. al convegno NAACL-HLT del 2019.
+Per gestire correttamente gli input, BERT impiega alcuni token speciali. Il token **[CLS]** è un token di classificazione utilizzato come operatore di pooling per ottenere un singolo vettore rappresentativo per l'intera sequenza testuale. Il token **[MASK]** viene impiegato specificamente nel task di Masked Language Model per indicare al modello la parola nascosta da predire. Infine, il token **[SEP]** viene usato per separare distintamente le diverse frasi fornite in input. A livello strutturale, l'input finale che il modello elabora (ad esempio per una stringa come "I love search engines") è dato dalla somma di tre componenti: i *Token Embeddings*, i *Segment Embeddings* e i *Position Embeddings*.
 
 ![[Pasted image 20260430185601.png]]
 
@@ -46,21 +46,6 @@ La seconda categoria racchiude i **Metodi basati sull'Interazione** (Interaction
 Un'implementazione diretta dei metodi di interazione è rappresentata da **MonoBERT**, basato sulla versione vanilla del modello. L'idea alla base di questo approccio è che la query e il documento vengano codificati congiuntamente in modo incrociato (jointly cross-encoded). Il formato di input fornito alla rete è strutturato unendo i testi: `[CLS] query [SEP] documento [SEP]`. In questo contesto congiunto, l'embedding contestuale associato al token iniziale `[CLS]` funge da punteggio di rilevanza aggregato per l'intera coppia query-documento, punteggio che costituisce l'output finale del modello e che viene utilizzato in maniera diretta per il ranking, come formalizzato dagli studi di Nogueira et al. nel 2019.
 ![[Pasted image 20260430190327.png]]
 
----
-
-### Glossario dei Concetti Chiave
-
-- **Bidirectional Context (Contesto Bidirezionale)**: La capacità del modello BERT di analizzare una parola considerando simultaneamente le parole che la precedono e quelle che la seguono, ottenendo una comprensione semantica profonda.
-
-- **Self-Attention**: Il meccanismo interno ai Transformer che permette al modello di pesare dinamicamente l'importanza di ogni singola parola rispetto alle altre all'interno della medesima sequenza.
-
-- **Architettura Siamese**: Una tipologia di rete neurale utilizzata nei metodi di rappresentazione, in cui due modelli identici e con gli stessi pesi processano separatamente la query e il documento per generarne i vettori densi.
-
-- **Metodi Basati sull'Interazione**: Approccio in cui la relazione testuale viene valutata creando una matrice di interazione precoce tra i termini della query e quelli del documento, processata successivamente da un modello neurale.
-
-- **MonoBERT**: Modello di ranking in cui query e documento vengono inseriti insieme nella rete in formato congiunto, sfruttando il token [CLS] per generare il punteggio di rilevanza della coppia.
-
----
 
 ### Il Fine-Tuning di MonoBERT per il Ranking
 

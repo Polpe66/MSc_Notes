@@ -1,6 +1,3 @@
-# Efficient k-Approximated Nearest Neighbors Retrieval (kANN)
-
-
 ### Similarity Search ed Embeddings
 
 Il processo di ricerca per similarità inizia con la trasformazione di dati di natura eterogenea in un formato computazionalmente gestibile. File testuali, tracce audio, immagini e file video vengono processati in ingresso attraverso i vari strati di una rete neurale. Questa architettura estrae le caratteristiche fondamentali dei dati e le mappa all'interno di uno spazio vettoriale, dove ogni elemento multimediale viene infine rappresentato visivamente come uno specifico punto azzurro su un piano cartesiano bidimensionale.
@@ -25,25 +22,17 @@ Per gestire la ricerca vettoriale a livello strutturale, il sistema si appoggia 
 Quando viene sottomessa una nuova query caratterizzata dallo specifico vettore 7.99 2.65 8.23 9.23 9.23 3.11 3.23, il sistema deve confrontarla con le righe del Forward Index. L'obiettivo matematico della ricerca, supponendo di voler cercare i primi 10 risultati (come indicato dall'esempio $k=10$), è trovare l'argomento minimo rispetto all'insieme dei documenti $D$, espresso dalla formula $argmin_{v\in D} s(q,v)$.
 
 La funzione di similarità $s(q,v)$ può basarsi su metriche differenti. 
-Il primo approccio calcola la **Euclidean Distance** (Distanza Euclidea), definita dall'equazione $s(q,v)=\sqrt{\sum_{i=1}^{d}(q_{i}-v_{i})^{2}}$. In alternativa, è possibile utilizzare il **Dot Product** (Prodotto Scalare), la cui formula è $s(q,v)=\sum_{i=1}^{d}(q_{i}\cdot v_{i})$. Di conseguenza, se si utilizza il prodotto scalare per determinare la similarità, la regola decisionale cambia: non si cerca più di minimizzare il risultato, bensì di massimizzarlo, passando quindi all'operazione di argmax.
+Il primo approccio calcola la **Euclidean Distance** (Distanza Euclidea), definita dall'equazione $s(q,v)=\sqrt{\sum_{i=1}^{d}(q_{i}-v_{i})^{2}}$. 
 
----
+In alternativa, è possibile utilizzare il **Dot Product** (Prodotto Scalare), la cui formula è $s(q,v)=\sum_{i=1}^{d}(q_{i}\cdot v_{i})$. Di conseguenza, se si utilizza il prodotto scalare per determinare la similarità, la regola decisionale cambia: non si cerca più di minimizzare il risultato, bensì di massimizzarlo, passando quindi all'operazione di argmax.
 
-### Glossario / Concetti Chiave
-
-- **Similarity Search**: Processo che trasforma dati multimediali in vettori tramite reti neurali per valutarne la somiglianza geometrica all'interno di uno spazio vettoriale.
-    
-- **Forward Index**: Struttura dati fondamentale che memorizza i documenti ($d_{1} \dots d_{n}$) e le rispettive sequenze di coordinate numeriche per permetterne la successiva estrazione.
-    
-- **Euclidean Distance vs Dot Product**: Metriche per quantificare la similarità tra il vettore della query $q$ e i vettori dei documenti $v$; la prima richiede di trovare il valore minimo (argmin), la seconda il valore massimo (argmax).
----
 ### Il Caso Monodimensionale (1D)
 
 Consideriamo il caso base in cui abbiamo $n$ punti disposti in uno spazio monodimensionale, ovvero dove la dimensionalità è $d=1$. Immaginiamo di avere un insieme specifico di punti, corrispondenti ai valori -5.4, -2.1, 0.5, 1.2, 2.2, 3.6, 4.5, 5.1 e 7.1. Il nostro obiettivo algoritmico in questo scenario è trovare il risultato **Top-1**, ovvero l'elemento più pertinente rispetto a una determinata ricerca.
 
 Se decidiamo di valutare la vicinanza calcolando il Top-1 con la **Distanza Euclidea**, la funzione di similarità tra una query $q$ e un punto $v$ dello spazio è definita rigorosamente dalla formula $s(q,v)=\sqrt{(q-v)^{2}}=|q-v|$. Ipotizzando che la nostra query sia il valore 2.4, il processo per individuare il punto più vicino risulta essere estremamente efficiente. Essendo i punti disposti su una singola linea, è sufficiente eseguire una ricerca binaria (binary search) per trovare il predecessore della query. Questa specifica operazione richiede un tempo logaritmico pari a $\Theta(\log n)$ e occupa uno spazio lineare in memoria. Di conseguenza, il risultato Top-1 esatto sarà sempre, ed esclusivamente, o il predecessore o il successore della query stessa all'interno della sequenza ordinata.
 
-In alternativa, possiamo definire la ricerca del Top-1 utilizzando il **prodotto scalare** (dot product), la cui funzione si esprime come $s(q,v)=q\cdot v$. In questo caso, determinare il risultato corretto diventa un'operazione banale (super easy): la soluzione corrisponde al valore massimo (Max) presente nell'insieme se la query ha segno positivo, oppure al valore minimo (Min) se la query ha segno negativo.
+In alternativa, possiamo definire la ricerca del Top-1 utilizzando il **prodotto scalare** (dot product), la cui funzione si esprime come $s(q,v)=q\cdot v$. In questo caso, determinare il risultato corretto diventa un'operazione banale: la soluzione corrisponde al valore massimo (Max) presente nell'insieme se la query ha segno positivo, oppure al valore minimo (Min) se la query ha segno negativo.
 
 ### L'Estensione al Caso Bidimensionale (2D)
 
@@ -55,12 +44,11 @@ In un Diagramma di Voronoi, il numero totale dei vertici e dei bordi (edges) si 
 
 ![[Pasted image 20260430150821.png]]
 
-Per individuare il Top-1 in questo spazio, il sistema deve localizzare fisicamente la cella di Voronoi a cui appartiene la query in questione. Questo processo è un classico problema di **2D point location** (localizzazione di un punto in 2D), il quale può essere risolto mantenendo le stesse complessità asintotiche del caso monodimensionale: richiede infatti un tempo di $\Theta(\log n)$ e uno spazio lineare. Tuttavia, è fondamentale notare che, sebbene le complessità di tempo e spazio rimangano identiche a quelle del caso 1D, l'implementazione pratica non è più semplice e presenta sfide computazionali decisamente maggiori (more challenge).
+Per individuare il Top-1 in questo spazio, il sistema deve localizzare fisicamente la cella di Voronoi a cui appartiene la query in questione. Questo processo è un classico problema di **2D point location** (localizzazione di un punto in 2D), il quale può essere risolto mantenendo le stesse complessità asintotiche del caso monodimensionale: richiede infatti un tempo di $\Theta(\log n)$ e uno spazio lineare. Tuttavia, è fondamentale notare che, sebbene le complessità di tempo e spazio rimangano identiche a quelle del caso 1D, l'implementazione pratica non è più semplice e presenta sfide computazionali decisamente maggiori.
 
 ### La Maledizione della Dimensionalità
 
 I metodi esatti basati sul partizionamento spaziale incontrano un limite teorico critico non appena si tenta di applicarli a modelli con molte dimensioni. Questa problematica è universalmente nota come **La Maledizione della Dimensionalità** (The Curse of Dimensionality).
-
 
 Il partizionamento tramite Diagrammi di Voronoi non scala bene all'aumentare della dimensionalità dello spazio. Matematicamente, la dimensione strutturale di un diagramma di Voronoi cresce in modo esplosivo fino a raggiungere una grandezza di $n^{\frac{d}{2}}$. Di conseguenza, l'operazione esatta di _point location_ in spazi multi-dimensionali finirebbe per richiedere un tempo di calcolo impraticabile pari a $\Theta((d+\log n)^{c})$, consumando al contempo uno spazio di memoria immenso pari a $\Theta(n^{d})$.
 
@@ -68,18 +56,7 @@ Un'alternativa per evitare la costruzione dell'indice spaziale consiste nell'eff
 
 Entrambe queste soluzioni (il partizionamento esatto e la scansione lineare) risultano del tutto insoddisfacenti per i sistemi reali. Nonostante ciò, queste metodologie rappresentano il meglio che possiamo ottenere se pretendiamo di elaborare soluzioni matematicamente esatte. Per superare questo stallo prestazionale, è inevitabile scendere a compromessi e ammettere un certo grado di approssimazione sui risultati restituiti dal sistema. Esistono diverse misure per valutare la qualità di questa approssimazione; in questo specifico contesto, l'approssimazione viene quantificata misurando il **recall rispetto al groundtruth** (ovvero la frazione di veri risultati rilevanti recuperati rispetto alla verità di base).
 
----
 
-### Glossario e Concetti Chiave
-
-- **Distanza Euclidea e Prodotto Scalare:** Due metriche fondamentali usate nel caso monodimensionale per determinare la similarità tra una query e un punto; la prima valuta la vicinanza geometrica, la seconda proietta i vettori massimizzando o minimizzando i valori in base al segno.
-    
-- **Diagramma di Voronoi:** Struttura geometrica utilizzata nel caso 2D per il partizionamento spaziale, che divide il piano in celle poligonali in cui ogni punto al loro interno è più vicino al generatore della cella rispetto a qualsiasi altro punto.
-    
-- **Point Location:** Il problema algoritmico che consiste nel determinare in quale regione (es. cella di Voronoi) cade un punto di query interrogato.
-    
-- **Maledizione della Dimensionalità:** Fenomeno per cui le strutture di indicizzazione esatte perdono drasticamente efficienza temporale e spaziale all'aumentare del numero di dimensioni $d$, rendendo impraticabile la ricerca algoritmica senza approssimazioni.
-- --
 ### Strategie per l'Approximate k-NN Retrieval
 
 Il problema del recupero approssimato dei k vicini più prossimi, noto come **Approximate k-NN Retrieval**, può essere affrontato attraverso diverse strategie fondamentali. La prima categoria comprende le **soluzioni basate su alberi** (Tree-based solutions), di cui un esempio di spicco è l'algoritmo ANNOY sviluppato da Spotify. Questo approccio si basa sul partizionamento iterativo dello spazio vettoriale: inizialmente si divide l'insieme dei dati in due metà (Split it in two halves), successivamente si divide nuovamente (Split again), e si procede in questo modo per diverse iterazioni successive (...more iterations later) al fine di creare una struttura ad albero navigabile. 
@@ -96,15 +73,15 @@ Infine, la strategia attualmente adottata in modo quasi universale fa uso dei **
 
 ### Simulazione In Vitro dell'Algoritmo HNSW
 
-Per comprendere le meccaniche dei grafi di prossimità, viene proposta una "Simulazione in Vitro dell'HNSW". Questo esperimento didattico, che per sua stessa natura porta con sé il rischio intrinseco di rivelarsi un "Epic Fail", si basa su ingredienti molto semplici: gli studenti stessi, che fungono da vettori in uno spazio bidimensionale (ovvero i nodi della rete), e una specifica query. L'obiettivo finale di questa simulazione è identificare il punto _top-1_ calcolando la **distanza Euclidea** (Eucleadian distance).
+Per comprendere le meccaniche dei grafi di prossimità, viene proposta una "Simulazione in Vitro dell'HNSW",  si basa su ingredienti molto semplici: gli studenti stessi, che fungono da vettori in uno spazio bidimensionale (ovvero i nodi della rete), e una specifica query. L'obiettivo finale di questa simulazione è identificare il punto _top-1_ calcolando la **distanza Euclidea** (Eucleadian distance).
 
-La simulazione si sviluppa rigorosamente in tre fasi. Il **Step 1** consiste nella costruzione del **Grafo KNN** (o grafo di prossimità), stabilendo che per ogni nodo vi sia un numero di vicini pari a $p = 3$. Una volta stabilita la topologia iniziale, si passa al **Step 2**, in cui viene eseguito un algoritmo di ricerca di tipo _greedy_, partendo da un nodo scelto in modo del tutto casuale (random node). Durante l'esecuzione, il sistema si pone l'interrogativo fondamentale se la query sia stata trovata o meno. Nel caso di esito negativo ("No? Argh!"), significa che la ricerca è incappata in un **minimo locale** (Local Minimum). Di conseguenza, è necessario riprovare selezionando un altro punto di partenza, oppure eseguire un _backtrack_ avvalendosi di un _heap_ che memorizza i vicini. Se invece l'esito è positivo ("Yes? Urrah!"), si procede semplicemente a contare quanti passi (steps) sono stati necessari per raggiungere il traguardo.
+La simulazione si sviluppa rigorosamente in tre fasi. Il **Step 1** consiste nella costruzione del **Grafo KNN** (o grafo di prossimità), stabilendo che per ogni nodo vi sia un numero di vicini pari a $p = 3$. Una volta stabilita la topologia iniziale, si passa al **Step 2**, in cui viene eseguito un algoritmo di ricerca di tipo _greedy_, partendo da un nodo scelto in modo del tutto casuale (random node). Durante l'esecuzione, il sistema si pone l'interrogativo fondamentale se la query sia stata trovata o meno. Nel caso di esito negativo, significa che la ricerca è incappata in un **minimo locale** (Local Minimum). Di conseguenza, è necessario riprovare selezionando un altro punto di partenza, oppure eseguire un _backtrack_ avvalendosi di un _heap_ che memorizza i vicini. Se invece l'esito è positivo, si procede semplicemente a contare quanti passi (steps) sono stati necessari per raggiungere il traguardo.
 
-Per ottimizzare ulteriormente questo processo e muoversi più velocemente nella "regione" in cui risiede la query, viene introdotto il **Step 3**, che prevede la creazione di una **gerarchia**. In questa fase, a ogni studente viene richiesto di pensare a un numero casuale compreso nell'intervallo $[1, 6]$ (RANDOM!). Questa meccanica stocastica serve a determinare i livelli: ogni studente che ha pensato esattamente al numero $5$ viene "promosso" al livello superiore, identificato come livello 1. A questo punto, si ripete l'operazione di costruzione del grafo descritta nel Step 1, applicandola però unicamente ai nodi isolati che compongono il neo-formato livello 1.
+Per ottimizzare ulteriormente questo processo e muoversi più velocemente nella "regione" in cui risiede la query, viene introdotto il **Step 3**, che prevede la creazione di una **gerarchia**. In questa fase, a ogni studente viene richiesto di pensare a un numero casuale compreso nell'intervallo $[1, 6]$. Questa meccanica stocastica serve a determinare i livelli: ogni studente che ha pensato esattamente al numero $5$ viene "promosso" al livello superiore, identificato come livello 1. A questo punto, si ripete l'operazione di costruzione del grafo descritta nel Step 1, applicandola però unicamente ai nodi isolati che compongono il neo-formato livello 1.
 
 ### NSW (Navigable Small World) e Ricerca Greedy
 
-La struttura planare di base prima dell'introduzione dei livelli gerarchici è definita come **NSW** (Navigable Small World). Questa architettura si presenta visivamente come un grafo costituito da nodi interconnessi tra loro tramite una fitta rete di archi, all'interno della quale viene introdotto un nodo target da ricercare. ![[Pasted image 20260430151647.png]]
+La struttura di base prima dell'introduzione dei livelli gerarchici è definita come **NSW** (Navigable Small World). Questa architettura si presenta visivamente come un grafo costituito da nodi interconnessi tra loro tramite una fitta rete di archi, all'interno della quale viene introdotto un nodo target da ricercare. ![[Pasted image 20260430151647.png]]
 ![[Pasted image 20260430151654.png]]
 ![[Pasted image 20260430151700.png]]
 ![[Pasted image 20260430151706.png]]
@@ -117,14 +94,6 @@ La navigazione vera e propria all'interno della rete NSW avviene tramite l'algor
 ![[Pasted image 20260430151805.png]]
 ![[Pasted image 20260430151817.png]]
 ![[Pasted image 20260430151828.png]]
-### Concetti Chiave
-
-- **Approximate k-NN Retrieval**: L'insieme di tecniche (basate su alberi, clustering, hashing o grafi) per identificare i k-vicini più prossimi in spazi vettoriali con alta efficienza accettando un margine di approssimazione.
-    
-- **HNSW (Hierarchical Navigable Small World)**: Evoluzione dei grafi di prossimità che sfrutta una gerarchia di livelli, dove i livelli superiori consentono movimenti ampi e quelli inferiori definiscono la precisione locale della ricerca.
-    
-- **Greedy Search**: L'algoritmo di base impiegato nei grafi NSW che, partendo da un nodo casuale, si sposta inesorabilmente verso il vicino più prossimo alla query, rischiando tuttavia di bloccarsi in minimi locali.
----
 
 ### Le Skip List di Pugh come Fondamento Teorico
 
@@ -182,18 +151,6 @@ Il punto di partenza si trova nel grafo più sparso. La ricerca (indicata visiva
 
 A supporto di queste infrastrutture gerarchiche, si posiziona il framework **kANNolo**, rappresentato iconograficamente per combinare l'idea di stratificazione dei dati (tipica del roll) con le reti a grafo sovrapposte necessarie per il calcolo approssimato dei vicini.
 
----
-
-### Glossario / Concetti Chiave
-
-- **Skip List di Pugh:** Una struttura dati probabilistica basata su liste sovrapposte e a densità decrescente, utilizzata come base logica per scalare le predecessor queries rispetto ai BST.
-    
-- **HNSW (Hierarchical Navigable Small World):** Algoritmo che applica il concetto di gerarchia multi-strato non più a liste lineari, ma a grafi di prossimità per ricerche vettoriali complesse.
-    
-- **Layer / Livelli Gerarchici:** Livelli sovrapposti di dati dove il livello più basso (Layer 0) contiene la struttura completa, mentre i livelli superiori (Layer 1, 2, 3...) contengono versioni drasticamente ridotte per permettere l'attraversamento rapido dei dati.
-    
-- **Routing Gerarchico:** Il processo greedy per cui una query viene iniziata nel layer più alto (con collegamenti lunghi) per poi scendere verticalmente nei layer più densi man mano che ci si avvicina al target.
----
 ### kANNolo: Un'Implementazione Efficiente
 
 Nell'ambito delle architetture basate su grafi, si distingue **kANNolo**, un'implementazione scritta in linguaggio Rust dell'algoritmo **HNSW** (Hierarchical Navigable Small World) che si spinge anche oltre le funzioni standard. Una delle caratteristiche fondamentali di questa libreria è di essere l'unica a poter lavorare in modo nativo sia con vettori sparsi (**Sparse**) che densi (**Dense**). Dal punto di vista dello sviluppo, kANNolo è progettato per risultare super efficiente e facile da estendere. Un dettaglio particolare della sua genesi è che il codice è stato implementato prevalentemente da studenti universitari, rendendola di fatto la prima libreria **KNN** (K-Nearest Neighbors) a prendere in prestito il nome da un tipico dolce italiano.
@@ -211,35 +168,19 @@ Il secondo limite critico è l'**Alto Costo in Spazio** (High Space Usage). Per 
 
 Infine, l'approccio strutturale genera inefficienze a livello di processore: la ricerca **non è cache-friendly**. Per visitare i vicini di un nodo durante il calcolo, l'algoritmo effettua continui accessi casuali (random accesses) al _forward index_, vanificando i meccanismi di pre-fetching della memoria cache e introducendo colli di bottiglia nei tempi di latenza.
 
-### Product Quantization (Quantizzazione del Prodotto)
+### Product Quantization
 
-Per superare i limiti di memoria e velocizzare ulteriormente il calcolo delle distanze, i sistemi IR impiegano una tecnica nota come **Quantizzazione del Prodotto** (Product Quantization), che si definisce come una strategia di compressione con perdita dei dati (**Lossy Compression**). Il meccanismo logico alla base della quantizzazione consiste nel raggruppare i componenti del vettore originario in un numero $m$ di segmenti (chunks), dove ogni segmento avrà una grandezza pari a $d/m$ componenti. Successivamente, si sostituisce l'intero contenuto di ogni chunk con un codice rappresentativo che occupa un solo byte.
+Per superare i limiti di memoria e velocizzare ulteriormente il calcolo delle distanze, i sistemi IR impiegano una tecnica nota come Product Quantization, che si definisce come una strategia di compressione con perdita dei dati (**Lossy Compression**). Il meccanismo logico alla base della quantizzazione consiste nel raggruppare i componenti del vettore originario in un numero $m$ di segmenti (chunks), dove ogni segmento avrà una grandezza pari a $d/m$ componenti. Successivamente, si sostituisce l'intero contenuto di ogni chunk con un codice rappresentativo che occupa un solo byte.
 
 L'applicazione di questa compressione offre tre vantaggi immediati:
-
 1. Riduce drasticamente l'utilizzo dello spazio globale richiesto dal data set.
-    
 2. Permette un calcolo delle distanze molto più rapido, grazie al numero nettamente inferiore di componenti da elaborare.
-    
 3. Migliora l'efficienza della memoria, poiché i vettori che devono essere letti e caricati risultano molto più corti. Tuttavia, trattandosi esplicitamente di una compressione lossy, vi è un dazio da pagare: il **Recall** (Richiamo) del sistema può diminuire, e solitamente lo fa.
 
 
 ![[Pasted image 20260430154642.png]]
 
 Per chiarire il concetto con un esempio numerico, prendiamo in esame un vettore originale di dimensione $d=12$, in cui ogni singolo valore è memorizzato come un "float32". Il vettore contiene i seguenti valori: `0.8, -1.2, 3.4, 1.3, -2.1, 0.3, 2.4, 1.5, 0.9, -1.0, 0.8, 4.1`. Seguendo le regole della quantizzazione, il vettore viene frazionato in $m=3$ blocchi, ciascuno contenente 4 valori distinti. A questo punto, si utilizza un singolo byte per codificare per intero ogni blocco, ottenendo in output i valori riassuntivi `3`, `254` e `87`. Il calcolo del risparmio di memoria è immediato: partendo da 12 valori a 32 bit e riducendoli a 3 valori da 8 bit, il sistema ha appena risparmiato l'equivalente di $12 \times 32 - 3 \times 8 = 360$ bit per questo specifico vettore.
-
-### Concetti Chiave
-
-- **kANNolo:** Implementazione in Rust dell'algoritmo HNSW, capace di supportare sia vettori sparsi che densi con alta efficienza, caratterizzata dal nome di un tipico dolce italiano.
-    
-- **Limitazioni dei Grafi:** Approcci come l'HNSW offrono tempi di ricerca eccellenti ma patiscono alti costi in fase di costruzione dell'indice, eccessivo uso della memoria RAM e scarsa compatibilità con le logiche di caching della CPU.
-    
-- **Product Quantization (PQ):** Tecnica di compressione lossy che suddivide i vettori ad alta dimensionalità in blocchi più piccoli, codificandoli in singoli byte per risparmiare memoria e accelerare il calcolo delle similarità, a fronte di una potenziale perdita di recall.
----
-## Product Quantization: Encoding
-
-L'elaborazione dei dati ad alta dimensionalità richiede tecniche di compressione efficaci, tra cui spicca l'algoritmo discusso in questa sezione. Nello specifico, analizzeremo il processo di codifica associato alla **Product Quantization** (quantizzazione del prodotto).
-
 ### La suddivisione dell'Original Vector
 
 Il processo prende in esame un vettore di partenza, definito esplicitamente come **Original vector**, che viene frammentato logica in sotto-vettori più piccoli per poter essere analizzato e compresso. Il primo segmento estratto da questo vettore originale è composto dai valori `0.8, -1.2, 3.4, 1.3`. Questo blocco di dati numerici viene elaborato utilizzando un algoritmo di clustering, nello specifico il **k-means with 256 centroids**.
@@ -262,16 +203,6 @@ Al termine di questa rigorosa sequenza di operazioni, l'**Original vector** ad a
 
 Tuttavia, è fondamentale sottolineare una caratteristica intrinseca e critica di questo metodo matematico: si tratta chiaramente di un processo **Lossy!** (ovvero con perdita di dati). Questo avviene perché l'assegnazione finale a un singolo centroide approssima forzatamente la posizione esatta e originale del vettore nello spazio. In altre parole, l'avvertenza cruciale è che vettori originali differenti potrebbero generare la medesima codifica, poiché tutti i punti vettoriali che ricadono all'interno della stessa macro-regione di spazio delimitata dal k-means verranno irrimediabilmente associati allo stesso identico numero di centroide.
 
----
-
-### Concetti Chiave
-
-- **Product Quantization**: Tecnica di compressione che codifica un vettore originale frammentandolo in parti più piccole e mappando ogni frammento a un valore rappresentativo.
-    
-- **k-means with 256 centroids**: Il modello spaziale di clustering utilizzato per dividere lo spazio vettoriale in 256 macro-regioni, ognuna identificata da un centroide numerico.
-    
-- **Lossy Encoding**: Proprietà della codifica che comporta una perdita di informazione non recuperabile, indicando che vettori di partenza diversi (ma vicini nello spazio) possono produrre esattamente la stessa stringa compressa finale.
----
 ### Distance Computation nella Product Quantization
 
 Il processo di **Product quantization** si basa in primo luogo sull'operazione di **distance computation**, ovvero il calcolo delle distanze tra un vettore di input e i vettori presenti all'interno del sistema. Partendo da una **Query** specifica, rappresentata da un vettore numerico (con i valori 3.6, 2.1, -0.9, 1.1), il sistema effettua un confronto con altri vettori di riferimento. Nel caso illustrato, i vettori di riferimento con i quali la query interagisce presentano rispettivamente le coordinate 2.1, 2.1, 1.1, 1.4 e 3.1, -1.1, 2.1, 1.1.
@@ -294,16 +225,6 @@ Il grafico traccia la metrica del Recall sull'asse verticale (Y), con valori che
 
 Inoltre, sull'asse delle ascisse, poco prima della soglia dei 600.000, è presente una linea verticale di demarcazione associata al termine **Brute Force Scan** (scansione a forza bruta). Questa soglia funge da punto di riferimento per confrontare le prestazioni di efficienza e latenza dei metodi approssimati rispetto a una ricerca lineare ed esaustiva su tutti gli elementi.
 
----
-
-### Concetti Chiave
-
-- **Product quantization**: Tecnica che permette di rappresentare vettori complessi attraverso componenti quantizzate per ottimizzare lo spazio e i calcoli.
-    
-- **Distance computation**: L'operazione matriciale attraverso la quale si calcola la vicinanza tra la Query e i vettori presenti nel database.
-    
-- **Recall vs Latency**: Metrica di valutazione cruciale nei sistemi di Information Retrieval che evidenzia il compromesso (trade-off) tra la qualità dei risultati recuperati e il tempo o le risorse computazionali impiegate per ottenerli.
----
 ### Le Famiglie di Embedding e la Rappresentazione Sparsa
 
 Nel contesto del recupero neurale delle informazioni, i documenti e le query vengono convertiti in vettori chiamati embedding. Questi si dividono principalmente in tre famiglie: vettori densi singoli (_dense single-vector_), vettori densi multipli (_dense multi-vector_) e vettori sparsi singoli (_sparse single-vector_).
@@ -339,9 +260,7 @@ L'evidenza empirica più importante emersa dalla competizione, i cui dettagli so
 Nonostante il successo dei grafi, gli **Inverted Indexes** restano fondamentali e ampiamente studiati. Un Indice Invertito capovolge la logica del Forward Index: per ogni componente o termine del vocabolario (da $c_1$ a $c_{30K}$), elenca tutti i documenti in cui esso compare.
 
 - Il termine $c_1$ può essere presente nei documenti $d_1, d_2, d_3, d_4, \dots, d_{1,650,000}$.
-    
 - Il termine $c_2$ può comparire in $d_1, d_2, d_3, d_4, \dots, d_{873,066}$.
-    
 - Il termine $c_{30K}$ si trova in $d_1, d_2, d_3, d_4, \dots, d_{581,345}$.
     
 
@@ -349,6 +268,8 @@ Nonostante il successo dei grafi, gli **Inverted Indexes** restano fondamentali 
 
 
 Se si applicasse un approccio di tipo **Brute Force** per valutare la nostra query contro gli 8.8 milioni di documenti (sia sul Forward che sull'Inverted Index), il sistema sarebbe costretto a eseguire ben **8.841.823 calcoli di prodotto scalare** (dot product computations). Durante l'elaborazione, le architetture fanno uso di una struttura ad albero chiamata **Heap** per immagazzinare e ordinare i documenti più promettenti man mano che vengono valutati (es. nodi 1, 2, 3, 4, 5, 9). Per limitare questo onere computazionale, la letteratura suggerisce tecniche come **IOQP** (basata su liste ordinate per impatto e terminazione anticipata) o **SparseIVF** (basata su indici invertiti di file e sketches).
+
+
 ![[Pasted image 20260430182339.png]]
 
 ### Il Metodo Seismic: Pruning e la Concentrazione dell'Importanza
@@ -374,19 +295,7 @@ Applicando la regola del $\lambda=4000$, i dati dimostrano la robustezza del sis
 
 I risultati evidenziano chiaramente che, limitando l'analisi a soli 10 termini della query, il sistema Seismic riesce a raggiungere un'accuratezza superiore al 98%, offrendo prestazioni straordinarie e validando a pieno il concetto di concentrazione dell'importanza.
 
----
 
-### Glossario e Concetti Chiave
-
-- **Sparse Embeddings:** Rappresentazione matematica in cui documenti e query sono tradotti in vettori composti prevalentemente da valori nulli. Si rivelano altamente efficienti in termini di spazio/tempo e la loro struttura pesata li rende nativamente interpretabili.
-    
-- **Indici Forward e Inverted:** Il Forward Index elenca per ogni documento tutti i componenti in esso presenti. Al contrario, l'Inverted Index associa a ciascun componente del vocabolario la lista dei documenti che lo contengono.
-    
-- **Concentration of Importance:** Regola statistico-matematica chiave nei vettori sparsi, la quale dimostra che circa il 15% dei termini è responsabile della genesi del 90% del prodotto scalare complessivo.
-    
-- **Pruning (Seismic):** Strategia di ottimizzazione che abbatte i costi computazionali tagliando i dati da analizzare. Considerando solo $\lambda=4000$ documenti per lista e $\sigma=10$ termini per query, le computazioni calano da quasi 9 milioni a sole 40.000, mantenendo un'Accuracy@10 del 98.30%.
-
----
 ### Architettura di Base e la Tecnica del Pruning
 
 L'infrastruttura di base si fonda su due strutture dati fondamentali: l'**Inverted Index** e il **Forward Index**. L'indice invertito mappa una vasta gamma di concetti (da $C_{1}$ fino a $C_{30K}$) alle relative liste di documenti associati (come $d_{1} \dots d_{4000}$). Parallelamente, il Forward Index collega i documenti (fino a $d_{8M}$) alle coppie concetto-valore, come ad esempio $C_{1} V_{1}$ e $C_{2} V_{2}$.
@@ -396,9 +305,6 @@ L'infrastruttura di base si fonda su due strutture dati fondamentali: l'**Invert
 Quando viene processata una query composta da vari termini (ad esempio da $C_{1} V_{1}$ fino a $C_{43} V_{43}$), il sistema deve eseguire il calcolo del prodotto scalare (dot product computations) per stimare la rilevanza. Valutare questi punteggi con un approccio **Brute Force** richiederebbe ben 8.841.823 computazioni. Affidandosi semplicemente all'**Inverted Index**, il numero scende a circa 4.000.000 di calcoli. Per ottimizzare ulteriormente questo processo, Seismic introduce il **Pruning**, riducendo le computazioni a circa 40.000.
 
 Il pruning opera attraverso l'utilizzo di una struttura dati **Heap** che mantiene una soglia di riferimento definita $\tau$. Questa soglia rappresenta il punteggio minimo (minimum score) necessario affinché un documento candidato possa entrare nell'heap dei risultati. Nonostante questa notevole scrematura, emerge una forte inefficienza operativa: il sistema sta ancora valutando tutti i documenti presenti nella lista candidata ("We are evaluating all the documents in the list!").
-
-]
-
 ### Ottimizzazione tramite Blocking
 
 Per superare il limite della valutazione esaustiva, Seismic implementa la strategia del **Blocking**. L'obiettivo principale diventa quindi quello di saltare i documenti irrilevanti senza dover minimamente calcolare il loro prodotto scalare con la query.
@@ -428,17 +334,7 @@ L'integrazione di queste tecniche modifica drasticamente le prestazioni del sist
 
 ![[Pasted image 20260430185045.png]]
 
----
 
-### Concetti Chiave
-
-- **Pruning tramite Heap:** Eliminazione dei documenti candidati che non raggiungono la soglia minima ($\tau$) definita dall'Heap, riducendo le computazioni a circa quarantamila.
-    
-- **Blocking (Shallow K-Means):** Raggruppamento di decine di documenti simili all'interno delle posting list, permettendo di ignorare blocchi interi senza calcolare il prodotto scalare se ritenuti irrilevanti.
-    
-- **Summaries Ottimizzati:** Vettori che stimano il punteggio massimo di un blocco calcolando il valore massimo per componente, resi efficienti per lo spazio mantenendo solo le componenti non-zero maggiori a discapito della conservatività.
-
----
 ![[Pasted image 20260430185057.png]]
 ![[Pasted image 20260430185105.png]]
 ![[Pasted image 20260430185116.png]]
