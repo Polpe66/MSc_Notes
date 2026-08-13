@@ -43,13 +43,13 @@ La seconda categoria racchiude i **Metodi basati sull'Interazione** (Interaction
 
 ### L'Implementazione Pratica: MonoBERT
 
-Un'implementazione diretta dei metodi di interazione è rappresentata da **MonoBERT**, basato sulla versione vanilla del modello. L'idea alla base di questo approccio è che la query e il documento vengano codificati congiuntamente in modo incrociato (jointly cross-encoded). Il formato di input fornito alla rete è strutturato unendo i testi: `[CLS] query [SEP] documento [SEP]`. In questo contesto congiunto, l'embedding contestuale associato al token iniziale `[CLS]` funge da punteggio di rilevanza aggregato per l'intera coppia query-documento, punteggio che costituisce l'output finale del modello e che viene utilizzato in maniera diretta per il ranking, come formalizzato dagli studi di Nogueira et al. nel 2019.
+Un'implementazione diretta dei metodi di interazione è rappresentata da **MonoBERT**, basato sulla versione vanilla del modello. L'idea alla base di questo approccio è che la query e il documento vengano codificati congiuntamente in modo incrociato. Il formato di input fornito alla rete è strutturato unendo i testi: `[CLS] query [SEP] documento [SEP]`. In questo contesto congiunto, l'embedding contestuale associato al token iniziale `[CLS]` funge da punteggio di rilevanza aggregato per l'intera coppia query-documento, punteggio che costituisce l'output finale del modello e che viene utilizzato in maniera diretta per il ranking.
 ![[Pasted image 20260430190327.png]]
 
 
 ### Il Fine-Tuning di MonoBERT per il Ranking
 
-Come precedentemente introdotto, il modello base di BERT, noto anche come Vanilla BERT, viene pre-addestrato nativamente su due compiti fondamentali: il Masked Language Model e la Next Sentence Prediction. Per adattare efficacemente questo modello di base a uno scenario specifico di ranking, è necessario ricorrere a un processo di fine-tuning. Nello specifico, l'approccio descritto da Nogueira et al. (pubblicato su arXiv nel 2019) impiega un modello di tipo Point-wise abbinato a un approccio di addestramento Pair-wise. Questo significa che il modello valuta la pertinenza di documenti positivi e negativi rispetto a una singola query, calcolando il relativo Positive Score e Negative Score. Per ottimizzare questi punteggi e addestrare la rete, viene utilizzata una funzione di perdita basata sull'entropia incrociata, ovvero la Cross-entropy loss. Matematicamente, la funzione di perdita di questo modello, denominata $L_{mono}$, è definita dalla seguente equazione matematica:
+Come precedentemente introdotto, il modello base di BERT, noto anche come Vanilla BERT, viene pre-addestrato nativamente su due compiti fondamentali: il Masked Language Model e la Next Sentence Prediction. Per adattare efficacemente questo modello di base a uno scenario specifico di ranking, è necessario ricorrere a un processo di fine-tuning. Nello specifico impiega un modello di tipo Point-wise abbinato a un approccio di addestramento Pair-wise. Questo significa che il modello valuta la pertinenza di documenti positivi e negativi rispetto a una singola query, calcolando il relativo Positive Score e Negative Score. Per ottimizzare questi punteggi e addestrare la rete, viene utilizzata una funzione di perdita basata sull'entropia incrociata, ovvero la Cross-entropy loss. Matematicamente, la funzione di perdita di questo modello, denominata $L_{mono}$, è definita dalla seguente equazione matematica:
 
 $$L_{mono}=-\sum_{j\in J_{pos}}log(s_{j})-\sum_{j\in J_{neg}}log(1-s_{j})$$
 
@@ -60,37 +60,28 @@ $$L_{mono}=-\sum_{j\in J_{pos}}log(s_{j})-\sum_{j\in J_{neg}}log(1-s_{j})$$
 I risultati ottenuti applicando il fine-tuning a BERT sono notevoli. È stato dimostrato che un modello linguistico di uso generale (general purpose), se adeguatamente affinato esclusivamente sul task specifico di interesse, è in grado di superare le soluzioni che in precedenza rappresentavano lo stato dell'arte (SOTA). Di fatto, le prestazioni di MonoBERT sono sbalorditive anche con una quantità di dati ridotta. Sono sufficienti appena 100.000 coppie di addestramento (training pairs), che rappresentano solamente lo 0,3% dei dati di training completi, per ottenere risultati superiori ai modelli precedenti. Questo set di addestramento ridotto è stato generato a partire da 10.000 query, per ognuna delle quali sono stati estratti 10 passaggi rilevanti utilizzando l'algoritmo classico BM25. Nonostante questa limitata base di partenza, BERT si dimostra fin da subito superiore alle soluzioni SOTA preesistenti.
 
 
-Per contestualizzare questo balzo in avanti, la tabella seguente, tratta dallo studio di Nogueira et al. del 2019, riassume le performance di vari modelli valutati sui dataset MS MARCO (metrica MRR@10) e TREC-CAR (metrica MAP):
+![[Pasted image 20260810175320.png]]
 
-| **Method**                         | **MS MARCO MRR@10 Dev** | **MS MARCO MRR@10 Eval** | **TREC-CAR MAP Test** |
-| ---------------------------------- | ----------------------- | ------------------------ | --------------------- |
-| BM25 (Lucene, no tuning)           | 16.7                    | 16.5                     | 12.3                  |
-| BM25 (Anserini, tuned)             |                         | 15.3                     |                       |
-| Co-PACRR* (MacAvaney et al., 2017) |                         | 14.8                     |                       |
-| KNRM (Xiong et al., 2017)          | 21.8                    | 19.8                     |                       |
-| Conv-KNRM (Dai et al., 2018)       | 29.0                    | 27.1                     |                       |
-| IRNet                              | 28.1                    | 27.8                     |                       |
-| BERT Base                          | 34.7                    |                          | 31.0                  |
-| BERT Large                         | 35.8                    | 36.5                     | 33.5                  |
+### Metodi Basati sulla Rappresentazione 
 
-### Metodi Basati sulla Rappresentazione (Representation-based Methods)
-
-Tra le metodologie neurali adottate per l'IR , spiccano i metodi basati sulla rappresentazione, noti come Representation-based methods. In questa architettura, ogni singolo documento $d$ (composto da $m$ token) e ogni query $q$ (composta da $n$ token) vengono elaborati e rappresentati in maniera del tutto separata sotto forma di vettori densi. Questo processo è reso possibile da un'architettura definita "Siamese", in cui due reti neurali identiche (Neural Network D e Neural Network Q) estraggono i vettori di feature. Un vantaggio cruciale di questa configurazione risiede nella divisione del carico computazionale: il calcolo per i documenti viene eseguito interamente offline (Offline Computation), mentre solamente l'elaborazione della query avviene in tempo reale (online). La rilevanza finale, indicata con il punteggio $S_{q,d}$, si ottiene misurando la similarità tra questi due vettori densi rappresentativi, tipicamente attraverso un semplice ma efficace prodotto scalare (dot product).
+Tra le metodologie neurali adottate per l'IR , spiccano i metodi basati sulla rappresentazione, noti come Representation-based methods. In questa architettura, ogni singolo documento $d$ (composto da $m$ token) e ogni query $q$ (composta da $n$ token) vengono elaborati e rappresentati in maniera del tutto separata sotto forma di vettori densi. Questo processo è reso possibile da un'architettura definita "Siamese", in cui due reti neurali identiche (Neural Network D e Neural Network Q) estraggono i vettori di feature. Un vantaggio cruciale di questa configurazione risiede nella divisione del carico computazionale: il calcolo per i documenti viene eseguito interamente offline, mentre solamente l'elaborazione della query avviene in tempo reale (online). La rilevanza finale, indicata con il punteggio $S_{q,d}$, si ottiene misurando la similarità tra questi due vettori densi rappresentativi, tipicamente attraverso un semplice ma efficace prodotto scalare (dot product).
 
 ![[Pasted image 20260430191303.png]]
 A partire dal 2019, i metodi di dense retrieval hanno riscosso un enorme successo in quanto possiedono numerose proprietà desiderabili. In primo luogo, offrono una rappresentazione testuale completamente apprendibile (fully-learnable representation) e si integrano in modo molto naturale con i processi di fine-tuning. Inoltre, garantiscono un'elevata efficienza operativa, in quanto supportano tecniche avanzate di ricerca rapida, come l'Approximate Nearest Neighbor (ANN) search. Infine, e forse la cosa più importante, questi metodi superano le tradizionali limitazioni del recupero di informazioni sparso (sparse retrieval), eliminando definitivamente il problema del vocabulary mismatch, ovvero la discrepanza di vocabolario tra i termini cercati e quelli presenti nel testo.
 
 ### L'Evoluzione verso le Rappresentazioni Dense (Dense Representations)
 
-Alla base dei metodi descritti vi sono le Rappresentazioni Dense. Queste tecniche apprendono come proiettare i vettori di feature sparsi all'interno di uno spazio continuo a bassa dimensionalità, indicato come $R^{k}$, dove $k$ è strettamente minore della dimensione del vocabolario originale ($k\ll|F|$). Le fondamenta di questo campo sono state gettate da **Word2Vec**, introdotto da Mikolov et al. nel 2013. Questo modello propone due distinti approcci per apprendere le rappresentazioni vettoriali continue delle parole. Il primo, denominato **CBOW** (Continuous Bag of Words), cerca di predire una specifica parola partendo dal suo contesto circostante. Il secondo approccio, lo **Skip-gram**, opera al contrario: tenta di predire il contesto a partire da una singola parola fornita. Dal punto di vista architetturale, entrambi gli approcci sono implementati come reti neurali lineari a due strati, in cui le parole in ingresso e in uscita (originariamente nel formato sparso one-hot) vengono codificate e successivamente decodificate in una rappresentazione densa dotata di dimensioni inferiori. Un aspetto rivoluzionario di questa tecnica è che non richiede alcun tipo di dato etichettato manualmente dall'uomo (no need for human-labeled data). Inoltre, regolando la dimensione della finestra di contesto (context window size), è possibile variare l'obiettivo dell'apprendimento: finestre più ampie permettono di catturare maggiormente la semantica, mentre finestre più brevi si focalizzano sulla sintassi del linguaggio.
+Alla base dei metodi descritti vi sono le Rappresentazioni Dense. Queste tecniche apprendono come proiettare i vettori di feature sparsi all'interno di uno spazio continuo a bassa dimensionalità, indicato come $R^{k}$, dove $k$ è strettamente minore della dimensione del vocabolario originale ($k\ll|F|$). Le fondamenta di questo campo sono state gettate da **Word2Vec**. Questo modello propone due distinti approcci per apprendere le rappresentazioni vettoriali continue delle parole. 
+
+Il primo, denominato **CBOW** (Continuous Bag of Words), cerca di predire una specifica parola partendo dal suo contesto circostante. Il secondo approccio, lo **Skip-gram**, opera al contrario: tenta di predire il contesto a partire da una singola parola fornita. Dal punto di vista architetturale, entrambi gli approcci sono implementati come reti neurali lineari a due strati, in cui le parole in ingresso e in uscita (originariamente nel formato sparso one-hot) vengono codificate e successivamente decodificate in una rappresentazione densa dotata di dimensioni inferiori. Un aspetto rivoluzionario di questa tecnica è che non richiede alcun tipo di dato etichettato manualmente dall'uomo (no need for human-labeled data). Inoltre, regolando la dimensione della finestra di contesto (context window size), è possibile variare l'obiettivo dell'apprendimento: finestre più ampie permettono di catturare maggiormente la semantica, mentre finestre più brevi si focalizzano sulla sintassi del linguaggio.
 
 A seguito di Word2Vec, sono emersi approcci via via più sofisticati. Tra questi, **FastText** estende il modello di base includendo anche gli n-grammi di una parola. Di conseguenza, l'embedding finale di un termine risulta essere la somma vettoriale del suo embedding specifico e dell'embedding di tutti i suoi n-grammi costituenti. 
 
-7Un'ulteriore evoluzione è rappresentata da **Doc2Vec** (Mikolov e Le, ICML 2014). Questa architettura estende Word2Vec aggiungendo nuove dimensioni di input specificatamente dedicate agli identificatori dei documenti (document IDs). In questo modo, gli ID dei documenti vengono proiettati nel medesimo spazio vettoriale delle parole, permettendo di derivare l'embedding di un intero documento a partire dai vettori delle parole che lo compongono. Tali embedding documentali si rivelano estremamente versatili e possono essere impiegati per una moltitudine di task computazionali. L'apice attuale di questa evoluzione, come descritto nello studio di Delvin et al. del 2019, è l'impiego di **BERT** per generare *contextualized embeddings*, in cui la rappresentazione vettoriale di una determinata parola non è statica, ma varia in modo dinamico a seconda dell'esatto contesto in cui si trova inserita all'interno della frase.
+Un'ulteriore evoluzione è rappresentata da **Doc2Vec** . Questa architettura estende Word2Vec aggiungendo nuove dimensioni di input specificatamente dedicate agli identificatori dei documenti (document IDs). In questo modo, gli ID dei documenti vengono proiettati nel medesimo spazio vettoriale delle parole, permettendo di derivare l'embedding di un intero documento a partire dai vettori delle parole che lo compongono. Tali embedding documentali si rivelano estremamente versatili e possono essere impiegati per una moltitudine di task computazionali. L'apice attuale di questa evoluzione, come descritto nello studio di Delvin et al. del 2019, è l'impiego di **BERT** per generare *contextualized embeddings*, in cui la rappresentazione vettoriale di una determinata parola non è statica, ma varia in modo dinamico a seconda dell'esatto contesto in cui si trova inserita all'interno della frase.
 
 ### Configurazione dei Modelli e Scelta tra Rappresentazione Singola e Multipla
 
-Negli ultimi anni, la ricerca ha prodotto diversi contributi fondamentali sull'utilizzo delle rappresentazioni dense in ambito IR. Modelli di spicco includono **ColBERT** (Khattab e Zaharia, ACM SIGIR 2020), **ANCE** (Xiong et al., ICLR 2021), e la combinazione **STAR / ADORE** (Zhan et al., ACM SIGIR 2021). Una distinzione strutturale cruciale in questi sistemi è quella tra metodi a singola rappresentazione (Single-representation methods) e metodi a rappresentazione multipla (Multiple-representation methods). Nei modelli a rappresentazione singola, come ad esempio ANCE, viene generato un unico embedding vettoriale per codificare l'intero documento. Al contrario, nei metodi a rappresentazione multipla, come ColBERT, il documento viene espresso attraverso un insieme di embedding, assegnandone uno specifico per ogni singolo termine contenuto al suo interno.
+Negli ultimi anni, la ricerca ha prodotto diversi contributi fondamentali sull'utilizzo delle rappresentazioni dense in ambito IR. Modelli di spicco includono **ColBERT**, **ANCE**, e la combinazione **STAR / ADORE** (Zhan et al., ACM SIGIR 2021). Una distinzione strutturale cruciale in questi sistemi è quella tra metodi a singola rappresentazione (Single-representation methods) e metodi a rappresentazione multipla (Multiple-representation methods). Nei modelli a rappresentazione singola, come ad esempio ANCE, viene generato un unico embedding vettoriale per codificare l'intero documento. Al contrario, nei metodi a rappresentazione multipla, come ColBERT, il documento viene espresso attraverso un insieme di embedding, assegnandone uno specifico per ogni singolo termine contenuto al suo interno.
 
 ### Le Funzioni di Loss e la Strategia di Selezione dei Dati Negativi
 
@@ -105,22 +96,6 @@ Mentre l'individuazione dei documenti positivi risulta agevole in quanto derivan
 ![[Pasted image 20260502152728.png]]
 
 La classificazione di questi documenti negativi riflette la loro distanza dalla query nello spazio vettoriale: gli **Easy Negatives** sono documenti facilmente riconoscibili come errati poiché estremamente discordanti; i **Semi-Hard Negatives** presentano una moderata similarità; infine, gli **Hard Negatives** sono documenti non rilevanti ma che possiedono un'altissima somiglianza con la query, rendendoli gli esempi negativi più importanti e complessi da gestire durante il training.
-
----
-
-### Glossario e Concetti Chiave
-
-- **Cross-entropy loss e Pair-wise training**: Tecnica di apprendimento per il fine-tuning di BERT in cui la perdita viene calcolata confrontando i punteggi di documenti positivi e negativi rispetto a una singola query.
-
-- **Architettura Siamese**: Struttura neurale alla base dei metodi orientati alla rappresentazione, che impiega due reti identiche e parallele per computare separatamente i vettori densi di documenti e query prima del loro confronto.
-
-- **Dense Retrieval & Embeddings (Word2Vec, Doc2Vec, FastText)**: Approcci che abbandonano la rappresentazione sparsa a favore della proiezione del testo in vettori continui a bassa dimensionalità, capaci di catturare a fondo sintassi e semantica.
-
-- **Single vs. Multiple Representation**: Distinzione architetturale fondamentale tra metodi che usano un solo vettore per sintetizzare l'intero documento (come ANCE) e metodi che assegnano un vettore per ogni singolo termine (come ColBERT).
-
-- **Triplet loss e Selezione dei Negativi**: Metrica di distanza usata per l'addestramento, che mira a distanziare i documenti non pertinenti (classificabili in Easy, Semi-Hard e Hard Negatives) oltre un certo margine, avvicinando contemporaneamente i documenti pertinenti alla query.
-
----
 
 ### L'Importanza dei Negativi Difficili e il Campionamento Dinamico
 
@@ -146,25 +121,9 @@ Il processo di addestramento di ANCE è particolarmente innovativo perché separ
 
 ![[Pasted image 20260502153553.png]]
 
-Questa architettura complessa porta a risultati di altissimo livello. La seguente tabella illustra le performance di ANCE (sviluppato da Xiong et al., ICLR 2021) rispetto ad altre metodologie sparse, in cascata e dense sui dataset MS MARCO e TREC DL:
+Questa architettura complessa porta a risultati di altissimo livello. La seguente tabella illustra le performance di ANCE rispetto ad altre metodologie sparse, in cascata e dense sui dataset MS MARCO e TREC DL:
 
-| **Method**                               | **MARCO Dev Passage Retrieval (MRR@10)** | **MARCO Dev Passage Retrieval (Recall@1k)** | **TREC DL Passage Rerank (NDCG@10)** | **TREC DL Passage Retrieval (NDCG@10)** | **TREC DL Document Rerank (NDCG@10)** | **TREC DL Document Retrieval (NDCG@10)** |
-| ---------------------------------------- | ---------------------------------------- | ------------------------------------------- | ------------------------------------ | --------------------------------------- | ------------------------------------- | ---------------------------------------- |
-| **Sparse & Cascade IR**                  |                                          |                                             |                                      |                                         |                                       |                                          |
-| BM25                                     | 0.814                                    | 0.240                                       | 0.506                                | 0.519                                   |                                       |                                          |
-| Best DeepCT                              | 0.243                                    | n.a.                                        | n.a.                                 | 0.554                                   |                                       |                                          |
-| Best TREC Trad Retrieval + BERT Reranker | 0.240                                    | n.a.                                        | 0.554                                | 0.742                                   | 0.549                                 | 0.646                                    |
-| **Dense Retrieval**                      |                                          |                                             |                                      |                                         |                                       |                                          |
-| Rand Neg                                 | 0.949                                    | 0.261                                       | 0.552                                | 0.605                                   | 0.615                                 | 0.543                                    |
-| NCE Neg                                  | 0.256                                    | 0.943                                       | 0.602                                | 0.539                                   | 0.618                                 | 0.542                                    |
-| BM25 Neg                                 | 0.299                                    | 0.928                                       | 0.664                                | 0.591                                   | 0.626                                 | 0.529                                    |
-| DPR (BM25 + Rand Neg)                    | 0.311                                    | 0.952                                       | 0.600                                | 0.653                                   | 0.629                                 | 0.557                                    |
-| BM25- Rand                               | 0.280                                    | 0.948                                       | 0.576                                | 0.609                                   | 0.566                                 | 0.637                                    |
-| BM25 → NCE Neg                           | 0.942                                    | 0.279                                       | 0.608                                | 0.571                                   | 0.638                                 | 0.564                                    |
-| BM25 → BM25 + Rand                       | 0.939                                    | 0.306                                       | 0.648                                | 0.591                                   | 0.540                                 | 0.626                                    |
-| ANCE (FirstP)                            | 0.959                                    | 0.330                                       | 0.648                                | 0.677                                   | 0.615                                 | 0.641                                    |
-| ANCE (MaxP)                              |                                          |                                             | 0.628                                | 0.671                                   |                                       |                                          |
-
+![[Pasted image 20260813170937.png]]
 ### ColBERT: Contextualized Late Interaction over BERT
 
 Nonostante i vantaggi del Dual Encoder (veloce ma meno preciso) e del Cross-Encoder (preciso ma estremamente lento), la ricerca ha cercato un punto di incontro. La risposta è **ColBERT** (Contextualized Late Interaction over BERT), un modello differenziabile end-to-end che mischia abilmente la velocità del primo con la precisione del secondo. L'intuizione principale di ColBERT è la **Late Interaction** (interazione ritardata), ideata specificamente come metodo per combattere il pesante onere computazionale.
@@ -177,32 +136,10 @@ $S_{q,d} := \sum_{i\in[|E_{q}|]} max_{j\in[|E_{d}|]} E_{q_{i}} \cdot E_{d_{j}}^{
 
 Questa architettura riduce drasticamente i FLOPs (operazioni in virgola mobile) per query rispetto a un approccio congiunto standard. Nella tabella seguente, tratta dallo studio di Khattab e Zaharia (ACM SIGIR 2020), possiamo osservare come ColBERT mantenga un MRR@10 eccezionale abbattendo drasticamente la latenza e il carico computazionale:
 
-| **Method**                   | **MRR@10 (Dev)** | **MRR@10 (Eval)** | **Re-ranking Latency (ms)** | **FLOPs/query** |
-| ---------------------------- | ---------------- | ----------------- | --------------------------- | --------------- |
-| BM25 (official)              | 16.7             | 16.5              |                             |                 |
-| KNRM                         | 19.8             | 19.8              | 3                           | 592M (0.085x)   |
-| Duet                         | 24.3             | 24.5              | 22                          | 159B (23x)      |
-| fastText+ConvKNRM            | 29.0             | 27.7              | 28                          | 78B (11x)       |
-| $BERT_{base}$ [25]           | 34.7             |                   | 10,700                      | 97T (13,900x)   |
-| $BERT_{base}$ (our training) | 36.0             |                   | 10,700                      | 97T (13,900x)   |
-| $BERT_{large}$ [25]          | 36.5             | 35.9              | 32,900                      | 340T (48,600x)  |
-| ColBERT (over $BERT_{base}$) | 34.9             | 34.9              | 61                          | 7B (1x)         |
+![[Pasted image 20260813171159.png]]
 
+![[Pasted image 20260813171245.png]]
 ![[Pasted image 20260502153823.png]]
-
----
-
-### Glossario e Concetti Chiave
-
-- **Hard Negatives e Dynamic Sampling**: Documenti semanticamente molto simili alla query ma errati. Il campionamento dinamico li estrae in tempo reale in base alle classifiche erronee del modello durante il training, fornendo gli esempi più istruttivi per l'apprendimento.
-
-- **Approximate Nearest Neighbour (ANN)**: Tecniche algoritmiche (come LSH o alberi) utilizzate per superare il limite computazionale $O(n \log k)$ della ricerca kNN esatta, permettendo di trovare velocemente i vettori più simili in dataset di grandi dimensioni.https://meet.google.com/fvi-pvcf-ttu
-
-- **ANCE (Approximate Nearest-neighbor Negative Contrastive Estimation)**: Un modello basato su Dual Encoder che migliora le proprie prestazioni aggiornando asincronamente (tramite un Inferencer) l'indice dei negativi difficili durante il processo di training.
-
-- **ColBERT e Late Interaction**: Un'architettura che mantiene vettori multipli per ogni termine del documento testuale. La "Late Interaction" calcola le similarità massime tra ogni termine della query e tutti i termini del documento solo all'ultimo stadio, garantendo la precisione del Cross-Encoder con latenze drasticamente inferiori.
-
----
 
 ### L'Importanza dell'Efficienza nei Motori di Ricerca
 
@@ -229,7 +166,7 @@ Applicando concretamente questo disaccoppiamento logico, si possono processare i
 
 ### Il Collo di Bottiglia dello Storage e la Compressione PreTTR
 
-Il disaccoppiamento dell'architettura alleggerisce in modo impressionante il tempo richiesto alla CPU/GPU del server, al prezzo tuttavia di generare un gargantuesco fabbisogno di archiviazione sui dischi di memoria (il cosiddetto storage burden). Risolvere questo dilemma ingegneristico ha richiesto l'incorporazione nel modello di due moduli intermedi: uno per comprimere i dati del documento (**comp.**) prima che siano riversati all'interno dello Storage, e l'altro speculare preposto alla decompressione rapida (**decomp.**) che ricomponga i vettori non appena devono essere iniettati nel livello condiviso $l+1$. I test eseguiti sul dataset WebTrack (su metrica P@20) hanno certificato il successo di tale integrazione: è concesso applicare tassi di compressione fino all'83% senza registrare alcuna decurtazione netta dell'accuratezza predittiva. I numeri lo dimostrano: confrontando il modello originale BERT base, dotato di un parametro P@20 di 0.3460, con una variante ottimizzata PreTTR avente un **Join Layer** ritardato fino a livello 11 ($l=11$) e vettori deflazionati dell'83% ($e=128$), quest'ultima riesce a preservare un solidissimo parametro di 0.3370.
+Il disaccoppiamento dell'architettura alleggerisce in modo impressionante il tempo richiesto alla CPU/GPU del server, al prezzo tuttavia di generare un grande fabbisogno di archiviazione sui dischi di memoria (il cosiddetto storage burden). Risolvere questo dilemma ingegneristico ha richiesto l'incorporazione nel modello di due moduli intermedi: uno per comprimere i dati del documento (**comp.**) prima che siano riversati all'interno dello Storage, e l'altro speculare preposto alla decompressione rapida (**decomp.**) che ricomponga i vettori non appena devono essere iniettati nel livello condiviso $l+1$. I test eseguiti sul dataset WebTrack (su metrica P@20) hanno certificato il successo di tale integrazione: è concesso applicare tassi di compressione fino all'83% senza registrare alcuna decurtazione netta dell'accuratezza predittiva. I numeri lo dimostrano: confrontando il modello originale BERT base, dotato di un parametro P@20 di 0.3460, con una variante ottimizzata PreTTR avente un **Join Layer** ritardato fino a livello 11 ($l=11$) e vettori deflazionati dell'83% ($e=128$), quest'ultima riesce a preservare un solidissimo parametro di 0.3370.
 
 ![[Pasted image 20260502154340.png]]
 
@@ -241,19 +178,6 @@ La ricerca sull'ottimizzazione del neural IR ha generato non solo evoluzioni alg
 
 ![[Pasted image 20260502154448.png]]
 
----
-
-### Glossario e Concetti Chiave
-
-- **De-coupled Interaction**: Filosofia ingegneristica atta ad arginare la dispendiosa latenza processando preventivamente ma asincronamente i vettori testuali del documento e quelli della query, ritardandone volontariamente il fatidico punto di scambio per abbassare il monte ore di calcolo in tempo reale.
-
-- **Join Layer**: Punto fisico all'interno dei multistrati dell'infrastruttura di una rete neurale in cui l'analisi indipendente dei due flussi testuali viene interrotta, obbligando la query testuale ad avviare la correlazione semantica (self-attention) con il bagaglio del documento per estrarne il rank.
-
-- **Precomputing Term Representations e Compressione**: Metodologia incentrata sull'escogitare un salvataggio persistente dei tensori semantici del documento, mitigando il gigantesco handicap di Storage associato avvalendosi di robusti scaglioni compressivi (capaci di sfiorare tassi deflattivi dell'83%).
-
-- **EPIC (Expansion via Prediction of Importance with Contextualization)**: Raffinato applicativo neurale architettato per la riduzione dei costi operativi. Fonde la parsimonia derivante dall'estrazione del ranking con vettori scalari (dot product) alle iniezione trasparenti di "Importance Scores", ponderazioni di peso ricollegabili individualmente a ciascun tassello testuale letto, promuovendo così l'interpretabilità.
-
----
 ### Vettori dei Documenti e Punteggi di Espansione
 
 Il cuore dell'architettura **EPIC** risiede nella sua peculiare modalità di rappresentazione testuale. In questo modello, i vettori dei documenti non sono semplici stringhe numeriche opache, ma sono strutturati per riflettere due componenti fondamentali: l'**Importance score** (il punteggio di importanza di ogni singolo termine, calcolato in base al contesto) e l'**Expansion score** (il punteggio di espansione).
@@ -294,18 +218,3 @@ Prendendo ad esempio la query "cost of endless pools swim spa", il sistema evide
 
 ![[Pasted image 20260502154922.png]]
 
----
-
-### Glossario dei Concetti Chiave
-
-- **EPIC (Expansion via Prediction of Importance with Contextualization)**: Modello neurale ottimizzato per l'efficienza e la trasparenza, che calcola vettori basati sull'importanza dei termini nel loro contesto integrandoli con capacità di espansione semantica.
-
-- **Expansion score**: Valore numerico assegnato all'interno del vettore del documento che codifica l'arricchimento semantico, permettendo al sistema di recuperare documenti usando termini correlati non esplicitamente presenti nella query originale.
-
-- **Document Quality Score**: Punteggio globale assegnato all'intero testo analizzato, calcolato processando il token di base [CLS] mediante uno strato dedicato della rete neurale (feed-forward layer).
-
-- **Top k pruning**: Tecnica di alleggerimento computazionale che scarta i vettori dei termini meno rilevanti di un documento, conservando solo i primi *k* valori per ottimizzare lo spazio di memoria richiesto.
-
-- **Interpretabilità**: La proprietà di un sistema di Information Retrieval, accentuata in EPIC, che consente agli utenti e agli sviluppatori di capire il ragionamento interno della macchina (ad esempio visionando quali parole hanno ricevuto il peso maggiore per attivare la classificazione).
-
----
