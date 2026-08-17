@@ -25,12 +25,43 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Appunti_molto_discorsivi/Slide1.md",
+                "file": "Appunti_molto_discorsivi/Slide2.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Slide1"
+              "title": "Slide2"
+            }
+          }
+        ],
+        "currentTab": 1
+      },
+      {
+        "id": "fd15a3c656e89dea",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "761cc3883f4b8477",
+            "type": "leaf",
+            "state": {
+              "type": "pdf",
+              "state": {
+                "file": "Slide Lezioni/01-Evaluation.pdf"
+              },
+              "icon": "lucide-file-text",
+              "title": "01-Evaluation"
+            }
+          },
+          {
+            "id": "3d4a66d811655cc8",
+            "type": "leaf",
+            "state": {
+              "type": "pdf",
+              "state": {
+                "file": "Slide Lezioni/02-NaturalLanguage.pdf"
+              },
+              "icon": "lucide-file-text",
+              "title": "02-NaturalLanguage"
             }
           }
         ],
@@ -209,8 +240,14 @@
       "obsidian-git:Open Git source control": false
     }
   },
-  "active": "b39e66ec2740f98e",
+  "active": "3d4a66d811655cc8",
   "lastOpenFiles": [
+    "Appunti_molto_discorsivi/Slide2.md",
+    "Appunti_molto_discorsivi/Slide1.md",
+    "Slide Lezioni/02-NaturalLanguage.pdf",
+    "Slide Lezioni/01-Evaluation.pdf",
+    "Slide Lezioni/00-Introduction.pdf",
+    "Esami/Risposte_domande_esame.pdf",
     "Appunti_molto_discorsivi/Slide12.md",
     "Appunti_molto_discorsivi/allegati/Pasted image 20260813171245.png",
     "Appunti_molto_discorsivi/allegati/Pasted image 20260813171232.png",
@@ -219,7 +256,6 @@
     "Appunti_molto_discorsivi/allegati/Pasted image 20260810175320.png",
     "Slide Lezioni/17-19-20-LanguageModels-II-NeuralIR.pdf",
     "Appunti_molto_discorsivi/Slide11.md",
-    "Esami/Risposte_domande_esame.pdf",
     "Slide Lezioni/16-18-KNN.pdf",
     "main.md",
     "main.pdf",
@@ -233,14 +269,9 @@
     "Esami/Esame A.md",
     "Appunti_molto_discorsivi/Slide9.md",
     "Slide Lezioni/13-14-Efficient Training and Inference.pdf",
-    "Slide Lezioni/12BIS-EfficiencyEffectivenessTradeOffs.pdf",
     "Appunti_molto_discorsivi/Slide8.md",
-    "Slide Lezioni/11-12_LearningToRank.pdf",
     "Appunti_molto_discorsivi/Slide7.md",
-    "Unconfirmed 334632.crdownload",
     "Appunti_molto_discorsivi/Slide6.md",
-    "Appunti_molto_discorsivi/Slide1.md",
-    "Appunti_molto_discorsivi/Slide2.md",
     "Appunti_molto_discorsivi/Slide5.md",
     "Appunti_molto_discorsivi/Slide4.md",
     "IR/Slide4.md",

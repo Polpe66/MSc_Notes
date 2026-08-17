@@ -1,5 +1,3 @@
-### Il Linguaggio Naturale: Caratteristiche e Complessità
-
 Il **linguaggio naturale** è il mezzo che gli esseri umani usano quotidianamente per comunicare tra loro, sia in forma scritta che parlata, senza la necessità di ricorrere a formalismi artificiali predefiniti. A differenza dei linguaggi formali, come possono essere quelli matematici o i linguaggi di programmazione, si definisce "naturale" proprio perché si è evoluto in modo del tutto spontaneo. Esso non si limita alla semplice emissione di singole parole, ma si articola in frasi, interi discorsi, intonazioni e possiede un profondo contesto culturale. Di conseguenza, l'utilizzo di un linguaggio così articolato rappresenta un tratto distintivo ed esclusivo della specie umana. 
 
 L'elaborazione di questo strumento comunicativo è estremamente complessa a causa di numerose sue caratteristiche intrinseche. Innanzitutto, il linguaggio si basa su **migliaia di simboli** e possiede una **sintassi complessa**.

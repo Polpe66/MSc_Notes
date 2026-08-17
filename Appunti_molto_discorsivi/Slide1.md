@@ -2,7 +2,7 @@
 
 Per comprendere come valutare un sistema di Information Retrieval, è essenziale osservare la sua architettura interna, la quale si divide in componenti di elaborazione **Offline** e **Online**. 
 
-La **fase offline** è propedeutica e dedicata alla preparazione dell'infrastruttura sui dati: partendo da una vasta **Document Collection**, il sistema esegue un processo di indicizzazione ("Indexing") per costruire un **Inverted Index**. Parallelamente, un processore estrae le caratteristiche dai testi (Feature Processor) per memorizzarle all'interno di una **Document Features Repository**. In questa fase viene anche effettuato il training di un modello di **Learning-to-rank**, sfruttando un insieme di dati di addestramento (Training Data). 
+La **fase offline** è dedicata alla preparazione dell'infrastruttura sui dati: partendo da una vasta **Document Collection**, il sistema esegue un processo di indicizzazione ("Indexing") per costruire un **Inverted Index**. Parallelamente, un processore estrae le caratteristiche dai testi (Feature Processor) per memorizzarle all'interno di una **Document Features Repository**. In questa fase viene anche effettuato il training di un modello di **Learning-to-rank**, sfruttando un insieme di dati di addestramento (Training Data). 
 
 Durante la **fase online**, il sistema processa in tempo reale la **Query** immessa dall'utente: quest'ultima viene innanzitutto espansa e passata al modulo di Query Processing, che consulta l'indice invertito. I documenti candidati passano poi a una fase di calcolo e recupero delle feature (Feature Lookup and Computation), per essere infine ordinati in base alla loro pertinenza da una **Learned Ranking Function** e presentati all'utente.
 
@@ -10,7 +10,7 @@ Durante la **fase online**, il sistema processa in tempo reale la **Query** imme
 
 ### Efficienza, Efficacia e la Misura della Soddisfazione
 
-La valutazione di un motore di ricerca parte da interrogativi di natura prettamente prestazionale. Dal punto di vista dell'efficienza, ci si interroga sulla velocità con cui il sistema indicizza la collezione (in numero di documenti elaborati per ora) e sulla sua capacità di eseguire un'indicizzazione incrementale, ad esempio assorbendo 10.000 nuovi prodotti al giorno. 
+La valutazione di un motore di ricerca parte da interrogativi di natura prettamente prestazionale. Dal punto di vista dell'**efficienza**, ci si interroga sulla velocità con cui il sistema indicizza la collezione (in numero di documenti elaborati per ora) e sulla sua capacità di eseguire un'indicizzazione incrementale, ad esempio assorbendo 10.000 nuovi prodotti al giorno. 
 
 Riguardo alla ricerca in sé, è fondamentale misurare la latenza e i requisiti di elaborazione della CPU necessari per elaborare query su indici di grandissime dimensioni, come collezioni da 5 milioni di documenti. Inoltre, si valuta la qualità dei servizi collaterali, verificando se il sistema è in grado di suggerire all'utente prodotti correlati validi per l'acquisto.
 
@@ -24,11 +24,11 @@ Ulteriori segnali forti di soddisfazione derivano da azioni concrete post-ricerc
 
 Essendo la felicità di natura elusiva e complessa da tracciare, il proxy più comune utilizzato nella valutazione accademica e industriale è la misurazione della **rilevanza dei risultati di ricerca**. Tale metodologia fu pionieristicamente introdotta da Cyril Cleverdon attraverso gli Esperimenti di Cranfield.
 
-La quantificazione formale della rilevanza richiede l'interazione di tre elementi imprescindibili: 
+La quantificazione formale della rilevanza richiede l'interazione di tre elementi: 
 
 - una collezione documentale di test (benchmark), 
 
-- una suite di query prefissate,  
+- un insieme di query prefissate,  
 
 - un giudizio formale che associ a ogni singola coppia query-documento un'etichetta di rilevanza o non-rilevanza. 
 
@@ -83,19 +83,6 @@ Il motivo matematico alla base di questa scelta risiede nel fatto che la media a
 
 Nei casi in cui il progettista intenda dare priorità mirata ad uno solo dei due indicatori asimmetrici, può fare affidamento su una formula di ponderazione definendo l'iperparametro $\beta$ attraverso l'equazione $\alpha = 1/(1+\beta^{2})$ che conferisce il peso $\alpha$ alla Precision e il suo complimento alla Recall. La **F-Measure pesata** si scriverà dunque in questo modo: $F_{\beta} = \frac{1}{\alpha\frac{1}{P} + (1-\alpha)\frac{1}{R}} = (\beta^{2}+1)\frac{PR}{\beta^{2}P+R}$ Ne consegue che, abbassando la frazione in modo che $\beta < 1$, si avvantaggerà lo studio e il peso della Precision (andandone in direzione convergente); mentre se si solleverà l'asticella cosicché $\beta > 1$, la priorità dell'equazione ricadrà forzatamente sulla Recall.
 
----
-
-### Glossario e Concetti Chiave
-
-- **Information Need vs Query**: Distinzione critica fra l'effettivo bisogno conoscitivo, di senso compiuto, dell'utente e le parole chiave semplificate che vengono infine digitate nell'interfaccia. La valutazione della rilevanza si aggancia metodologicamente al primo concetto.
-
-- **Relevance e Benchmark**: La pertinenza dei risultati ottenuti, che costituisce la proxy fondamentale della qualità. Viene analizzata incrociando Document Collection e Topic Query predefinite contro giudizi di pertinenza emessi (solitamente per via di meccanismi come il *Pooling* e il Crowdsourcing).
-
-- **Precision e Recall**: Le metriche fondanti relative a valutazioni binarie nei documenti recuperati dal software, le quali quantificano l'efficacia misurando la frazione di utilità ritornata (Precision) e la completezza delle fonti raccolte (Recall).
-
-- **F-Measure**: Media armonica che sintetizza Precision e Recall, progettata matematicamente per avvicinarsi e mettere in rilievo la stima minima, impedendo a variazioni eccessive di uno dei due poli di ingannare il voto prestazionale finale.
-
----
 
 ### Mean Average Precision (MAP)
 Per valutare la qualità dell'intero ranking restituito per una singola query, si utilizza l'**Average Precision (AP)**. Questa misura considera la posizione in classifica di ogni singolo documento pertinente man mano che la recall aumenta lungo la lista dei risultati. Più precisamente, si calcola la "Precision@K" esclusivamente nei punti $K_{1}, K_{2}, \dots, K_{R}$ in cui viene effettivamente incontrato un documento utile. Ad esempio, per una query che possiede in totale $R=3$ documenti rilevanti, i quali compaiono alle posizioni 1, 3 e 5 della classifica, l'AP si calcola sommando le precisioni in quei punti e dividendole per 3, ottenendo $\frac{1}{3}\cdot(\frac{1}{1}+\frac{2}{3}+\frac{3}{5})\approx0.76$.
@@ -114,7 +101,9 @@ Ci si potrebbe chiedere se metriche  come la MAP siano ottimali anche per la Web
 
 Per catturare questa dinamica si introduce la **Precision@K (P@K)**, che fissa una soglia di ranking $K$ e calcola semplicemente la percentuale di documenti pertinenti presenti nei primi $K$ risultati, ignorando tutto ciò che si trova al di sotto di tale soglia. Ad esempio, se tra i primi tre risultati ne abbiamo due rilevanti, la Prec@3 sarà $2/3=0.66$; se il quarto risultato è irrilevante, la Prec@4 scenderà a $2/4=0.5$, dimostrando come questa curva non sia strettamente monotona crescente (infatti Prec@4 è inferiore a Prec@3). Se il quinto è nuovamente rilevante, la Prec@5 risalirà a $3/5=0.6$. Analogamente si può calcolare la Recall@K.
 
-Il difetto principale della P@K è che non restituisce medie affidabili su un insieme eterogeneo di query, poiché il numero totale di documenti rilevanti specifici per ogni interrogazione influenza pesantemente i risultati. Per arginare il problema pur concentrandosi sui vertici delle classifiche, si ricorre alle metriche **AP@K** e **MAP@K**, ampiamente utilizzate nei Motori di Ricerca Web e nei Recommender Systems.
+Il difetto principale della P@K è che non restituisce medie affidabili su un insieme eterogeneo di query, poiché il numero totale di documenti rilevanti specifici per ogni interrogazione influenza pesantemente i risultati. 
+
+Per arginare il problema pur concentrandosi sui vertici delle classifiche, si ricorre alle metriche **AP@K** e **MAP@K**, ampiamente utilizzate nei Motori di Ricerca Web e nei Recommender Systems.
 La formula per l'Average Precision al rango K per una determinata query $q_i$ è: $AP@K(q_{i})=\frac{1}{K_{i}}\sum_{k=1}^{K}P@k(q_{i})\cdot rel(q_{i},k)$ 
 
 Dove $rel(q_{i},k)$ vale $1$ se l'elemento al k-esimo rango è rilevante, altrimenti $0$, e il fattore di normalizzazione è $K_{i}=\sum_{k=1}^{K}rel(q_{i},k)$.
@@ -133,7 +122,7 @@ Per misurare formalmente questo sforzo si utilizza il **Mean Reciprocal Rank (MR
 
 Nei moderni motori di ricerca commerciali, i documenti non sono semplicemente utili o inutili, ma possiedono sfumature di utilità.
 
-Per gestire questa gradualità, la metrica più diffusa è il **Discounted Cumulative Gain (DCG)**. Essa poggia su due assunti cognitivi fondamentali: in primo luogo, i documenti altamente pertinenti sono intrinsecamente più utili rispetto a quelli marginalmente pertinenti; in secondo luogo, più un documento rilevante scivola in basso nella classifica, meno probabilità avrà di essere esaminato, risultando di conseguenza meno utile.
+Per gestire questa gradualità, la metrica più diffusa è il **Discounted Cumulative Gain (DCG)**. Essa poggia su due assunzioni cognitive fondamentali: in primo luogo, i documenti altamente pertinenti sono intrinsecamente più utili rispetto a quelli marginalmente pertinenti; in secondo luogo, più un documento rilevante scivola in basso nella classifica, meno probabilità avrà di essere esaminato, risultando di conseguenza meno utile.
 
 Il DCG accumula il guadagno o utilità ("gain") scendendo lungo le posizioni della classifica, applicando però una "penalità" progressiva ai ranghi più bassi (lo sconto, o "discount"). 
 
@@ -161,24 +150,4 @@ Di seguito una tabella riassuntiva che mostra il confronto diretto tra il Ground
 ![](assets/2026-04-09-15-29-26-image.png)
 
 Come si evince, il $MaxDCG$ (cioè l'Ideal DCG del Ground Truth) è pari a $4.6309$. La Ranking Function 1, seppur invertendo l'ordine dei due documenti con rilevanza massima 2 (d4 e d3), ottiene anch'essa un $DCG$ perfetto di $4.6309$, e quindi un NDCG di $1.00$. La Ranking Function 2, invece, inserendo un documento meno rilevante al rango 2, vede il suo punteggio abbassarsi a $4.2619$, ottenendo di conseguenza un NDCG normalizzato di $0.9203$.
-
-### Ricapitolazione
-
-In sintesi, i benchmark per la valutazione in ambito Information Retrieval necessitano strutturalmente di una Document collection, un Query set (i topic), e una Assessment methodology chiara. Questa metodologia può affidarsi a revisori umani, all'analisi dei clic degli utenti, o a sistemi ibridi. I giudizi estratti vengono infine quantizzati matematicamente all'interno di misure di bontà (come Precision o NDCG), le quali permettono alla comunità scientifica e industriale di confrontare le prestazioni di differenti motori e algoritmi su un terreno empirico unificato e standardizzato.
-
----
-
-### Glossario e Concetti Chiave
-
-- **Mean Average Precision (MAP)**: Metrica riassuntiva che calcola la media aritmetica dell'Average Precision su un insieme di query, adatta per rilevanze binarie. Ha la caratteristica di pesare equamente tutte le query analizzate (macro-averaging).
-
-- **Precision@K e MAP@K**: Varianti delle metriche classiche ritagliate sulle necessità dei Motori di Web Search, focalizzandosi esclusivamente sulla densità di risultati utili all'interno di una determinata soglia $K$ (come i primi 10 risultati su schermo), ignorando le code di basso rango.
-
-- **Mean Reciprocal Rank (MRR)**: Misura dello sforzo utente, si applica prevalentemente su scenari dove esiste o interessa un unico risultato corretto. Dipende direttamente dal reciproco della posizione in classifica del primo documento trovato.
-
-- **Discounted Cumulative Gain (DCG)**: Metrica avanzata che abbandona la logica binaria, introducendo scale di rilevanza graduali. Il suo assunto logico penalizza matematicamente tramite un abbattimento logaritmico l'utilità di un testo man mano che esso viene scalzato in fondo ai risultati.
-
-- **Normalized DCG (NDCG)**: Correttivo del DCG nato per rendere compatibili tra loro query eterogenee. Costringe l'esito frazionando il risultato reale per un "Ideal DCG" teorico, calcolato supponendo di aver ordinato i risultati dal più al meno influente.
-
----
 
